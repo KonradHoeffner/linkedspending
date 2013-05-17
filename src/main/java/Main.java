@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.cybozu.labs.langdetect.LangDetectException;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -41,6 +42,8 @@ public class Main
 		CacheManager.getInstance().addCacheIfAbsent("openspending-json");
 	}
 	static final Cache cache = CacheManager.getInstance().getCache("openspending-json");
+	//	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
+	private static final int	MAX_ENTRIES	= 30;
 
 	static public class QB
 	{
@@ -51,8 +54,8 @@ public class Main
 		static final Property component = ResourceFactory.createProperty(qb+"component");
 		static final Resource DimensionProperty = ResourceFactory.createResource(qb+"DimensionProperty");
 		static final Resource MeasureProperty = ResourceFactory.createResource(qb+"MeasureProperty");
-		static final Resource AttributeProperty = ResourceFactory.createResource(qb+"MeasureProperty");
-		
+		static final Resource AttributeProperty = ResourceFactory.createResource(qb+"AttributeProperty");
+
 		static final Property structure = ResourceFactory.createProperty(qb+"structure");
 		static final Property componentProperty = ResourceFactory.createProperty(qb+"componentProperty");
 		static final Property dimension = ResourceFactory.createProperty(qb+"dimension");
@@ -60,12 +63,14 @@ public class Main
 		static final Property attribute = ResourceFactory.createProperty(qb+"attribute");
 		static final Property concept = ResourceFactory.createProperty(qb+"concept");
 		static final Resource Observation	= ResourceFactory.createResource(qb+"Observation");
+		static final Resource Slice	= ResourceFactory.createResource(qb+"Slice");
+		public static final Property	slice	= ResourceFactory.createProperty(qb+"slice");;
 	}
 
 	static public class SDMXDIMENSION
 	{
 		static final String sdmxDimension = "http://purl.org/linked-data/sdmx/2009/dimension#";
-//		static final Property refPeriod = ResourceFactory.createProperty(sdmx+"refPeriod");
+		//		static final Property refPeriod = ResourceFactory.createProperty(sdmx+"refPeriod");
 		static final Property refTime = ResourceFactory.createProperty(sdmxDimension+"refTime");		
 	}
 
@@ -74,7 +79,13 @@ public class Main
 		static final String sdmxMeasure = "http://purl.org/linked-data/sdmx/2009/measure#";
 		static final Property obsValue = ResourceFactory.createProperty(sdmxMeasure+"obsValue");		
 	}
-	
+
+	static public class SDMXATTRIBUTE
+	{
+		static final String sdmxAttribute = "http://purl.org/linked-data/sdmx/2009/attribute#";
+		static final Property currency = ResourceFactory.createProperty(sdmxAttribute+"currency");		
+	}
+
 	static public class SDMXCONCEPT
 	{
 		static final String sdmxConcept = "http://purl.org/linked-data/sdmx/2009/concept#";
@@ -82,65 +93,64 @@ public class Main
 		static final Property refPeriod = ResourceFactory.createProperty(sdmxConcept+"refPeriod");
 		static final Property timePeriod = ResourceFactory.createProperty(sdmxConcept+"timePeriod");
 	}
-	
+
 	static public class XmlSchema
 	{
 		static final String xmlSchema = "http://purl.org/linked-data/sdmx/2009/dimension#";
 		static final Property gYear = ResourceFactory.createProperty(xmlSchema+"gYear");
 	}	
 
-static void createViews()
-{
-	// TODO: implement
-}
+	static void createViews()
+	{
+		// TODO: implement
+	}
 
-@Nullable static String cleanString(String s)
-{
-	if("null".equals(s)) return null;
-	return s;
-}
-	
-	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
-	 * @param currency 3 character currency code, may be null*/
-	static Set<ComponentProperty> createComponents(JSONObject mapping, Model model,Resource dataset, Resource dsd,@Nullable String currency) throws MalformedURLException, IOException, JSONException
+	@Nullable static String cleanString(String s)
+	{
+		if("null".equals(s)) return null;
+		return s;
+	}
+
+	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.*/
+	static Set<ComponentProperty> createComponents(JSONObject mapping, Model model,Resource dataset, Resource dsd) throws MalformedURLException, IOException, JSONException
 	{
 		Set<ComponentProperty> componentProperties = new HashSet<>();
-//		JSONArray dimensionArray = readJSONArray(url);		
-		
+		//		JSONArray dimensionArray = readJSONArray(url);		
+
 		for(Iterator<String> it = mapping.sortedKeys(); it.hasNext();)
 		{
-//			JSONObject dimJson = dimensionArray.getJSONObject(i);
+			//			JSONObject dimJson = dimensionArray.getJSONObject(i);
 			String key = it.next();
 			JSONObject componentJson = mapping.getJSONObject(key);
-			
-//			String name = cleanString(componentJson.getString("name"));
-			
+
+			//			String name = cleanString(componentJson.getString("name"));
+
 			String name = key;
 			String type = cleanString(componentJson.getString("type"));
 			assert type!=null;
 			String label = cleanString(componentJson.getString("label"));
 			String description = cleanString(componentJson.getString("description"));
-			
-//			String componentPropertyUrl = componentJson.getString("html_url");
+
+			//			String componentPropertyUrl = componentJson.getString("html_url");
 			String componentPropertyUrl = dataset.getURI()+'/'+name;
 			Resource componentSpecification = model.createResource(componentPropertyUrl+"/componentSpecification");//TODO: improve url
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
-		
+
 			// backlink
 			model.add(dsd, QB.component, componentSpecification);
-		
+
 
 			model.add(componentProperty, RDF.type, RDF.Property);
-			
+
 			if(label!=null) {model.add(componentProperty,RDFS.label,label);}
 			else
 			{
 				label = name;
 				if(label!=null) {model.add(componentProperty,RDFS.label,label);}
 			}
-			
+
 			if(description!=null) {model.add(componentProperty,RDFS.comment,description);}							
-									
+
 			switch(type)
 			{
 				case "date":
@@ -148,10 +158,10 @@ static void createViews()
 					// it's a dimension
 					model.add(componentSpecification, QB.dimension, componentProperty);
 					model.add(componentProperty, RDF.type, QB.DimensionProperty);
-					
+
 					model.add(componentProperty, RDFS.subPropertyOf,SDMXDIMENSION.refTime);
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.DATE));
-					
+
 					// concept
 					model.add(componentProperty, QB.concept,SDMXCONCEPT.timePeriod);  
 					//						if()
@@ -159,70 +169,46 @@ static void createViews()
 					break;
 				}
 				case "compound":
-					{
-						// it's a dimension
-						model.add(componentSpecification, QB.dimension, componentProperty);
-						model.add(componentProperty, RDF.type, QB.DimensionProperty);
-						//						assertTrue(); TODO: assert that the "attributes" of the json are always "name" and "label"
-						componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.COMPOUND));
-						//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???); 
-						break;
-					}
+				{
+					// it's a dimension
+					model.add(componentSpecification, QB.dimension, componentProperty);
+					model.add(componentProperty, RDF.type, QB.DimensionProperty);
+					//						assertTrue(); TODO: assert that the "attributes" of the json are always "name" and "label"
+					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.COMPOUND));
+					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???); 
+					break;
+				}
 				case "measure":
-					{
-						model.add(componentSpecification, QB.measure, componentProperty);
-						model.add(componentProperty, RDF.type, QB.MeasureProperty);
+				{
+					model.add(componentSpecification, QB.measure, componentProperty);
+					model.add(componentProperty, RDF.type, QB.MeasureProperty);
 
-						componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.MEASURE));
-						//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
-						break;
-					}
+					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.MEASURE));
+					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					break;
+				}
 				case "attribute":
-					{
-						// TODO: attribute the same meaning as in DataCube?
-						model.add(componentSpecification, QB.attribute, componentProperty);
-						model.add(componentProperty, RDF.type, QB.AttributeProperty);
+				{
+					// TODO: attribute the same meaning as in DataCube?
+					model.add(componentSpecification, QB.attribute, componentProperty);
+					model.add(componentProperty, RDF.type, QB.AttributeProperty);
 
-						componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.ATTRIBUTE));
-						//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
-						break;
-					}
+					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.ATTRIBUTE));
+					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					break;
+				}
 				default: throw new RuntimeException("unkown type: "+type+"of mapping element "+componentJson);
 			}			
 		}
-		if(currency!=null)
-		{
-//			Resource amountComponent = model.createResource(url.toString().replace("/dimensions.json","")+"/amount");
-//			model.add(dsd, QB.component, amountComponent);
-//			
-//			Resource amountMeasure = model.createResource(url.toString().replace("/dimensions.json","")+"/amount");
-//			model.add(amountComponent, QB.measure, amountMeasure);
-//			model.addLiteral(amountMeasure, RDFS.label,model.createLiteral("amount","en"));
-//			model.add(amountMeasure, RDF.type, RDF.Property);
-//			model.add(amountMeasure, RDF.type, QB.MeasureProperty);
-//			model.add(amountMeasure, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
-//			model.add(amountMeasure, RDFS.range,XSD.decimal);
 
-			Resource currencyComponent = model.createResource(dataset.getURI()+"/component/currency");
-			model.add(dsd, QB.component, currencyComponent);
-			Property currencyAttribute = model.createProperty(dataset.getURI()+"/attribute/currency");
-			model.add(currencyComponent, QB.attribute, currencyAttribute);
-			
-			model.addLiteral(currencyAttribute, RDFS.label,model.createLiteral("currency"));
-			model.add(currencyAttribute, RDF.type, RDF.Property);
-			model.add(currencyAttribute, RDF.type, QB.MeasureProperty);
-			model.add(currencyAttribute, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
-			model.add(currencyAttribute, RDFS.range,XSD.decimal);
-
-		}
 		return componentProperties;
 	}
 
 	/** @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
 	 * @param componentProperties the dimensions which are expected to be values for in all entries. */
-	static void createEntries(URL url, Model model, Resource dataSet, Set<ComponentProperty> componentProperties) throws MalformedURLException, IOException, JSONException
+	static void createEntries(JSONObject entries, Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException, JSONException
 	{
-		JSONObject entries = readJSON(url);
+		//		JSONObject entries = readJSON(url);
 		JSONArray results = entries.getJSONArray("results");
 		for(int i=0;i<results.length();i++)
 		{
@@ -232,41 +218,46 @@ static void createViews()
 			model.add(observation, RDF.type, QB.Observation);
 
 			for(ComponentProperty d: componentProperties)
-			{
-				System.out.println(d);
+			{				
 				try
 				{
 					switch(d.type)
 					{
 						case COMPOUND:
-						{
+						{						 
 							JSONObject jsonDim = result.getJSONObject(d.name);
+							Resource instance = model.createResource(jsonDim.getString("html_url"));
+
+							if(jsonDim.has("label")) {model.addLiteral(instance,RDFS.label,model.createLiteral(jsonDim.getString("label")));}
+							else	{System.err.println("no label for dimension "+d.name+" instance "+instance);}
+							model.add(observation,d.property,instance);
+
 							break;
 						}
 						case ATTRIBUTE:
 						{
-//							JSONObject jsonDim = result.getJSONObject(d.name);
-							String attribute = result.getString(d.name);
+							String s = result.getString(d.name);
+							model.addLiteral(observation,d.property,model.createLiteral(s));			
 							break;
 						}
 						case MEASURE:
 						{
 							String s = result.getString(d.name);
 							model.addLiteral(observation,d.property,model.createLiteral(s));			
-							
+
 							break;
 						}
 						case DATE:
 						{
 							JSONObject jsonDate = result.getJSONObject(d.name);
-//							String week = date.getString("week");
+							//							String week = date.getString("week");
 							String year = jsonDate.getString("year");
 							String month = jsonDate.getString("month");
 							String day = jsonDate.getString("day");							
-							model.addLiteral(observation,SDMXDIMENSION.refTime,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));							
-						}						
+							model.addLiteral(observation,d.property,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));							
+						}
 					}
-					
+
 				}
 				catch(Exception e)
 				{
@@ -300,6 +291,10 @@ static void createViews()
 			//				case "measure":return;
 			//				case "attribute":return;
 			//			}
+			if(currencyLiteral!=null)
+			{				
+				model.addLiteral(observation, SDMXATTRIBUTE.currency, currencyLiteral);				
+			}
 		}			
 	}
 
@@ -358,28 +353,44 @@ static void createViews()
 	static void createDataset(URL url,Model model) throws JSONException, IOException, LangDetectException
 	{				
 		System.out.println(url);
-		JSONObject datasetJson = readJSON(new URL(url.toString()+".json"));
-		String currency = null;
+		JSONObject datasetJson = readJSON(new URL(url.toString()+".json"));		
+		Resource dataSet = model.createResource(url.toString());	
+		Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
+		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
+		Literal currencyLiteral = null;
+
 		if(datasetJson.has("currency"))
 		{
-			// TODO: do something with this
-			currency = datasetJson.getString("currency");	
+			String currency = datasetJson.getString("currency");
+			currencyLiteral = model.createLiteral(currency);
+			Resource currencyComponent = model.createResource(dataSet.getURI()+"/component/currency");
+			model.add(dsd, QB.component, currencyComponent);			
+
+			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
+			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
+			model.add(SDMXATTRIBUTE.currency, RDF.type, RDF.Property);
+			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
+			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
+			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
+
 		}
-		Resource dataSet = model.createResource(url.toString());
-		Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
-		Set<ComponentProperty> componentProperties = createComponents(readJSON(new URL(url+"/model")).getJSONObject("mapping"), model,dataSet, dsd,currency);
-				
+
+		Set<ComponentProperty> componentProperties = createComponents(readJSON(new URL(url+"/model")).getJSONObject("mapping"), model,dataSet, dsd);
+
 		model.add(dataSet, RDF.type, QB.DataSet);
 		model.add(dataSet, QB.structure, dsd);
-		createEntries(new URL(url+"/entries.json"), model, dataSet,componentProperties);
+		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
+		JSONObject entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName));
+		createEntries(entries, model, dataSet,componentProperties,currencyLiteral);
+		createViews(new URL(url+"/views"),model,dataSet);
 		List<String> languages = jsonArrayToStringList(datasetJson.getJSONArray("languages"));
 		List<String> territories = jsonArrayToStringList(datasetJson.getJSONArray("territories"));		
 
 		String label = datasetJson.getString("label");
 		String description = datasetJson.getString("description");
-		
-		
-		
+
+
+
 		// doesnt work well enough
 		//		// guess the language for the language tag
 		//		// we assume that label and description have the same language
@@ -397,12 +408,31 @@ static void createViews()
 		//		System.out.println("Converting dataset "+url);
 	}
 
+	/** @param url	 e.g. http://openspending.org/cameroon_visualisation/views (.json will be added internally)*/
+	public static void createViews(URL url,Model model, Resource dataSet) throws MalformedURLException, IOException, JSONException
+	{	
+		JSONArray views = readJSONArray(new URL(url+".json"));
+		for(int i=0;i<views.length();i++)
+		{
+			JSONObject jsonView = views.getJSONObject(i);
+			String name = jsonView.getString("name");
+			Resource view = model.createResource(url+"/"+name);
+			model.add(view,RDF.type,QB.Slice);
+			model.add(dataSet,QB.slice,view);
+			String label = jsonView.getString("label");
+			String description = jsonView.getString("description");
+			model.add(view, RDFS.label, label);
+			model.add(view, RDFS.comment, description);
+		}
+		
+	}
+	
 	public static String readJSONString(URL url) throws MalformedURLException, IOException	
 	{		
 		System.out.println(cache.getKeys());
 		Element e = cache.get(url.toString());
 		if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
-//		System.out.println("cache miss for "+url.toString());
+		//		System.out.println("cache miss for "+url.toString());
 		try(Scanner scanner = new Scanner(url.openStream(), "UTF-8"))
 		{
 			String datasetsJsonString = scanner.useDelimiter("\\A").next();			
@@ -432,6 +462,8 @@ static void createViews()
 		return l;
 	}
 
+
+	
 	public static void main(String[] args) throws MalformedURLException, IOException, JSONException, LangDetectException
 	{
 		//		DetectorFactory.loadProfile("languageprofiles");
@@ -440,25 +472,28 @@ static void createViews()
 		model.setNsPrefix("os", OS);
 		model.setNsPrefix("sdmx-subject",	"http://purl.org/linked-data/sdmx/2009/subject#");
 		model.setNsPrefix("sdmx-dimension",	"http://purl.org/linked-data/sdmx/2009/dimension#");
+		model.setNsPrefix("sdmx-attribute",	"http://purl.org/linked-data/sdmx/2009/attribute#");
+		model.setNsPrefix("sdmx-measure",	"http://purl.org/linked-data/sdmx/2009/measure#");
 		model.setNsPrefix("rdfs",RDFS.getURI());
 		model.setNsPrefix("rdf",RDF.getURI());
-		model.setNsPrefix("xsd",XSD.getURI());		
-            
-		//		JSONObject datasets = readJSON(new URL(DATASETS));
-		//		JSONArray datasetArray =  datasets.getJSONArray("datasets");
-		//		for(int i=0;i<datasetArray.length();i++)
-		//		{
-		//			JSONObject datasetJson = datasetArray.getJSONObject(i);
-		//			URL url = new URL(datasetJson.getString("html_url"));
-//		URL url = new URL("http://openspending.org/berlin_de");
-		URL url = new URL("http://openspending.org/bmz-activities");
+		model.setNsPrefix("xsd",XSD.getURI());
+
+		JSONObject datasets = readJSON(new URL(DATASETS));
+		JSONArray datasetArray =  datasets.getJSONArray("datasets");
+//		for(int i=0;i<datasetArray.length();i++)
+//		{
+//			JSONObject dataSetJson = datasetArray.getJSONObject(i);
+//			URL url = new URL(dataSetJson.getString("html_url"));					
+			URL url = new URL("http://openspending.org/cameroon_visualisation");
+//			URL url = new URL("http://openspending.org/berlin_de");
+			//		URL url = new URL("http://openspending.org/bmz-activities");
 		
-		createDataset(url,model);			
-		//			if(i>0) break;
-		//		}
-		File folder = new File("output");
-		folder.mkdir();		
-		model.write(new PrintWriter(folder+"/"+url.toString().substring(url.toString().lastIndexOf('/')+1)+".ttl"),"TURTLE",null);
+			createDataset(url,model);			
+			//			if(i>0) break;
+			File folder = new File("output");
+			folder.mkdir();		
+			model.write(new PrintWriter(folder+"/"+url.toString().substring(url.toString().lastIndexOf('/')+1)+".ttl"),"TURTLE",null);
+//		}
 		CacheManager.getInstance().shutdown();
 	}
 }
