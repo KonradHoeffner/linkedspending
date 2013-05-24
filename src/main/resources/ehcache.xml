@@ -1,8 +1,9 @@
 <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../config/ehcache.xsd">
    
     <diskStore path="cache"/>
+<!--             maxElementsInMemory="3" -->
     <defaultCache
-            maxElementsInMemory="10000"
+            maxBytesLocalHeap="100000000"
             eternal="true"
             diskPersistent="true"
             maxElementsOnDisk="10000000"
