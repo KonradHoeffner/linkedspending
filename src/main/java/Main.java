@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
@@ -36,13 +37,15 @@ import com.hp.hpl.jena.vocabulary.XSD;
 @Log
 public class Main
 {
+	// TODO : use Jackson or gson
+	static final boolean USE_CACHE = true;
 	static final String DATASETS = "http://openspending.org/datasets.json";
 	static final String OS = "http://openspending.org/";
 	//	static final boolean CACHING = true;
 	static {
-		CacheManager.getInstance().addCacheIfAbsent("openspending-json");
+		if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
 	}
-	static final Cache cache = CacheManager.getInstance().getCache("openspending-json");
+	static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
 	//	private static final int	MAX_ENTRIES	= 30;
 	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
@@ -327,10 +330,9 @@ public class Main
 	//	}
 	/** @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
 	 * @param componentProperties the dimensions which are expected to be values for in all entries. */
-	static void createEntries(JSONObject entries, Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException, JSONException
+	static void createEntries(JSONArray results, Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException, JSONException
 	{
-		//		JSONObject entries = readJSON(url);
-		JSONArray results = entries.getJSONArray("results");
+		//		JSONObject entries = readJSON(url);		
 		for(int i=0;i<results.length();i++)
 		{
 			JSONObject result = results.getJSONObject(i);
@@ -339,13 +341,13 @@ public class Main
 			model.add(observation, RDF.type, QB.Observation);
 
 			for(ComponentProperty d: componentProperties)
-			{				
+			{
 				try
 				{
 					switch(d.type)
 					{
 						case COMPOUND:
-						{						 
+						{
 							JSONObject jsonDim = result.getJSONObject(d.name);
 							Resource instance = model.createResource(jsonDim.getString("html_url"));
 
@@ -382,7 +384,7 @@ public class Main
 				}
 				catch(Exception e)
 				{
-					cache.getCacheManager().shutdown();
+					if(USE_CACHE) {cache.getCacheManager().shutdown();}
 					throw new RuntimeException("problem with componentproperty "+d.name+": "+observation,e);
 				} 
 			}
@@ -426,7 +428,7 @@ public class Main
 	 */
 	static Resource createDataStructureDefinition(final URL url,Model model) throws MalformedURLException, IOException, JSONException
 	{		
-		log.fine("Creating DSD");
+		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
 		model.add(dsd, RDF.type, QB.DataStructureDefinition);
 		JSONObject dsdJson = readJSON(url);
@@ -502,9 +504,16 @@ public class Main
 		model.add(dataSet, RDF.type, QB.DataSet);
 		model.add(dataSet, QB.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
-
+		
+		{
+		log.fine("loading entries");
 		JSONObject entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName));
-		createEntries(entries, model, dataSet,componentProperties,currencyLiteral);
+		log.fine("extracting results");
+		JSONArray results = entries.getJSONArray("results");
+		log.fine("finished loading entries, creating entries");
+		createEntries(results, model, dataSet,componentProperties,currencyLiteral);
+		log.fine("finished creating entries");
+		}
 		createViews(new URL(url+"/views"),model,dataSet);
 		List<String> languages = jsonArrayToStringList(datasetJson.getJSONArray("languages"));
 		List<String> territories = jsonArrayToStringList(datasetJson.getJSONArray("territories"));		
@@ -550,8 +559,11 @@ public class Main
 	public static String readJSONString(URL url) throws MalformedURLException, IOException, JSONException	
 	{
 		//		System.out.println(cache.getKeys());
-		Element e = cache.get(url.toString());
-		if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
+		if(USE_CACHE)
+		{
+			Element e = cache.get(url.toString());
+			if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
+		}
 		//		System.out.println("cache miss for "+url.toString());
 		try(Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
 		{
@@ -560,7 +572,7 @@ public class Main
 				String datasetsJsonString = scanner.next();
 				char firstChar = datasetsJsonString.charAt(0);
 				if(!(firstChar=='{'||firstChar=='[')) {throw new JSONException("JSON String for URL "+url+" seems to be invalid.");}
-				cache.put(new Element(url.toString(), datasetsJsonString));
+				if(USE_CACHE) {cache.put(new Element(url.toString(), datasetsJsonString));}
 				//IfAbsent			
 				return datasetsJsonString;			
 			}
@@ -612,7 +624,8 @@ public class Main
 	public static void main(String[] args) throws MalformedURLException, IOException, JSONException, LangDetectException, Exception
 	{
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-		try { LogManager.getLogManager().readConfiguration(); } catch ( Exception e ) { e.printStackTrace();}
+		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINE);} catch ( Exception e ) { e.printStackTrace();}
+		
 		try
 		{
 			// TODO: parallelize
@@ -623,7 +636,7 @@ public class Main
 			int notexisting = 0;
 			int i;
 			//			for(i=0;i<Math.min(datasetArray.length(),10);i++)
-			for(i=87;i<datasetArray.length();i++)
+			for(i=129;i<datasetArray.length();i++)
 			{
 				Model model = newModel();
 				Map<String,Property> componentPropertyByName = new HashMap<>();
