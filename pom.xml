@@ -1,52 +1,64 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.aksw</groupId>
-  <artifactId>openspending2rdf</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>openspending2rdf</name>
-  <description>transformation of the openspending budget data from online json and csv to rdf for a dataset description publication</description>
-  <properties>
-  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  <maven.compiler.source>1.7</maven.compiler.source>
-  <maven.compiler.target>1.7</maven.compiler.target>
-</properties>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.aksw</groupId>
+	<artifactId>openspending2rdf</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>openspending2rdf</name>
+	<description>transformation of the openspending budget data from online json and csv to rdf for a dataset description publication</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+	</properties>
 
-<dependencies>
- <dependency>
-	<groupId>org.json</groupId>
-	<artifactId>json</artifactId>
-	<version>20090211</version>
-</dependency>
-            <dependency>
-	<groupId>net.sf.ehcache</groupId>
-	<artifactId>ehcache</artifactId>
-	<version>2.7.0</version>
-</dependency>
- <dependency> <groupId>org.projectlombok</groupId> <artifactId>lombok</artifactId> <version>0.11.8</version> <scope>provided</scope> </dependency>
-    <dependency>
-	<groupId>com.cybozu.labs</groupId>
-	<artifactId>langdetect</artifactId>
-	<version>1.1-20120112</version>
-</dependency>
+	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.2.2</version>
+		</dependency>
 
-<dependency>
- <groupId>org.eclipse.jdt</groupId>
-  <artifactId>org.eclipse.jdt.annotation</artifactId>
-  <version>1.0.1</version>
-</dependency>
-     <dependency>
-    <groupId>org.apache.jena</groupId>
-    <artifactId>apache-jena-libs</artifactId>
-    <type>pom</type>
-  <version>2.10.0</version>
-  </dependency>
-</dependencies>
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>0.11.8</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.cybozu.labs</groupId>
+			<artifactId>langdetect</artifactId>
+			<version>1.1-20120112</version>
+		</dependency>
 
-<repositories>
-<repository>
-<id>m2test</id>
-<url>http://build.eclipse.org/tools/objectteams/m2test</url>
-</repository>
+		<dependency>
+			<groupId>org.eclipse.jdt</groupId>
+			<artifactId>org.eclipse.jdt.annotation</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<type>pom</type>
+			<version>2.10.0</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>m2test</id>
+			<url>http://build.eclipse.org/tools/objectteams/m2test</url>
+		</repository>
 		<repository>
 			<id>maven.aksw.internal</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
@@ -64,28 +76,28 @@
 			<url>https://repository.apache.org/content/repositories/releases/</url>
 		</repository>
 	</repositories>
-	  <build>
-	<plugins>
-	<plugin>
-  <groupId>org.apache.maven.plugins</groupId>
-  <artifactId>maven-compiler-plugin</artifactId>
- <version>2.5.1</version>
-  <configuration>
-    <source>${maven.compiler.source}</source>
-    <target>${maven.compiler.target}</target>
-    <encoding>${project.build.sourceEncoding}</encoding>    
-      <fork>true</fork>      
-    </configuration>
-  </plugin>  
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<fork>true</fork>
+				</configuration>
+			</plugin>
 
- <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-eclipse-plugin</artifactId>
-        <configuration>
-          <!-- <downloadSources>true</downloadSources> -->
-          <downloadJavadocs>true</downloadJavadocs>
-        </configuration>
-      </plugin>
-	</plugins>
-	  </build>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<!-- <downloadSources>true</downloadSources> -->
+					<downloadJavadocs>true</downloadJavadocs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

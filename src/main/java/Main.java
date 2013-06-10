@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.extern.java.Log;
@@ -19,10 +20,11 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import com.cybozu.labs.langdetect.LangDetectException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -37,9 +39,10 @@ import com.hp.hpl.jena.vocabulary.XSD;
 @Log
 public class Main
 {
-	// TODO : use Jackson or gson
+	static ObjectMapper m = new ObjectMapper();
+
 	static final boolean USE_CACHE = true;
-	static final String DATASETS = "http://openspending.org/datasets.json";
+	public static final String DATASETS = "http://openspending.org/datasets.json";
 	static final String OS = "http://openspending.org/";
 	//	static final boolean CACHING = true;
 	static {
@@ -117,27 +120,27 @@ public class Main
 	}
 
 	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.*/
-	static Set<ComponentProperty> createComponents(JSONObject mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName)
-			throws MalformedURLException, IOException, JSONException
+	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName)
+			throws MalformedURLException, IOException
 			{
 		Set<ComponentProperty> componentProperties = new HashSet<>();
-		//		JSONArray dimensionArray = readJSONArray(url);		
+		//		ArrayNode dimensionArray = readArrayNode(url);		
 
-		for(Iterator<String> it = mapping.sortedKeys(); it.hasNext();)
+		for(Iterator<String> it = mapping.fieldNames();it.hasNext();)
 		{
-			//			JSONObject dimJson = dimensionArray.getJSONObject(i);
+			//			JsonNode dimJson = dimensionArray.get(i);
 			String key = it.next();
-			JSONObject componentJson = mapping.getJSONObject(key);
+			JsonNode componentJson = mapping.get(key);
 
-			//			String name = cleanString(componentJson.getString("name"));
+			//			String name = cleanString(componentJson.get("name"));
 
 			String name = key;
-			String type = cleanString(componentJson.getString("type"));
+			String type = cleanString(componentJson.get("type").asText());
 			assert type!=null;
-			String label = cleanString(componentJson.getString("label"));
-			String description = cleanString(componentJson.getString("description"));
+			String label = cleanString(componentJson.get("label").asText());
+			String description = cleanString(componentJson.get("description").asText());
 
-			//			String componentPropertyUrl = componentJson.getString("html_url");
+			//			String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl = dataset.getURI()+'/'+name;
 			Resource componentSpecification = model.createResource(componentPropertyUrl+"/componentSpecification");//TODO: improve url
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
@@ -210,23 +213,23 @@ public class Main
 		return componentProperties;
 			}
 
-	//	static void createViews(URL url, Model model) throws MalformedURLException, IOException, JSONException
+	//	static void createViews(URL url, Model model) throws MalformedURLException, IOException
 	//	{
-	//		JSONArray views = readJSONArray(new URL(url+".json"));
+	//		ArrayNode views = readArrayNode(new URL(url+".json"));
 	//		for(int i=0;i<views.length();i++)
 	//		{
-	//			JSONObject view = views.getJSONObject(i);
+	//			JsonNode view = views.get(i);
 	//
-	//			String name = view.getString("name");
-	//			String label = view.getString("label");
-	//			String description = view.getString("description");
+	//			String name = view.get("name");
+	//			String label = view.get("label");
+	//			String description = view.get("description");
 	//
-	//			JSONObject state = view.getJSONObject("state");			
-	//			String year = state.getString("year"); // TODO: what to do with the year?
+	//			JsonNode state = view.get("state");			
+	//			String year = state.get("year"); // TODO: what to do with the year?
 	//			Integer.valueOf(year); // throws an exception if its not an integer
 	//
-	//			JSONObject cuts = state.getJSONObject("cuts");
-	//			List<String> drilldowns = jsonArrayToStringList(state.getJSONArray("drilldowns"));
+	//			JsonNode cuts = state.get("cuts");
+	//			List<String> drilldowns = ArrayNodeToStringList(state.getArrayNode("drilldowns"));
 	//
 	//			Resource slice = model.createResource(url+"/slice/"+name);
 	//			{
@@ -244,7 +247,7 @@ public class Main
 	//				for(Iterator<String> it = cuts.keys(); it.hasNext();)
 	//				{
 	//					String dimensionName = it.next();
-	//					String dimensionValue = cuts.getString(dimensionName);
+	//					String dimensionValue = cuts.get(dimensionName);
 	//					model.add(sliceKey,QB.componentProperty,componentPropertyByName.get(dimensionName));
 	//					model.add(slice,componentPropertyByName.get(dimensionName),dimensionValue);
 	//				}
@@ -255,25 +258,25 @@ public class Main
 	//		}
 	//	}
 
-	static void createCodeLists(JSONArray views, Model model) throws MalformedURLException, IOException, JSONException
+	static void createCodeLists(ArrayNode views, Model model) throws MalformedURLException, IOException
 	{
-		for(int i=0;i<views.length();i++)
-		{
-		}
+		//		for(int i=0;i<views.length();i++)
+		//		{
+		//		}
 	}
 
-	//	static void createViews(URL datasetUrl, JSONArray views, Model model,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException, JSONException
+	//	static void createViews(URL datasetUrl, ArrayNode views, Model model,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException
 	//	{		
 	//		for(int i=0;i<views.length();i++)
 	//		{
-	//			JSONObject view = views.getJSONObject(i);
-	//			String entity = view.getString("entity");			
-	//			String name = view.getString("name");
-	//			String drilldownName = view.getString("drilldown");
+	//			JsonNode view = views.get(i);
+	//			String entity = view.get("entity");			
+	//			String name = view.get("name");
+	//			String drilldownName = view.get("drilldown");
 	//			Property drilldownProperty = componentPropertyByName.get("drilldown");
 	//
-	//			String label = view.getString("label");
-	//			String description = view.getString("description");
+	//			String label = view.get("label");
+	//			String description = view.get("description");
 	//
 	//			switch(entity)
 	//			{
@@ -295,12 +298,12 @@ public class Main
 	//				default: throw new RuntimeException("unknown entity value: "+entity+" for view "+view);
 	//			}
 	//
-	//			JSONObject state = view.getJSONObject("state");			
-	//			String year = state.getString("year"); // TODO: what to do with the year?
+	//			JsonNode state = view.get("state");			
+	//			String year = state.get("year"); // TODO: what to do with the year?
 	//			Integer.valueOf(year); // throws an exception if its not an integer
 	//
-	//			JSONObject cuts = state.getJSONObject("cuts");
-	//			List<String> drilldowns = jsonArrayToStringList(state.getJSONArray("drilldowns"));
+	//			JsonNode cuts = state.get("cuts");
+	//			List<String> drilldowns = ArrayNodeToStringList(state.getArrayNode("drilldowns"));
 	//
 	//			//			Resource slice = model.createResource(datasetUrl+"/slice/"+name);
 	//			//			{
@@ -318,7 +321,7 @@ public class Main
 	//			//				for(Iterator<String> it = cuts.keys(); it.hasNext();)
 	//			//				{
 	//			//					String dimensionName = it.next();
-	//			//					String dimensionValue = cuts.getString(dimensionName);
+	//			//					String dimensionValue = cuts.get(dimensionName);
 	//			//					model.add(sliceKey,QB.componentProperty,componentPropertyByName.get(dimensionName));
 	//			//					model.add(slice,componentPropertyByName.get(dimensionName),dimensionValue);
 	//			//				}
@@ -330,13 +333,13 @@ public class Main
 	//	}
 	/** @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
 	 * @param componentProperties the dimensions which are expected to be values for in all entries. */
-	static void createEntries(JSONArray results, Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException, JSONException
+	static void createEntries(ArrayNode results, Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException
 	{
-		//		JSONObject entries = readJSON(url);		
-		for(int i=0;i<results.length();i++)
+		//		JsonNode entries = readJSON(url);		
+		for(int i=0;i<results.size();i++)
 		{
-			JSONObject result = results.getJSONObject(i);
-			Resource observation = model.createResource(result.getString("html_url"));				
+			JsonNode result = results.get(i);
+			Resource observation = model.createResource(result.get("html_url").asText());				
 			model.add(observation, QB.dataSet, dataSet);			
 			model.add(observation, RDF.type, QB.Observation);
 
@@ -348,10 +351,10 @@ public class Main
 					{
 						case COMPOUND:
 						{
-							JSONObject jsonDim = result.getJSONObject(d.name);
-							Resource instance = model.createResource(jsonDim.getString("html_url"));
+							JsonNode jsonDim = result.get(d.name);
+							Resource instance = model.createResource(jsonDim.get("html_url").asText());
 
-							if(jsonDim.has("label")) {model.addLiteral(instance,RDFS.label,model.createLiteral(jsonDim.getString("label")));}
+							if(jsonDim.has("label")) {model.addLiteral(instance,RDFS.label,model.createLiteral(jsonDim.get("label").asText()));}
 							else	{log.warning("no label for dimension "+d.name+" instance "+instance);}
 							model.add(observation,d.property,instance);
 
@@ -359,24 +362,24 @@ public class Main
 						}
 						case ATTRIBUTE:
 						{
-							String s = result.getString(d.name);
+							String s = result.get(d.name).asText();
 							model.addLiteral(observation,d.property,model.createLiteral(s));			
 							break;
 						}
 						case MEASURE:
 						{
-							String s = result.getString(d.name);
+							String s = result.get(d.name).asText();
 							model.addLiteral(observation,d.property,model.createLiteral(s));			
 
 							break;
 						}
 						case DATE:
 						{
-							JSONObject jsonDate = result.getJSONObject(d.name);
-							//							String week = date.getString("week");
-							String year = jsonDate.getString("year");
-							String month = jsonDate.getString("month");
-							String day = jsonDate.getString("day");							
+							JsonNode jsonDate = result.get(d.name);
+							//							String week = date.get("week");
+							String year = jsonDate.get("year").asText();
+							String month = jsonDate.get("month").asText();
+							String day = jsonDate.get("day").asText();							
 							model.addLiteral(observation,d.property,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));							
 						}
 					}
@@ -389,18 +392,18 @@ public class Main
 				} 
 			}
 			//			
-			//			String label = result.getString("label");
+			//			String label = result.get("label");
 			//
 			//			if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
 			//			else
 			//			{
-			//				label = result.getString("name");
+			//				label = result.get("name");
 			//				if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
 			//			}
-			//			String description = result.getString("description");
+			//			String description = result.get("description");
 			//			if(description!=null&&!description.equals("null")) {model.add(observation,RDFS.comment,description);}				
 			//
-			//			String type = result.getString("type");
+			//			String type = result.get("type");
 			//			switch(type)
 			//			{
 			//				case "date":
@@ -426,19 +429,19 @@ public class Main
 	 * @param url json url that contains an openspending dataset model, e.g. http://openspending.org/fukuoka_2013/model  
 	 * @param model initialized model that the triples will be added to
 	 */
-	static Resource createDataStructureDefinition(final URL url,Model model) throws MalformedURLException, IOException, JSONException
+	static Resource createDataStructureDefinition(final URL url,Model model) throws MalformedURLException, IOException
 	{		
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
 		model.add(dsd, RDF.type, QB.DataStructureDefinition);
-		JSONObject dsdJson = readJSON(url);
+		JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
-		//		JSONObject mapping = dsdJson.getJSONObject("mapping");
+		//		JsonNode mapping = dsdJson.get("mapping");
 		//		for(Iterator<String> it = mapping.keys();it.hasNext();)
 		//		{
 		//			String key = it.next();
-		//			JSONObject dimJson = mapping.getJSONObject(key);
-		//			String type = dimJson.getString("type");
+		//			JsonNode dimJson = mapping.get(key);
+		//			String type = dimJson.get("type");
 		//			switch(type)
 		//			{
 		//				case "compound":return;
@@ -451,9 +454,9 @@ public class Main
 		//			Resource dim = model.createResource(dimURL);
 		//			model.add(dim,RDF.type,QB.DimensionProperty);
 
-		//			String label = dimJson.getString("label");
+		//			String label = dimJson.get("label");
 		//			if(label!=null&&!label.equals("null")) {model.add(dim,RDFS.label,label);}
-		//			String description = dimJson.getString("description");
+		//			String description = dimJson.get("description");
 		//			if(description!=null&&!description.equals("null")) {model.add(dim,RDFS.comment,description);}
 
 
@@ -462,7 +465,7 @@ public class Main
 
 		//		if(dsdJson.has("views"))
 		//		{
-		//			JSONArray views = dsdJson.getJSONArray("views");	
+		//			ArrayNode views = dsdJson.getArrayNode("views");	
 		//		}
 
 		//		System.out.println("Converting dataset "+url);
@@ -475,9 +478,10 @@ public class Main
 	 * @param url json url that contains an openspending dataset, e.g. http://openspending.org/fukuoka_2013
 	 * @param model initialized model that the triples will be added to
 	 */
-	static void createDataset(URL url,Model model,Map<String,Property> componentPropertyByName) throws JSONException, IOException, LangDetectException
-	{				
-		JSONObject datasetJson = readJSON(new URL(url.toString()+".json"));		
+	static void createDataset(String datasetName,Model model,Map<String,Property> componentPropertyByName) throws IOException, LangDetectException
+	{
+		URL url = new URL(OS+datasetName);
+		JsonNode datasetJson = readJSON(new URL(url.toString()+".json"));		
 		Resource dataSet = model.createResource(url.toString());	
 		Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
@@ -485,7 +489,7 @@ public class Main
 
 		if(datasetJson.has("currency"))
 		{
-			String currency = datasetJson.getString("currency");
+			String currency = datasetJson.get("currency").asText();
 			currencyLiteral = model.createLiteral(currency);
 			Resource currencyComponent = model.createResource(dataSet.getURI()+"/component/currency");
 			model.add(dsd, QB.component, currencyComponent);			
@@ -499,27 +503,29 @@ public class Main
 
 		}
 
-		Set<ComponentProperty> componentProperties = createComponents(readJSON(new URL(url+"/model")).getJSONObject("mapping"), model,dataSet, dsd,componentPropertyByName);
+		Set<ComponentProperty> componentProperties = createComponents(readJSON(new URL(url+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);
 
 		model.add(dataSet, RDF.type, QB.DataSet);
 		model.add(dataSet, QB.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
-		
+
 		{
-		log.fine("loading entries");
-		JSONObject entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName));
-		log.fine("extracting results");
-		JSONArray results = entries.getJSONArray("results");
-		log.fine("finished loading entries, creating entries");
-		createEntries(results, model, dataSet,componentProperties,currencyLiteral);
-		log.fine("finished creating entries");
+			log.fine("loading entries");
+			//		JsonNode entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
+			//		log.fine("extracting results");
+			//		ArrayNode results = (ArrayNode)entries.get("results");
+
+			ArrayNode results = JsonDownloader.getResults(datasetName);
+			log.fine("finished loading entries, creating entries");
+			createEntries(results, model, dataSet,componentProperties,currencyLiteral);
+			log.fine("finished creating entries");
 		}
 		createViews(new URL(url+"/views"),model,dataSet);
-		List<String> languages = jsonArrayToStringList(datasetJson.getJSONArray("languages"));
-		List<String> territories = jsonArrayToStringList(datasetJson.getJSONArray("territories"));		
+		List<String> languages = ArrayNodeToStringList((ArrayNode)datasetJson.get("languages"));
+		List<String> territories = ArrayNodeToStringList((ArrayNode)datasetJson.get("territories"));		
 
-		String label = datasetJson.getString("label");
-		String description = datasetJson.getString("description");
+		String label = datasetJson.get("label").asText();
+		String description = datasetJson.get("description").asText();
 
 		// doesnt work well enough
 		//		// guess the language for the language tag
@@ -539,24 +545,26 @@ public class Main
 	}
 
 	/** @param url	 e.g. http://openspending.org/cameroon_visualisation/views (.json will be added internally)*/
-	public static void createViews(URL url,Model model, Resource dataSet) throws MalformedURLException, IOException, JSONException
+	public static void createViews(URL url,Model model, Resource dataSet) throws MalformedURLException, IOException
 	{	
-		JSONArray views = readJSONArray(new URL(url+".json"));
-		for(int i=0;i<views.length();i++)
+		ArrayNode views = readArrayNode(new URL(url+".json"));
+		for(int i=0;i<views.size();i++)
 		{
-			JSONObject jsonView = views.getJSONObject(i);
-			String name = jsonView.getString("name");
+			JsonNode jsonView = views.get(i);
+			String name = jsonView.get("name").asText();
 			Resource view = model.createResource(url+"/"+name);
 			model.add(view,RDF.type,QB.Slice);
 			model.add(dataSet,QB.slice,view);
-			String label = jsonView.getString("label");
-			String description = jsonView.getString("description");
+			String label = jsonView.get("label").asText();
+			String description = jsonView.get("description").asText();
 			model.add(view, RDFS.label, label);
 			model.add(view, RDFS.comment, description);
 		}
 	}
 
-	public static String readJSONString(URL url) throws MalformedURLException, IOException, JSONException	
+	public static String readJSONString(URL url) throws IOException {return readJSONString(url,false,USE_CACHE);}
+	public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url,false,USE_CACHE);}
+	public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException	
 	{
 		//		System.out.println(cache.getKeys());
 		if(USE_CACHE)
@@ -564,14 +572,14 @@ public class Main
 			Element e = cache.get(url.toString());
 			if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
 		}
-		//		System.out.println("cache miss for "+url.toString());
+		if(detailedLogging) {log.fine("cache miss for "+url.toString());}
 		try(Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
 		{
 			try(Scanner scanner = undelimited.useDelimiter("\\A"))
 			{
 				String datasetsJsonString = scanner.next();
 				char firstChar = datasetsJsonString.charAt(0);
-				if(!(firstChar=='{'||firstChar=='[')) {throw new JSONException("JSON String for URL "+url+" seems to be invalid.");}
+				if(!(firstChar=='{'||firstChar=='[')) {throw new IOException("JSON String for URL "+url+" seems to be invalid.");}
 				if(USE_CACHE) {cache.put(new Element(url.toString(), datasetsJsonString));}
 				//IfAbsent			
 				return datasetsJsonString;			
@@ -579,24 +587,33 @@ public class Main
 		}
 	}
 
-	public static JSONObject readJSON(URL url) throws MalformedURLException, IOException, JSONException	
+	public static JsonNode readJSON(URL url,boolean detailedLogging) throws JsonProcessingException, IOException
 	{
-		try {return new JSONObject(readJSONString(url));}
-		catch(JSONException e) {throw new IOException("Could not create a JSON object from string "+readJSONString(url),e);}
+		String content = readJSONString(url,detailedLogging);
+		if(detailedLogging) {log.fine("finished loading text, creating json object from text");}
+		return m.readTree(content);
+		//		try {return new JsonNode(readJSONString(url));}
+		//		catch(JSONException e) {throw new IOException("Could not create a JSON object from string "+readJSONString(url),e);}
 	}
 
-	public static JSONArray readJSONArray(URL url) throws MalformedURLException, IOException, JSONException	
-	{		
-		try {return new JSONArray(readJSONString(url));}
-		catch(JSONException e) {throw new IOException("Could not create a JSON array from string "+readJSONString(url),e);}
+	public static JsonNode readJSON(URL url) throws IOException
+	{
+		return readJSON(url,false);
 	}
 
-	public static List<String> jsonArrayToStringList(JSONArray ja) throws JSONException	
+	public static ArrayNode readArrayNode(URL url) throws IOException	
+	{
+		return (ArrayNode)m.readTree(readJSONString(url));
+		//		try {return new ArrayNode(readJSONString(url));}
+		//		catch(JSONException e) {throw new IOException("Could not create a JSON array from string "+readJSONString(url),e);}
+	}
+
+	public static List<String> ArrayNodeToStringList(ArrayNode ja)
 	{
 		List<String> l = new LinkedList<>();
-		for(int i=0;i<ja.length();i++)
+		for(int i=0;i<ja.size();i++)
 		{
-			l.add(ja.getString(i));
+			l.add(ja.get(i).asText());
 		}
 		return l;
 	}
@@ -616,61 +633,80 @@ public class Main
 		return model;
 	}
 
-	public static boolean exists(URL dataset) throws MalformedURLException, JSONException, IOException
+	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
-		return !readJSON(new URL(dataset+"/entries.json?pagesize=0")).getJSONObject("stats").getString("results_count_query").equals("0");		 
+		return readJSON(new URL(OS+datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();		 
 	}
 
-	public static void main(String[] args) throws MalformedURLException, IOException, JSONException, LangDetectException, Exception
+	public static void main(String[] args) throws MalformedURLException, IOException, LangDetectException, Exception
 	{
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINE);} catch ( Exception e ) { e.printStackTrace();}
-		
 		try
 		{
+			File folder = new File("output3");
+			folder.mkdir();
+			SortedSet<String> datasetNames = JsonDownloader.getDatasetNames();
 			// TODO: parallelize
 			//		DetectorFactory.loadProfile("languageprofiles");			
-			JSONObject datasets = readJSON(new URL(DATASETS));
-			JSONArray datasetArray =  datasets.getJSONArray("datasets");
+
+			//			JsonNode datasets = m.readTree(new URL(DATASETS));			
+			//			ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
+
 			int exceptions = 0;
 			int notexisting = 0;
-			int i;
+			int offset = 0;
+			int i=0;
+			int fileexists=0; 
 			//			for(i=0;i<Math.min(datasetArray.length(),10);i++)
-			for(i=129;i<datasetArray.length();i++)
-			{
+			//			for(i=5;i<=5;i++)
+			for(String name : datasetNames)
+				//			for(i=offset;i<datasetArray.size();i++)
+			{				
+				i++;				
 				Model model = newModel();
 				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 				try
 				{
-					JSONObject dataSetJson = datasetArray.getJSONObject(i);
-					URL url = new URL(dataSetJson.getString("html_url"));
-					if(!exists(url))
+					File file = new File(folder+"/"+name+".ttl");
+					if(file.exists())
 					{
-						log.warning("no entries found for dataset "+url);
+						log.fine("skipping already existing file nr "+i+": "+file);
+						fileexists++;
 						continue;
 					}
-					//		URL url = new URL("http://openspending.org/cameroon_visualisation");
-					//								URL url = new URL("http://openspending.org/berlin_de");
-					//		URL url = new URL("http://openspending.org/bmz-activities");
-					log.info("Dataset nr. "+i+"/"+datasetArray.length()+": "+url);
-					createDataset(url,model,componentPropertyByName);
+					//					JsonNode dataSetJson = datasetArray.get(i);
+					URL url = new URL(OS+name);
+					//					URL url = new URL(dataSetJson.get("html_url").asText());
+					//					String name = dataSetJson.get("name").asText();
+					//					int nrOfEntries = nrEntries(name);
+					//					if(nrOfEntries==0)
+					//					{
+					//						log.warning("no entries found for dataset "+url);
+					//						continue;
+					//					}
+					//					//		URL url = new URL("http://openspending.org/cameroon_visualisation");
+					//					//								URL url = new URL("http://openspending.org/berlin_de");
+					//					//		URL url = new URL("http://openspending.org/bmz-activities");
+					//					log.info("Dataset nr. "+i+"/"+datasetArray.size()+": "+url);
+					log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);
+					createDataset(name,model,componentPropertyByName);
+					////										
+					model.write(new PrintWriter(file),"TURTLE",null);
 
-					//			if(i>0) break;
-					File folder = new File("output");
-					folder.mkdir();		
-					model.write(new PrintWriter(folder+"/"+url.toString().substring(url.toString().lastIndexOf('/')+1)+".ttl"),"TURTLE",null);
 				}			
 				catch(Exception e)
 				{
+					e.printStackTrace();
 					log.severe(e.getLocalizedMessage());
 					exceptions++;
 					if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
 					{throw new Exception("Too many exceptions ("+exceptions+" out of "+(i+1),e);}
 				}
 			}
-			log.info("Processed "+i+"datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets ("+(i-exceptions-notexisting)+"remaining).");
+			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" remaining).");
 		}
 
 		// we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster 
