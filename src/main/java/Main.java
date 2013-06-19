@@ -143,6 +143,7 @@ public class Main
 			//			String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl = dataset.getURI()+'/'+name;
 			Resource componentSpecification = model.createResource(componentPropertyUrl+"/componentSpecification");//TODO: improve url
+			
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
 			componentPropertyByName.put(name, componentProperty);
 
@@ -434,7 +435,7 @@ public class Main
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
 		model.add(dsd, RDF.type, QB.DataStructureDefinition);
-		JsonNode dsdJson = readJSON(url);
+		//		JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
 		//		JsonNode mapping = dsdJson.get("mapping");
 		//		for(Iterator<String> it = mapping.keys();it.hasNext();)
