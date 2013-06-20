@@ -3,19 +3,19 @@
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix void: <http://rdfs.org/ns/void#> .
+@prefix ls: <http://linkedspending.org/> .
 @prefix : <#> .
 
 ## your dataset
-<http://todo.org/> rdf:type void:Dataset ;
+ls:void rdf:type void:Dataset ;
  foaf:homepage <http://todo.org/> ;
  dcterms:title "OpenSpending" ;
  dcterms:description "OpenSpending governement financial transactions" ;
- dcterms:publisher <http://todo.org/unileipzigoderaksw> ;
+ dcterms:publisher <http://todo.org/unileipzigoderaksw>;
  dcterms:source <http://openspending.org> ;
  dcterms:license < http://www.opendatacommons.org/licenses/pddl/1.0/> ;
- void:sparqlEndpoint <http://todo.org/sparql> ;
- void:uriLookupEndpoint <http://lookup.todo.org/> ;
- void:dataDump <http://todo.org/dump.rdf> ;
+ void:sparqlEndpoint ls:sparql ;
+ void:dataDump ls:downloads;
  void:vocabulary <http://www.w3.org/2000/01/rdf-schema#> ;
  void:vocabulary <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ;
  void:vocabulary <http://www.w3.org/2001/XMLSchema#> ;
@@ -24,4 +24,5 @@
  void:vocabulary <http://purl.org/linked-data/sdmx/2009/attribute#> ;
  void:vocabulary <http://purl.org/linked-data/sdmx/2009/dimension#> ;
  void:vocabulary <http://purl.org/linked-data/sdmx/2009/subject#> ;
- void:exampleResource <http://todo.org/resource/ex> .
+ void:exampleResource ls:berlin_de .
+  #void:uriLookupEndpoint <http://lookup.todo.org/> ;

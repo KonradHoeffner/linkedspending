@@ -1,0 +1,11 @@
+@prefix : <http://linkedspending.aksw.org/ontology/> .
+@prefix qb : <http://purl.org/linked-data/cube#>
+
+:CountryComponentSpecification	a qb:ComponentSpecification;
+				rdfs:label "The country a dataset references."@en;
+				qb:attribute sdmx-attribute:refArea; 
+				qb:componentRequired "false"^^xsd:boolean;
+				qb:componentAttachment qb:DataSet.
+
+:TimeComponentSpecification	a qb:ComponentSpecification;				
+				qb:dimension sdmx-dimension:refPeriod.
