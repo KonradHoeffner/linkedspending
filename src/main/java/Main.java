@@ -147,7 +147,6 @@ public class Main
 			String type = cleanString(componentJson.get("type").asText());
 			assert type!=null;
 			String label = cleanString(componentJson.get("label").asText());
-			String description = cleanString(componentJson.get("description").asText());
 
 			//			String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl = dataset.getURI()+'/'+name;			
@@ -166,7 +165,11 @@ public class Main
 				if(label!=null) {model.add(componentProperty,RDFS.label,label);}
 			}
 
-			if(description!=null) {model.add(componentProperty,RDFS.comment,description);}							
+			if(componentJson.has("description"))
+			{
+				String description = cleanString(componentJson.get("description").asText());
+				if(description!=null) {model.add(componentProperty,RDFS.comment,description);}
+			} else {log.warning("no description for "+key);}
 
 			switch(type)
 			{
@@ -343,26 +346,49 @@ public class Main
 	//	}
 	/** @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
 	 * @param componentProperties the dimensions which are expected to be values for in all entries. */
-	static void createEntries(ArrayNode results, Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException
+	static void createEntries(String datasetName,Model model, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException
 	{
-		//		JsonNode entries = readJSON(url);		
-		for(int i=0;i<results.size();i++)
-		{
-			JsonNode result = results.get(i);
+		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
+		JsonNode result;
+		int errors=0;
+		for(int i=0;(result=in.read())!=null;i++)		
+		{			
 			Resource observation = model.createResource(result.get("html_url").asText());				
 			model.add(observation, QB.dataSet, dataSet);			
 			model.add(observation, RDF.type, QB.Observation);
 
 			for(ComponentProperty d: componentProperties)
 			{
+				//				if(d.name==null) {throw new RuntimeException("no name for component property "+d);}
+				if(!result.has(d.name))
+				{
+					log.warning("no entry for property "+d.name+" at entry "+result);
+					errors++;
+					if(errors>10) throw new RuntimeException("too many errors");
+					continue;
+				}
+
 				try
 				{
 					switch(d.type)
 					{
 						case COMPOUND:
 						{
-							JsonNode jsonDim = result.get(d.name);
-							Resource instance = model.createResource(jsonDim.get("html_url").asText());
+							JsonNode jsonDim = result.get(d.name);							
+							//							if(jsonDim==null)
+							//							{
+							//								errors++;
+							//								log.warning("no url for entry "+d.name);
+							//								continue;
+							//							}
+							if(!jsonDim.has("html_url"))
+							{
+								log.warning("no url for "+jsonDim);
+								errors++;
+								continue;
+							}
+							JsonNode urlNode = jsonDim.get("html_url");
+							Resource instance = model.createResource(urlNode.asText());
 
 							if(jsonDim.has("label")) {model.addLiteral(instance,RDFS.label,model.createLiteral(jsonDim.get("label").asText()));}
 							else	{log.warning("no label for dimension "+d.name+" instance "+instance);}
@@ -519,15 +545,12 @@ public class Main
 		model.add(dataSet, QB.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
 
-		{
-			log.fine("loading entries");
+		{			
 			//		JsonNode entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
 			//		log.fine("extracting results");
 			//		ArrayNode results = (ArrayNode)entries.get("results");
-
-			ArrayNode results = JsonDownloader.getResults(datasetName);
-			log.fine("finished loading entries, creating entries");
-			createEntries(results, model, dataSet,componentProperties,currencyLiteral);
+			log.fine("creating entries");
+			createEntries(datasetName, model, dataSet,componentProperties,currencyLiteral);
 			log.fine("finished creating entries");
 		}
 		createViews(datasetName,model,dataSet);
@@ -694,7 +717,7 @@ public class Main
 					File file = new File(folder+"/"+name+".ttl");
 					if(file.exists())
 					{
-						log.fine("skipping already existing file nr "+i+": "+file);
+						log.finer("skipping already existing file nr "+i+": "+file);
 						fileexists++;
 						continue;
 					}
@@ -712,7 +735,7 @@ public class Main
 					//					//								URL url = new URL("http://openspending.org/berlin_de");
 					//					//		URL url = new URL("http://openspending.org/bmz-activities");
 					//					log.info("Dataset nr. "+i+"/"+datasetArray.size()+": "+url);
-					log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);
+					log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);				
 					createDataset(name,model,componentPropertyByName);
 					////										
 					model.write(new PrintWriter(file),"TURTLE",null);
@@ -730,7 +753,7 @@ public class Main
 					}
 				}
 			}
-			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" remaining).");
+			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
 		}
 
 		// we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster 

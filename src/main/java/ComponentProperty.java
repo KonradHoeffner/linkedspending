@@ -1,6 +1,7 @@
 import com.hp.hpl.jena.rdf.model.Property;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.ToString;
 
 @AllArgsConstructor	
@@ -8,8 +9,16 @@ import lombok.ToString;
 @ToString
 public class ComponentProperty
 {
-	public final Property property;
-	public final String name;	
+	@NonNull public final Property property;
+	@NonNull public final String name;	
 	public static enum Type {ATTRIBUTE,MEASURE,DATE, COMPOUND};
-	public final Type type;
+	@NonNull public final Type type;
+//	@Override public boolean equals(Object o)
+//	{
+//		if (o == null)
+//			  return false;
+//			if (!(o instanceof ComponentProperty))
+//			  return false;
+//	...
+//	}
 }

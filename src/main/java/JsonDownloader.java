@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream.GetField;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -26,12 +27,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /** Used for downloading entry files from openspending.org and retrieving them as a string. Multithreaded. 
@@ -56,9 +63,37 @@ public class JsonDownloader
 		return names;
 	}
 
+	static File getFile(String datasetName) {return Paths.get(folder.getPath(),datasetName).toFile();}
+
 	public static @NonNull ArrayNode getResults(String datasetName) throws JsonProcessingException, IOException
 	{
-		return (ArrayNode)Main.m.readTree(Paths.get(folder.getPath(),datasetName).toFile()).get("results");		
+		return (ArrayNode)Main.m.readTree(getFile(datasetName)).get("results");		
+	}
+
+	public static class ResultsReader
+	{
+		final protected JsonParser jp;
+		
+		public ResultsReader(String datasetName) throws JsonParseException, IOException
+		{
+			JsonFactory f = new MappingJsonFactory();
+			jp = f.createParser(getFile(datasetName));
+			JsonToken current = jp.nextToken();
+			if (current != JsonToken.START_OBJECT) {
+				System.out.println();
+				throw new IOException("Error with dataset "+datasetName+": root should be object: quiting.");
+			}		
+			while (!"results".equals(jp.getCurrentName())) {jp.nextToken();}
+			if (jp.nextToken() != JsonToken.START_ARRAY)
+			{throw new IOException("Error with dataset "+datasetName+": array expected.");}
+		}
+
+		@Nullable public JsonNode read() throws JsonParseException, IOException
+		{
+			if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}			  
+			JsonNode node = jp.readValueAsTree();
+			return node;
+		}
 	}
 
 	static class DownloadCallable implements Callable<Void>
