@@ -469,10 +469,16 @@ public class Main
 			if(model.size()>MAX_MODEL_TRIPLES)
 			{
 				log.fine("writing triples");
-				model.write(out,"TURTLE");
+				writeModel(model,out);				
 			}
 		}
+		writeModel(model,out);
+	}
+	
+	static void writeModel(Model model, OutputStream out)
+	{
 		model.write(out,"TURTLE");
+		model.removeAll();
 	}
 
 	/** Takes a json url of an openspending dataset model and extracts rdf into a jena model.  
@@ -737,7 +743,8 @@ public class Main
 						fileexists++;
 						continue;
 					}
-					OutputStream out = new FileOutputStream(file, true);
+					try(OutputStream out = new FileOutputStream(file, true))
+					{
 					//					JsonNode dataSetJson = datasetArray.get(i);
 					URL url = new URL(LS+name);
 					//					URL url = new URL(dataSetJson.get("html_url").asText());
@@ -755,8 +762,8 @@ public class Main
 					log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);				
 					createDataset(name,model,out,componentPropertyByName);
 					////										
-					model.write(out,"TURTLE",null);
-
+					writeModel(model,out);
+					}
 				}			
 				catch(Exception e)
 				{

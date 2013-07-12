@@ -303,8 +303,8 @@ public class JsonDownloader
 							}
 						}					
 					}
-					partNr++;
 					if(partNr!=parts.length-1) out.print(",");
+					partNr++;					
 				}				
 			}
 		}		
