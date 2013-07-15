@@ -1,3 +1,4 @@
+/** todo: warum werden dateien mit 0 byte angelegt? problem mit dem schreiben vom modell? */
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
@@ -43,12 +45,12 @@ import com.hp.hpl.jena.vocabulary.XSD;
 public class Main
 {
 	static ObjectMapper m = new ObjectMapper();
-	static final int MAX_MODEL_TRIPLES = 100_000;
+	static final int MAX_MODEL_TRIPLES = 500_000;
 	static final boolean USE_CACHE = true;
 	public static final String DATASETS = "http://openspending.org/datasets.json";	
 	static final String LS = "http://linkedspending.aksw.org/";
 	static final String OS = "http://openspending.org/";
-	static File folder = new File("output4");	 
+	static File folder = new File("output5");	 
 	//	static final boolean CACHING = true;
 	static {
 		if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
@@ -84,14 +86,14 @@ public class Main
 		static final Property slice	= ResourceFactory.createProperty(qb+"slice");;
 		static final Property sliceStructure	= ResourceFactory.createProperty(qb+"sliceStructure");;
 		static final Property parentChildProperty = ResourceFactory.createProperty(qb+"parentChildProperty");
-		
+
 	}
 
 	static public class SDMXDIMENSION
 	{
 		static final String sdmxDimension = "http://purl.org/linked-data/sdmx/2009/dimension#";
 		static final Property refPeriod = ResourceFactory.createProperty(sdmxDimension+"refPeriod");
-//		static final Property timePeriod = ResourceFactory.createProperty(sdmxDimension+"timePeriod");
+		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxDimension+"timePeriod");
 	}
 
 	static public class SDMXMEASURE
@@ -111,8 +113,8 @@ public class Main
 	{
 		static final String sdmxConcept = "http://purl.org/linked-data/sdmx/2009/concept#";
 		static final Property obsValue = ResourceFactory.createProperty(sdmxConcept+"obsValue");		
-//		static final Property refPeriod = ResourceFactory.createProperty(sdmxConcept+"refPeriod");
-//		static final Property timePeriod = ResourceFactory.createProperty(sdmxConcept+"timePeriod");
+		//		static final Property refPeriod = ResourceFactory.createProperty(sdmxConcept+"refPeriod");
+		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxConcept+"timePeriod");
 	}
 
 	static public class XmlSchema
@@ -126,11 +128,12 @@ public class Main
 		static final String linkedSpendingOntology = LS+"ontology/";
 		static public Resource CountryComponent = ResourceFactory.createResource(linkedSpendingOntology+"CountryComponentSpecification");
 		static public Resource TimeComponentSpecification = ResourceFactory.createResource(linkedSpendingOntology+"CountryComponentSpecification");
+		static public Resource YearComponentSpecification = ResourceFactory.createResource(linkedSpendingOntology+"YearComponentSpecification");
 	}
 
-	@Nullable static String cleanString(String s)
+	@Nullable static String cleanString(@Nullable String s)
 	{
-		if("null".equals(s)) return null;
+		if("null".equals(s)||s.trim().isEmpty()) return null;
 		return s;
 	}
 
@@ -150,9 +153,9 @@ public class Main
 			//			String name = cleanString(componentJson.get("name"));
 
 			String name = key;
-			String type = cleanString(componentJson.get("type").asText());
+			@NonNull String type = cleanString(componentJson.get("type").asText());
 			assert type!=null;
-			String label = cleanString(componentJson.get("label").asText());
+			@Nullable String label = cleanString(componentJson.get("label").asText());
 
 			//			String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl = dataset.getURI()+'/'+name;			
@@ -232,6 +235,7 @@ public class Main
 			// backlink
 			model.add(dsd, QB.component, componentSpecification);
 		}
+
 		return componentProperties;
 			}
 
@@ -353,10 +357,12 @@ public class Main
 	//
 	//		}
 	//	}
-	/**deletes the model! todo: check if ttl is not a problem. @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
-	 * @param componentProperties the dimensions which are expected to be values for in all entries. */
-	
-	static void createEntries(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable  Literal currencyLiteral) throws MalformedURLException, IOException
+	/**deletes the model! @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
+	 * @param componentProperties the dimensions which are expected to be values for in all entries. 
+	 * @param countries 
+	 * @param defaultYear default year in case no other date is given */
+
+	static void createEntries(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Literal currencyLiteral, Set<Resource> countries,@Nullable Literal yearLiteral) throws MalformedURLException, IOException
 	{
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
@@ -366,7 +372,7 @@ public class Main
 			Resource observation = model.createResource(result.get("html_url").asText());				
 			model.add(observation, QB.dataSet, dataSet);			
 			model.add(observation, RDF.type, QB.Observation);
-
+			boolean dateExists=false;
 			for(ComponentProperty d: componentProperties)
 			{
 				//				if(d.name==null) {throw new RuntimeException("no name for component property "+d);}
@@ -376,8 +382,7 @@ public class Main
 					errors++;
 					if(errors>10) throw new RuntimeException("too many errors");
 					continue;
-				}
-
+				}				
 				try
 				{
 					switch(d.type)
@@ -421,11 +426,12 @@ public class Main
 						}
 						case DATE:
 						{
+							dateExists=true;
 							JsonNode jsonDate = result.get(d.name);
 							//							String week = date.get("week");
-							String year = jsonDate.get("year").asText();
-							String month = jsonDate.get("month").asText();
-							String day = jsonDate.get("day").asText();							
+							int year = jsonDate.get("year").asInt();
+							int month = jsonDate.get("month").asInt();
+							int day = jsonDate.get("day").asInt();							
 							model.addLiteral(observation,SDMXDIMENSION.refPeriod,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));							
 						}
 					}
@@ -466,6 +472,16 @@ public class Main
 			{				
 				model.addLiteral(observation, SDMXATTRIBUTE.currency, currencyLiteral);				
 			}
+			if(yearLiteral!=null&&!dateExists)
+			{				
+				model.addLiteral(observation,SDMXDIMENSION.refPeriod,yearLiteral);				
+			}
+
+			for(Resource country: countries)
+			{
+				// add the countries to the observations as well (not just the dataset)
+				model.add(observation,SDMXATTRIBUTE.refArea,country);
+			}
 			if(model.size()>MAX_MODEL_TRIPLES)
 			{
 				log.fine("writing triples");
@@ -474,10 +490,11 @@ public class Main
 		}
 		writeModel(model,out);
 	}
-	
+
 	static void writeModel(Model model, OutputStream out)
 	{
-		model.write(out,"TURTLE");
+		model.write(out,"N-TRIPLE");
+//		model.write(out,"TURTLE");
 		model.removeAll();
 	}
 
@@ -537,11 +554,11 @@ public class Main
 	 */
 	static void createDataset(String datasetName,Model model,OutputStream out,Map<String,Property> componentPropertyByName) throws IOException, LangDetectException
 	{
-		URL url = new URL(LS+datasetName);
-		URL sourceUrl = new URL(OS+datasetName+".json");
-		JsonNode datasetJson = readJSON(sourceUrl);		
-		Resource dataSet = model.createResource(url.toString());	
-		Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
+		@NonNull URL url = new URL(LS+datasetName);
+		@NonNull URL sourceUrl = new URL(OS+datasetName+".json");
+		@NonNull JsonNode datasetJson = readJSON(sourceUrl);		
+		@NonNull Resource dataSet = model.createResource(url.toString());	
+		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
 		Literal currencyLiteral = null;
 
@@ -558,35 +575,50 @@ public class Main
 			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
 			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
 			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
-
 		}
-
+		final Integer defaultYear;
+		{
+			String defaultYearString = cleanString(datasetJson.get("default_time").asText());
+			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
+		}
 		Set<ComponentProperty> componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);
 
 		model.add(dataSet, RDF.type, QB.DataSet);
 		model.add(dataSet, QB.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
 
-		{			
-			//		JsonNode entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
-			//		log.fine("extracting results");
-			//		ArrayNode results = (ArrayNode)entries.get("results");
-			log.fine("creating entries");			
-			createEntries(datasetName, model,out, dataSet,componentProperties,currencyLiteral);
-			log.fine("finished creating entries");
-		}
-		createViews(datasetName,model,dataSet);
-		List<String> languages = ArrayNodeToStringList((ArrayNode)datasetJson.get("languages"));
 		List<String> territories = ArrayNodeToStringList((ArrayNode)datasetJson.get("territories"));
+		Set<Resource> countries = new HashSet<>();
+		@Nullable Literal yearLiteral = null; 
+		if(defaultYear!=null)
+		{
+			model.add(dsd, QB.component, LinkedSpendingOntology.YearComponentSpecification);
+			yearLiteral = model.createTypedLiteral(defaultYear+"", XSD.gYear.getURI());
+			model.add(dataSet,SDMXDIMENSION.refPeriod,yearLiteral);
+			
+		}
 		if(!territories.isEmpty())
 		{			
 			model.add(dsd, QB.component, LinkedSpendingOntology.CountryComponent);
 			for(String territory: territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
+				countries.add(country);
 				model.add(dataSet,SDMXATTRIBUTE.refArea,country);
 			}
+		}		
+		{			
+			//		JsonNode entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
+			//		log.fine("extracting results");
+			//		ArrayNode results = (ArrayNode)entries.get("results");
+			log.fine("creating entries");
+
+			createEntries(datasetName, model,out, dataSet,componentProperties,currencyLiteral,countries,yearLiteral);
+			log.fine("finished creating entries");
 		}
+		createViews(datasetName,model,dataSet);
+		List<String> languages = ArrayNodeToStringList((ArrayNode)datasetJson.get("languages"));
+
 		//		 qb:component [qb:attribute sdmx-attribute:unitMeasure; 
 		//         qb:componentRequired "true"^^xsd:boolean;
 		//         qb:componentAttachment qb:DataSet;] 
@@ -728,15 +760,16 @@ public class Main
 			for(String name : datasetNames)				
 				//			for(i=offset;i<datasetArray.size();i++)
 			{				
-				if(!name.contains("orcamento_brasil_2000_2013")) continue;
+				//				if(!name.contains("orcamento_brasil_2000_2013")) continue;
+//								if(!name.contains("berlin_de")) continue;
 				i++;				
 				Model model = newModel();
 				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 				try
-				{					
-					File file = new File(folder+"/"+name+".ttl");					
+				{
+					File file = new File(folder+"/"+name+".nt");					
 					if(file.exists())
 					{
 						log.finer("skipping already existing file nr "+i+": "+file);
@@ -745,24 +778,24 @@ public class Main
 					}
 					try(OutputStream out = new FileOutputStream(file, true))
 					{
-					//					JsonNode dataSetJson = datasetArray.get(i);
-					URL url = new URL(LS+name);
-					//					URL url = new URL(dataSetJson.get("html_url").asText());
-					//					String name = dataSetJson.get("name").asText();
-					//					int nrOfEntries = nrEntries(name);
-					//					if(nrOfEntries==0)
-					//					{
-					//						log.warning("no entries found for dataset "+url);
-					//						continue;
-					//					}
-					//					//		URL url = new URL("http://openspending.org/cameroon_visualisation");
-					//					//								URL url = new URL("http://openspending.org/berlin_de");
-					//					//		URL url = new URL("http://openspending.org/bmz-activities");
-					//					log.info("Dataset nr. "+i+"/"+datasetArray.size()+": "+url);
-					log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);				
-					createDataset(name,model,out,componentPropertyByName);
-					////										
-					writeModel(model,out);
+						//					JsonNode dataSetJson = datasetArray.get(i);
+						URL url = new URL(LS+name);
+						//					URL url = new URL(dataSetJson.get("html_url").asText());
+						//					String name = dataSetJson.get("name").asText();
+						//					int nrOfEntries = nrEntries(name);
+						//					if(nrOfEntries==0)
+						//					{
+						//						log.warning("no entries found for dataset "+url);
+						//						continue;
+						//					}
+						//					//		URL url = new URL("http://openspending.org/cameroon_visualisation");
+						//					//								URL url = new URL("http://openspending.org/berlin_de");
+						//					//		URL url = new URL("http://openspending.org/bmz-activities");
+						//					log.info("Dataset nr. "+i+"/"+datasetArray.size()+": "+url);
+						log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);				
+						createDataset(name,model,out,componentPropertyByName);
+						////										
+						writeModel(model,out);
 					}
 				}			
 				catch(Exception e)

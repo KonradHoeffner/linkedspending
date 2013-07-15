@@ -5,7 +5,13 @@
 				rdfs:label "The country a dataset references."@en;
 				qb:attribute sdmx-attribute:refArea; 
 				qb:componentRequired "false"^^xsd:boolean;
-				qb:componentAttachment qb:DataSet.
+				qb:componentAttachment qb:DataSet,qb:Observation.
 
 :TimeComponentSpecification	a qb:ComponentSpecification;				
-				qb:dimension sdmx-dimension:refPeriod.
+				qb:dimension sdmx-dimension:refPeriod;
+				qb:componentRequired "false"^^xsd:boolean.
+				
+:YearComponentSpecification	a qb:ComponentSpecification;				
+				qb:dimension sdmx-dimension:refPeriod;
+				qb:componentAttachment qb:DataSet,qb:Observation;
+				qb:componentRequired "false"^^xsd:boolean.

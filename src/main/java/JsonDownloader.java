@@ -73,7 +73,7 @@ public class JsonDownloader
 		SortedSet<String> names = new TreeSet<>();
 		for(File f: folder.listFiles())
 		{
-			names.add(f.getName());
+			if(f.isFile()) {names.add(f.getName());}
 		}
 		return names;
 	}
@@ -305,7 +305,7 @@ public class JsonDownloader
 					}
 					if(partNr!=parts.length-1) out.print(",");
 					partNr++;					
-				}				
+				}
 			}
 		}		
 	}
