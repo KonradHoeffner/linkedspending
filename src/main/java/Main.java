@@ -58,8 +58,9 @@ public class Main
 	static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
 	//	private static final int	MAX_ENTRIES	= 30;
-	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
+	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 40;
 	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
+	static List<String> faultyDatasets = new LinkedList<>();
 
 	static public class QB
 	{
@@ -380,7 +381,7 @@ public class Main
 				{
 					log.warning("no entry for property "+d.name+" at entry "+result);
 					errors++;
-					if(errors>10) throw new RuntimeException("too many errors");
+					if(errors>10) {faultyDatasets.add(datasetName);throw new RuntimeException("too many errors for dataset "+datasetName);}
 					continue;
 				}				
 				try
@@ -770,7 +771,7 @@ public class Main
 				try
 				{
 					File file = new File(folder+"/"+name+".nt");					
-					if(file.exists())
+					if(file.exists()&&file.length()>0)
 					{
 						log.finer("skipping already existing file nr "+i+": "+file);
 						fileexists++;
@@ -811,6 +812,7 @@ public class Main
 				}
 			}
 			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
+			if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+faultyDatasets);
 		}
 
 		// we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster 
