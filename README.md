@@ -8,5 +8,5 @@ Run JsonDownloader first and then Main. Needs a few hours of time and about 20 G
 
 Development
 -----------
-
+Needs Maven.
 Uses Project Lombok so you may have to integrate it into your GUI if you develop it with one, see http://projectlombok.org/features/index.html.
