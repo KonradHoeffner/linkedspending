@@ -2,16 +2,25 @@
 @prefix qb : <http://purl.org/linked-data/cube#>
 
 :CountryComponentSpecification	a qb:ComponentSpecification;
-				rdfs:label "The country a dataset references."@en;
+				rdfs:label "country";
+				rdfs:comment "The country a dataset references."@en;
 				qb:attribute sdmx-attribute:refArea; 
 				qb:componentRequired "false"^^xsd:boolean;
 				qb:componentAttachment qb:DataSet,qb:Observation.
 
-:TimeComponentSpecification	a qb:ComponentSpecification;				
+:TimeComponentSpecification	a qb:ComponentSpecification;
+				rdfs:label "time";
 				qb:dimension sdmx-dimension:refPeriod;
 				qb:componentRequired "false"^^xsd:boolean.
 				
-:YearComponentSpecification	a qb:ComponentSpecification;				
+:YearComponentSpecification	a qb:ComponentSpecification;
+				rdfs:label "year";
 				qb:dimension sdmx-dimension:refPeriod;
 				qb:componentAttachment qb:DataSet,qb:Observation;
 				qb:componentRequired "false"^^xsd:boolean.
+
+:CurrencyComponentSpecification	a qb:ComponentSpecification;
+				rdfs:label "currency";
+				qb:attribute <http://dbpedia.org/ontology/currency>;
+				qb:componentRequired "true"^^xsd:boolean;
+				qb:componentAttachment qb:Observation.
