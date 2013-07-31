@@ -1,0 +1,20 @@
+#!/bin/bash
+cd output7
+
+echo "Counting Observations"
+ls | xargs egrep -c "Observation" > ../tmp/observations
+echo "Counting Dimensions"
+ls | xargs egrep -c "DimensionProperty|TimeComponentSpecification|YearComponentSpecification" > ../tmp/dimensions 
+echo "Counting Attributes"
+ls | xargs egrep -c "AttributeProperty|CountryComponentSpecification|CurrencyComponentSpecification" > ../tmp/attributes 
+echo "Counting Measures"
+ls | xargs egrep -c "MeasureProperty" > ../tmp/measures
+
+cd ../tmp
+for file in observations dimensions attributes measures
+do
+ echo "Sorting $file"
+ sort $file -o $file  -n -k 2 -t ":"
+ grep -o "[0-9]*$" $file > "$file"_numbersonly
+done
+cd ..
