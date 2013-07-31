@@ -1,4 +1,5 @@
-/** todo: warum werden dateien mit 0 byte angelegt? problem mit dem schreiben vom modell? */
+/** todo: warum werden dateien mit 0 byte angelegt? problem mit dem schreiben vom modell? wahrscheinlich wenn fehler auftreten, dann müsste irgendwie
+ * die datei gelöscht werden, obwohl es schon ok so ist, sonst läuft das immer neu durch für die datei.*/
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -6,6 +7,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,17 +52,39 @@ public class Main
 	public static final String DATASETS = "http://openspending.org/datasets.json";	
 	static final String LS = "http://linkedspending.aksw.org/";
 	static final String OS = "http://openspending.org/";
-	static File folder = new File("output5");	 
+
+
+	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
+	//	private static final int	MAX_ENTRIES	= 30;
+	private static final int	DATASET_MIN_EXCEPTIONS_FOR_STOP	= 30;
+	private static final int	DATASET_MAX_EXCEPTIONS_FOR_LOGGING	= 3;
+	private static final float	DATASET_EXCEPTION_STOP_RATIO = 0.1f;
+
+	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
+	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
+	static List<String> faultyDatasets = new LinkedList<>();
+
+	static File folder = new File("output7");	 
 	//	static final boolean CACHING = true;
-	static {
+	static {		
 		if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
 	}
 	static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
-	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
-	//	private static final int	MAX_ENTRIES	= 30;
-	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 40;
-	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
-	static List<String> faultyDatasets = new LinkedList<>();
+
+	static Map<String,String> codeToCurrency = new HashMap<>();
+	static
+	{
+		try(Scanner in = new Scanner(Main.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
+		{
+			while(in.hasNextLine())
+			{
+				String line = in.nextLine();
+				if(line.trim().isEmpty()) {continue;} 
+				String[] tokens = line.split("\t");
+				codeToCurrency.put(tokens[0], tokens[1]);
+			}
+		}		
+	}
 
 	static public class QB
 	{
@@ -106,7 +130,7 @@ public class Main
 	static public class SDMXATTRIBUTE
 	{
 		static final String sdmxAttribute = "http://purl.org/linked-data/sdmx/2009/attribute#";
-		static final Property currency = ResourceFactory.createProperty(sdmxAttribute+"currency");
+		//		static final Property currency = ResourceFactory.createProperty(sdmxAttribute+"currency");
 		static final Property	refArea	= ResourceFactory.createProperty(sdmxAttribute+"refArea");
 	}
 
@@ -128,8 +152,22 @@ public class Main
 	{
 		static final String linkedSpendingOntology = LS+"ontology/";
 		static public Resource CountryComponent = ResourceFactory.createResource(linkedSpendingOntology+"CountryComponentSpecification");
-		static public Resource TimeComponentSpecification = ResourceFactory.createResource(linkedSpendingOntology+"CountryComponentSpecification");
+		static public Resource TimeComponentSpecification = ResourceFactory.createResource(linkedSpendingOntology+"TimeComponentSpecification");
 		static public Resource YearComponentSpecification = ResourceFactory.createResource(linkedSpendingOntology+"YearComponentSpecification");
+		static public Resource CurrencyComponentSpecification = ResourceFactory.createResource(linkedSpendingOntology+"CurrencyComponentSpecification");
+	}
+
+	static public class DBO
+	{
+		static final String DBO = "http://dbpedia.org/ontology/";
+		static public Property currency = ResourceFactory.createProperty(DBO,"currency");		
+	}
+
+	static public class DCMI
+	{
+		static final String DCMI = "http://dublincore.org/documents/2012/06/14/dcmi-terms/";
+		static public Property source = ResourceFactory.createProperty(DCMI,"source");		
+		static public Property created = ResourceFactory.createProperty(DCMI,"created");
 	}
 
 	@Nullable static String cleanString(@Nullable String s)
@@ -184,7 +222,7 @@ public class Main
 			switch(type)
 			{
 				case "date":
-				{
+				{					
 					componentSpecification = LinkedSpendingOntology.TimeComponentSpecification;
 					// it's a dimension
 					//					model.add(componentSpecification, QB.dimension, componentProperty);
@@ -363,25 +401,30 @@ public class Main
 	 * @param countries 
 	 * @param defaultYear default year in case no other date is given */
 
-	static void createEntries(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Literal currencyLiteral, Set<Resource> countries,@Nullable Literal yearLiteral) throws MalformedURLException, IOException
+	static void createEntries(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral) throws MalformedURLException, IOException
 	{
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
 		int errors=0;
 		for(int i=0;(result=in.read())!=null;i++)		
 		{			
-			Resource observation = model.createResource(result.get("html_url").asText());				
+			String osUri = result.get("html_url").asText();
+			Resource osObservation = model.createResource();
+			String lsUri = osUri.replace(OS, LS);
+			Resource observation = model.createResource(lsUri);		
 			model.add(observation, QB.dataSet, dataSet);			
 			model.add(observation, RDF.type, QB.Observation);
+			model.add(observation,DCMI.source,osObservation);
 			boolean dateExists=false;
 			for(ComponentProperty d: componentProperties)
 			{
 				//				if(d.name==null) {throw new RuntimeException("no name for component property "+d);}
 				if(!result.has(d.name))
 				{
-					log.warning("no entry for property "+d.name+" at entry "+result);
 					errors++;
-					if(errors>10) {faultyDatasets.add(datasetName);throw new RuntimeException("too many errors for dataset "+datasetName);}
+					if(errors<=DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("no entry for property "+d.name+" at entry "+result);}
+					if(errors==DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("more missing entries.");}
+					if(errors>=DATASET_MIN_EXCEPTIONS_FOR_STOP&&((double)errors/i>DATASET_EXCEPTION_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new RuntimeException("too many errors for dataset "+datasetName);}
 					continue;
 				}				
 				try
@@ -469,15 +512,14 @@ public class Main
 			//				case "measure":return;
 			//				case "attribute":return;
 			//			}
-			if(currencyLiteral!=null)
-			{				
-				model.addLiteral(observation, SDMXATTRIBUTE.currency, currencyLiteral);				
+			if(currency!=null)
+			{
+				model.add(observation, DBO.currency, currency);				
 			}
 			if(yearLiteral!=null&&!dateExists)
 			{				
 				model.addLiteral(observation,SDMXDIMENSION.refPeriod,yearLiteral);				
 			}
-
 			for(Resource country: countries)
 			{
 				// add the countries to the observations as well (not just the dataset)
@@ -495,7 +537,7 @@ public class Main
 	static void writeModel(Model model, OutputStream out)
 	{
 		model.write(out,"N-TRIPLE");
-//		model.write(out,"TURTLE");
+		//		model.write(out,"TURTLE");
 		model.removeAll();
 	}
 
@@ -552,31 +594,35 @@ public class Main
 	 * DataCube. 
 	 * @param url json url that contains an openspending dataset, e.g. http://openspending.org/fukuoka_2013
 	 * @param model initialized model that the triples will be added to
+	 * @returns if it was successfully created 
 	 */
-	static void createDataset(String datasetName,Model model,OutputStream out,Map<String,Property> componentPropertyByName) throws IOException, LangDetectException
+	static boolean createDataset(String datasetName,Model model,OutputStream out,Map<String,Property> componentPropertyByName) throws IOException, LangDetectException
 	{
 		@NonNull URL url = new URL(LS+datasetName);
-		@NonNull URL sourceUrl = new URL(OS+datasetName+".json");
+		@NonNull URL sourceUrl = new URL(OS+datasetName+".json");		
 		@NonNull JsonNode datasetJson = readJSON(sourceUrl);		
-		@NonNull Resource dataSet = model.createResource(url.toString());	
-		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
+		@NonNull Resource dataSet = model.createResource(url.toString());		
+		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);		
+		model.add(dataSet,DCMI.source,model.createResource(OS+datasetName));
+		model.add(dataSet,DCMI.created,model.createTypedLiteral(GregorianCalendar.getInstance()));
+
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
-		Literal currencyLiteral = null;
+		Resource currency = null;
 
 		if(datasetJson.has("currency"))
 		{
-			String currency = datasetJson.get("currency").asText();
-			currencyLiteral = model.createLiteral(currency);
-			Resource currencyComponent = model.createResource(dataSet.getURI()+"/component/currency");
-			model.add(dsd, QB.component, currencyComponent);			
+			String currencyCode = datasetJson.get("currency").asText();
+			currency = model.createResource(codeToCurrency.get(currencyCode));
+			if(currency == null) {log.warning("no currency found for code ");return false;}
+			model.add(dsd, QB.component, LinkedSpendingOntology.CurrencyComponentSpecification);			
 
-			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
-			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
-			model.add(SDMXATTRIBUTE.currency, RDF.type, RDF.Property);
-			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
-			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
-			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
-		}
+			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
+			//			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
+			//			model.add(SDMXATTRIBUTE.currency, RDF.type, RDF.Property);
+			//			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
+			//			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
+			//			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
+		} else {log.warning("no currency for dataset "+datasetName);return false;}
 		final Integer defaultYear;
 		{
 			String defaultYearString = cleanString(datasetJson.get("default_time").asText());
@@ -596,7 +642,7 @@ public class Main
 			model.add(dsd, QB.component, LinkedSpendingOntology.YearComponentSpecification);
 			yearLiteral = model.createTypedLiteral(defaultYear+"", XSD.gYear.getURI());
 			model.add(dataSet,SDMXDIMENSION.refPeriod,yearLiteral);
-			
+
 		}
 		if(!territories.isEmpty())
 		{			
@@ -614,7 +660,7 @@ public class Main
 			//		ArrayNode results = (ArrayNode)entries.get("results");
 			log.fine("creating entries");
 
-			createEntries(datasetName, model,out, dataSet,componentProperties,currencyLiteral,countries,yearLiteral);
+			createEntries(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
 			log.fine("finished creating entries");
 		}
 		createViews(datasetName,model,dataSet);
@@ -637,6 +683,7 @@ public class Main
 		//		model.add(dataSet, RDFS.comment, description,language);
 		model.add(dataSet, RDFS.label, label);
 		model.add(dataSet, RDFS.comment, description);
+		return true;
 
 		// todo: find out the language
 		//		model.createStatement(arg0, arg1, arg2)
@@ -750,7 +797,6 @@ public class Main
 
 			//			JsonNode datasets = m.readTree(new URL(DATASETS));			
 			//			ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
-
 			int exceptions = 0;
 			int notexisting = 0;
 			int offset = 0;
@@ -759,10 +805,9 @@ public class Main
 			//			for(i=0;i<Math.min(datasetArray.length(),10);i++)
 			//			for(i=5;i<=5;i++)
 			for(String name : datasetNames)				
-				//			for(i=offset;i<datasetArray.size();i++)
 			{				
 				//				if(!name.contains("orcamento_brasil_2000_2013")) continue;
-//								if(!name.contains("berlin_de")) continue;
+				//								if(!name.contains("berlin_de")) continue;
 				i++;				
 				Model model = newModel();
 				Map<String,Property> componentPropertyByName = new HashMap<>();
@@ -794,11 +839,12 @@ public class Main
 						//					//		URL url = new URL("http://openspending.org/bmz-activities");
 						//					log.info("Dataset nr. "+i+"/"+datasetArray.size()+": "+url);
 						log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);				
-						createDataset(name,model,out,componentPropertyByName);
+						boolean successful = createDataset(name,model,out,componentPropertyByName);
+						if(!successful) {faultyDatasets.add(name);}
 						////										
 						writeModel(model,out);
 					}
-				}			
+				}
 				catch(Exception e)
 				{
 					e.printStackTrace();

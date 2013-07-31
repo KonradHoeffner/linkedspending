@@ -1,23 +1,24 @@
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 import lombok.extern.java.Log;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 @Log
 public class Test
 {
-	public static void main(String[] args) throws JsonProcessingException, MalformedURLException, IOException
+	public static void main(String[] args) 
 	{
-//		URL url = new URL("http://openspending.org/sala/entries.json");
-		URL url = new URL("http://openspending.org/api/2/search?dataset=sala&format=json");
-		
-		ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-		FileOutputStream fos = new FileOutputStream("json/sala.json");
-		fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);
+		Map<String,String> codeToCurrency = new HashMap<>();
+		try(Scanner in = new Scanner(Test.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
+		{
+			while(in.hasNextLine())
+			{
+				String line = in.nextLine();
+				if(line.trim().isEmpty()) {continue;} 
+				String[] tokens = line.split("\t");
+				codeToCurrency.put(tokens[0], tokens[1]);
+			}
+		}
+		System.out.println(codeToCurrency);
 	}
-
 }
