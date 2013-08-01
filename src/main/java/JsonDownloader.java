@@ -1,13 +1,11 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream.GetField;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,19 +23,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -171,7 +166,7 @@ public class JsonDownloader
 
 	/** If the dataset has no more than PAGE_SIZE results, it gets saved to json/datasetName, else it gets split into parts
 	 * in the folder json/parts/pagesize/datasetname with filenames datasetname.0, datasetname.1, ... , datasetname.final **/
-	static class DownloadCallable implements Callable<Void>
+	static class DownloadCallable implements Callable<Boolean>
 	{
 		final String datasetName;
 		//		final URL entries;
@@ -184,7 +179,7 @@ public class JsonDownloader
 			//			entries = new URL("http://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE);
 		}
 
-		@Override public @Nullable Void call() throws IOException
+		@Override public @Nullable Boolean call() throws IOException
 		{			
 			Path path = Paths.get(folder.getPath(),datasetName);
 			File partsFolder = new File(folder.toString()+"/parts/"+PAGE_SIZE+"/"+datasetName);			
@@ -193,7 +188,7 @@ public class JsonDownloader
 			if(path.toFile().exists())
 			{
 				log.finer(nr+" File "+path+" already exists, skipping download.");
-				return null;
+				return false;
 			}
 			System.out.println("bla");
 			System.out.println(partsFolder);
@@ -202,7 +197,7 @@ public class JsonDownloader
 				if(finalPart.exists())
 				{
 					log.fine(nr+" dataset exists in parts, skipping download..");					
-					return null;
+					return false;
 				}
 				log.fine(nr+"dataset exists in parts but is incomplete, continuing...");
 			}
@@ -221,7 +216,7 @@ public class JsonDownloader
 					}
 				}
 				// save as empty file to make it faster? but then it slows down normal use
-				return null;				
+				return false;				
 			}
 			log.info(nr+" Starting download of "+datasetName+", "+nrEntries+" entries.");
 			int nrOfPages = (int)(Math.ceil((double)nrEntries/PAGE_SIZE));
@@ -245,26 +240,33 @@ public class JsonDownloader
 			// manually solvable in terminal with cat /tmp/problems  | xargs -I  @  sh -c "echo ']}' >> '@'"
 			// where /tmp/problems is the file containing the list of files with the error 
 			log.info(nr+" Finished download of "+datasetName+".");			
-			return null;
+			return true;
 		}		
 	}
 
 	static void downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
 	{
+		int successCount = 0;
 		ThreadPoolExecutor service = (ThreadPoolExecutor)Executors.newFixedThreadPool(MAX_THREADS);
 
-		List<Future<Void>> futures = new LinkedList<>();
+		List<Future<Boolean>> futures = new LinkedList<>();
 		int i=0;		
 		for(String dataset: datasets)
 		{
 			{futures.add(service.submit(new DownloadCallable(dataset,i++)));}			
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);
-		monitor.start();		
+		monitor.start();
+		for(Future<Boolean> future : futures)
+		{
+			try{if(future.get()) {successCount++;}}
+			catch(ExecutionException e) {e.printStackTrace();}
+		}
+		log.info(successCount+" datasets newly created.");
 		service.shutdown();
-
 		service.awaitTermination(10, TimeUnit.DAYS);
-		monitor.stopMonitoring();		
+		monitor.stopMonitoring();
+		
 	}
 
 	enum Position {TOP,MID,BOTTOM}; 
@@ -287,7 +289,7 @@ public class JsonDownloader
 			File targetFile = new File(folder.getPath()+"/"+dataset);
 			if(targetFile.exists())
 			{
-				log.info(targetFile+" already exists. Skipping.");
+				log.finer(targetFile+" already exists. Skipping.");
 				continue;
 			}
 			try(PrintWriter out = new PrintWriter(targetFile))
@@ -296,7 +298,7 @@ public class JsonDownloader
 				File[] parts = datasetToFolder.get(dataset).listFiles();				
 				for(File f: parts)
 				{
-					if(f.exists()) {log.info(f+" already exists, skipping.");continue;}
+					if(f.exists()) {log.finer(f+" already exists, skipping.");continue;}
 					System.out.println(f);
 					Position pos = Position.TOP;
 					try(BufferedReader in = new BufferedReader(new FileReader(f)))
