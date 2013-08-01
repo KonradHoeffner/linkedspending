@@ -188,18 +188,20 @@ public class JsonDownloader
 		{			
 			Path path = Paths.get(folder.getPath(),datasetName);
 			File partsFolder = new File(folder.toString()+"/parts/"+PAGE_SIZE+"/"+datasetName);			
-			File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");
+			File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");			
 			//			Path partsPath = Paths.get(partsFolder.getPath(),datasetName);
 			if(path.toFile().exists())
 			{
 				log.finer(nr+" File "+path+" already exists, skipping download.");
 				return null;
 			}
+			System.out.println("bla");
+			System.out.println(partsFolder);
 			if(partsFolder.exists())
 			{
 				if(finalPart.exists())
 				{
-					log.fine(nr+" dataset exists in parts, skipping download..");
+					log.fine(nr+" dataset exists in parts, skipping download..");					
 					return null;
 				}
 				log.fine(nr+"dataset exists in parts but is incomplete, continuing...");
@@ -271,23 +273,30 @@ public class JsonDownloader
 	{
 		Set<String> inParts = new HashSet<>();
 		Map<String,File> datasetToFolder = new HashMap<>();
-		for(File pageSizeFile : rootPartsFolder.listFiles())
+		for(File pageSizeFolder : rootPartsFolder.listFiles())
 		{			
-			for(File folder : pageSizeFile.listFiles())
+			for(File folder : pageSizeFolder.listFiles())
 			{				
 				datasetToFolder.put(folder.getName(),folder);
 			}
 		}
 		//		Set<String> unpuzzled = datasetToFolder.keySet();		
-		//		unpuzzled.removeAll(getSavedDatasetNames());
+		//		unpuzzled.removeAll(getSavedDatasetNames());		
 		for(String dataset:datasetToFolder.keySet())
 		{			
-			try(PrintWriter out = new PrintWriter(new File(folder.getPath()+"/"+dataset)))
+			File targetFile = new File(folder.getPath()+"/"+dataset);
+			if(targetFile.exists())
+			{
+				log.info(targetFile+" already exists. Skipping.");
+				continue;
+			}
+			try(PrintWriter out = new PrintWriter(targetFile))
 			{
 				int partNr=0;
 				File[] parts = datasetToFolder.get(dataset).listFiles();				
 				for(File f: parts)
-				{	
+				{
+					if(f.exists()) {log.info(f+" already exists, skipping.");continue;}
 					System.out.println(f);
 					Position pos = Position.TOP;
 					try(BufferedReader in = new BufferedReader(new FileReader(f)))
@@ -312,9 +321,6 @@ public class JsonDownloader
 
 	static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{		
-		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-
 		if(emptyDatasetFile.exists())
 		{
 			try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(emptyDatasetFile)))
@@ -340,8 +346,10 @@ public class JsonDownloader
 	}
 
 	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
-	{	
-		//		downloadAll();
+	{
+		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
+		downloadAll();
 		puzzleTogether();
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
 	}
