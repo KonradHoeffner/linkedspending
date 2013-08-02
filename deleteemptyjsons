@@ -1,0 +1,4 @@
+#!/bin/bash
+cd json
+ls -la | grep " 0 " | grep -o "[^ ]*$" | xargs rm
+cd ..
