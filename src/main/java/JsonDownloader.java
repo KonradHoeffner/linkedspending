@@ -182,15 +182,16 @@ public class JsonDownloader
 		@Override public @Nullable Boolean call() throws IOException
 		{			
 			Path path = Paths.get(folder.getPath(),datasetName);
+			File file = path.toFile();
 			File partsFolder = new File(folder.toString()+"/parts/"+PAGE_SIZE+"/"+datasetName);			
 			File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");			
-			//			Path partsPath = Paths.get(partsFolder.getPath(),datasetName);
-			if(path.toFile().exists())
+			//			Path partsPath = Paths.get(partsFolder.getPath(),datasetName);			
+			if(file.exists())
 			{
+				if(file.length()==0) {throw new RuntimeException(file+" is empty");}
 				log.finer(nr+" File "+path+" already exists, skipping download.");
 				return false;
 			}
-			System.out.println("bla");
 			System.out.println(partsFolder);
 			if(partsFolder.exists())
 			{
@@ -289,6 +290,7 @@ public class JsonDownloader
 			File targetFile = new File(folder.getPath()+"/"+dataset);
 			if(targetFile.exists())
 			{
+				if(targetFile.length()==0) {throw new RuntimeException(targetFile+" is existing but empty.");}	
 				log.finer(targetFile+" already exists. Skipping.");
 				continue;
 			}
@@ -298,8 +300,8 @@ public class JsonDownloader
 				File[] parts = datasetToFolder.get(dataset).listFiles();				
 				for(File f: parts)
 				{
-					if(f.exists()) {log.finer(f+" already exists, skipping.");continue;}
-					System.out.println(f);
+					if(f.length()==0) {throw new RuntimeException(f+" is existing but empty.");}
+										
 					Position pos = Position.TOP;
 					try(BufferedReader in = new BufferedReader(new FileReader(f)))
 					{
@@ -351,7 +353,7 @@ public class JsonDownloader
 	{
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-		downloadAll();
+		//downloadAll();
 		puzzleTogether();
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
 	}
