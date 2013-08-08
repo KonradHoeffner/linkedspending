@@ -191,8 +191,7 @@ public class JsonDownloader
 				if(file.length()==0) {throw new RuntimeException(file+" is empty");}
 				log.finer(nr+" File "+path+" already exists, skipping download.");
 				return false;
-			}
-			System.out.println(partsFolder);
+			}			
 			if(partsFolder.exists())
 			{
 				if(finalPart.exists())
@@ -340,7 +339,7 @@ public class JsonDownloader
 			List datasetNamesShuffled = new ArrayList<>(datasetNames);
 			Collections.shuffle(datasetNamesShuffled);
 			datasetNames=datasetNamesShuffled;
-		}
+		}		
 		downloadIfNotExisting(datasetNames);
 
 		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
@@ -353,7 +352,7 @@ public class JsonDownloader
 	{
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-		//downloadAll();
+		downloadAll();
 		puzzleTogether();
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
 	}

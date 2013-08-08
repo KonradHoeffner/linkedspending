@@ -9,12 +9,19 @@ echo "Counting Attributes"
 ls | xargs egrep -c "AttributeProperty|CountryComponentSpecification|CurrencyComponentSpecification" > ../tmp/attributes 
 echo "Counting Measures"
 ls | xargs egrep -c "MeasureProperty" > ../tmp/measures
+echo "Counting Triples"
+ls | xargs wc -l > ../tmp/triples
 
 cd ../tmp
-for file in observations dimensions attributes measures
+for file in observations dimensions attributes measures triples
 do
  echo "Sorting $file"
  sort $file -o $file  -n -k 2 -t ":"
  grep -o "[0-9]*$" $file > "$file"_numbersonly
+done
+for file in dimensions attributes measures
+do
+ echo "Creating Histogram for $file"
+ uniq -c "$file"_numbersonly > "$file"_histogram
 done
 cd ..

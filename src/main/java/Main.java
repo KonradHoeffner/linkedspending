@@ -53,7 +53,6 @@ public class Main
 	static final String LS = "http://linkedspending.aksw.org/";
 	static final String OS = "http://openspending.org/";
 
-
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
 	//	private static final int	MAX_ENTRIES	= 30;
 	private static final int	DATASET_MIN_EXCEPTIONS_FOR_STOP	= 30;
@@ -84,6 +83,12 @@ public class Main
 				codeToCurrency.put(tokens[0], tokens[1]);
 			}
 		}		
+	}
+
+	@SuppressWarnings("serial")
+	static public class MissingDataException extends Exception
+	{
+		public MissingDataException(String s) {super(s);}
 	}
 
 	static public class QB
@@ -172,14 +177,17 @@ public class Main
 
 	@Nullable static String cleanString(@Nullable String s)
 	{
-		if("null".equals(s)||s.trim().isEmpty()) return null;
+		if(s==null||"null".equals(s)||s.trim().isEmpty()) return null;
 		return s;
 	}
 
 	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.*/
-	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName)
-			throws MalformedURLException, IOException
-			{
+	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException, MissingDataException 
+	{
+		int attributeCount = 1; // currency is always there and dataset is not created if it is not found
+		int dimensionCount = 0;
+		int measureCount = 0;
+
 		Set<ComponentProperty> componentProperties = new HashSet<>();
 		//		ArrayNode dimensionArray = readArrayNode(url);		
 
@@ -222,7 +230,8 @@ public class Main
 			switch(type)
 			{
 				case "date":
-				{					
+				{	
+					dimensionCount++;
 					componentSpecification = LinkedSpendingOntology.TimeComponentSpecification;
 					// it's a dimension
 					//					model.add(componentSpecification, QB.dimension, componentProperty);
@@ -239,6 +248,7 @@ public class Main
 				}
 				case "compound":
 				{
+					dimensionCount++;
 					// it's a dimension
 					model.add(componentSpecification, QB.dimension, componentProperty);
 					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
@@ -250,6 +260,7 @@ public class Main
 				}
 				case "measure":
 				{
+					measureCount++;
 					model.add(componentSpecification, QB.measure, componentProperty);
 					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
 					model.add(componentProperty, RDF.type, QB.MeasureProperty);
@@ -260,6 +271,7 @@ public class Main
 				}
 				case "attribute":
 				{
+					attributeCount++;
 					// TODO: attribute the same meaning as in DataCube?
 					model.add(componentSpecification, QB.attribute, componentProperty);
 					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
@@ -274,9 +286,10 @@ public class Main
 			// backlink
 			model.add(dsd, QB.component, componentSpecification);
 		}
-
+		if(attributeCount==0||measureCount==0||dimensionCount==0)
+		{throw new MissingDataException("no "+(attributeCount==0?"attributes":(measureCount==0?"measures":"dimensions"))+" for dataset "+dataset.getLocalName());}
 		return componentProperties;
-			}
+	}
 
 	//	static void createViews(URL url, Model model) throws MalformedURLException, IOException
 	//	{
@@ -622,14 +635,21 @@ public class Main
 			//			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
 			//			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
 			//			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
-		} else {log.warning("no currency for dataset "+datasetName);return false;}
+		} else {log.warning("no currency for dataset "+datasetName+", skipping");return false;}
 		final Integer defaultYear;
 		{
 			String defaultYearString = cleanString(datasetJson.get("default_time").asText());
 			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
 		}
-		Set<ComponentProperty> componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);
-
+		Set<ComponentProperty> componentProperties;
+		try
+		{componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);}
+		catch(MissingDataException e)
+		{
+			log.warning("Missing data for "+datasetName+", skipping.");
+			e.printStackTrace();
+			return false;
+		}
 		model.add(dataSet, RDF.type, QB.DataSet);
 		model.add(dataSet, QB.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
