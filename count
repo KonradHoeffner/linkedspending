@@ -24,4 +24,7 @@ do
  echo "Creating Histogram for $file"
  uniq -c "$file"_numbersonly > "$file"_histogram
 done
+# Summing observations
+awk '{ SUM += $1} END { print SUM }' observations_numbersonly > observations_sum
+
 cd ..
