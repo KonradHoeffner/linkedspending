@@ -57,6 +57,7 @@ public class JsonDownloader
 	static final int PAGE_SIZE = 50000;
 	static File folder = new File("json");
 	static File rootPartsFolder = new File("json/parts");
+	static File modelFolder = new File("json/model");
 	static final File DATASETS_CACHED = new File("cache/datasets.json");
 	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
 	static {if(!folder.exists()) {folder.mkdir();}}

@@ -1,10 +1,8 @@
-/** todo: warum werden dateien mit 0 byte angelegt? problem mit dem schreiben vom modell? wahrscheinlich wenn fehler auftreten, dann müsste irgendwie
- * die datei gelöscht werden, obwohl es schon ok so ist, sonst läuft das immer neu durch für die datei.*/
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.GregorianCalendar;
@@ -17,6 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.NonNull;
@@ -26,7 +25,6 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import com.cybozu.labs.langdetect.LangDetectException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +33,6 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
@@ -44,6 +41,7 @@ import com.hp.hpl.jena.vocabulary.XSD;
 
 @NonNullByDefault
 @Log
+@SuppressWarnings("serial")
 public class Main
 {
 	static ObjectMapper m = new ObjectMapper();
@@ -51,6 +49,7 @@ public class Main
 	static final boolean USE_CACHE = true;
 	public static final String DATASETS = "http://openspending.org/datasets.json";	
 	static final String LS = "http://linkedspending.aksw.org/";
+	static final String LSP = LS+"property/";
 	static final String OS = "http://openspending.org/";
 
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
@@ -84,13 +83,13 @@ public class Main
 			}
 		}		
 	}
-
-	@SuppressWarnings("serial")
-	static public class MissingDataException extends Exception
-	{
-		public MissingDataException(String s) {super(s);}
-	}
-
+	static public class NoCurrencyFoundForCodeException 			extends Exception {public NoCurrencyFoundForCodeException(String datasetName, String code) {super("no currency found for code "+code+" in dataset "+datasetName);}}	
+	static public class DatasetHasNoCurrencyException 			extends Exception {public DatasetHasNoCurrencyException(String datasetName) {super("dataset "+datasetName+" has no currency.");}}
+	static public class MissingDataException 			extends Exception {public MissingDataException(String s) 			{super(s);}}
+	static public class UnknownMappingTypeException 	extends Exception {public UnknownMappingTypeException(String s) 	{super(s);}}	
+	static public class TooManyMissingValuesException extends Exception
+	{public TooManyMissingValuesException(String datasetName, int i) {super(i+" missing values in dataset "+datasetName);}}
+	
 	static public class QB
 	{
 		static final String qb = "http://purl.org/linked-data/cube#";
@@ -181,8 +180,9 @@ public class Main
 		return s;
 	}
 
-	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.*/
-	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException, MissingDataException 
+	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
+	 * @throws UnknownMappingTypeException */
+	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException 
 	{
 		int attributeCount = 1; // currency is always there and dataset is not created if it is not found
 		int dimensionCount = 0;
@@ -190,7 +190,7 @@ public class Main
 
 		Set<ComponentProperty> componentProperties = new HashSet<>();
 		//		ArrayNode dimensionArray = readArrayNode(url);		
-
+		boolean dateExists = false;
 		for(Iterator<String> it = mapping.fieldNames();it.hasNext();)
 		{
 			//			JsonNode dimJson = dimensionArray.get(i);
@@ -205,7 +205,7 @@ public class Main
 			@Nullable String label = cleanString(componentJson.get("label").asText());
 
 			//			String componentPropertyUrl = componentJson.get("html_url");
-			String componentPropertyUrl = dataset.getURI()+'/'+name;			
+			String componentPropertyUrl = LSP+name;			
 
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
 			componentPropertyByName.put(name, componentProperty);
@@ -230,9 +230,11 @@ public class Main
 			switch(type)
 			{
 				case "date":
-				{	
+				{
+					dateExists = true;
 					dimensionCount++;
 					componentSpecification = LinkedSpendingOntology.TimeComponentSpecification;
+					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.DATE));
 					// it's a dimension
 					//					model.add(componentSpecification, QB.dimension, componentProperty);
 					//					model.add(componentProperty, RDF.type, QB.DimensionProperty);
@@ -281,11 +283,12 @@ public class Main
 					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
 					break;
 				}
-				default: throw new RuntimeException("unkown type: "+type+"of mapping element "+componentJson);
+				default: throw new UnknownMappingTypeException("unkown type: "+type+"of mapping element "+componentJson);
 			}
 			// backlink
 			model.add(dsd, QB.component, componentSpecification);
 		}
+		//		if(!dateExists) {throw new MissingDataException("No date for dataset "+dataset.getLocalName());}
 		if(attributeCount==0||measureCount==0||dimensionCount==0)
 		{throw new MissingDataException("no "+(attributeCount==0?"attributes":(measureCount==0?"measures":"dimensions"))+" for dataset "+dataset.getLocalName());}
 		return componentProperties;
@@ -414,8 +417,9 @@ public class Main
 	 * @param countries 
 	 * @param defaultYear default year in case no other date is given */
 
-	static void createEntries(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral) throws MalformedURLException, IOException
-	{
+	static void createObservations(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral)
+			throws MalformedURLException, IOException, TooManyMissingValuesException
+			{
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
 		int errors=0;
@@ -428,7 +432,7 @@ public class Main
 			model.add(observation, QB.dataSet, dataSet);			
 			model.add(observation, RDF.type, QB.Observation);
 			model.add(observation,DCMI.source,osObservation);
-			boolean dateExists=false;
+			//			boolean dateExists=false;
 			for(ComponentProperty d: componentProperties)
 			{
 				//				if(d.name==null) {throw new RuntimeException("no name for component property "+d);}
@@ -437,7 +441,7 @@ public class Main
 					errors++;
 					if(errors<=DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("no entry for property "+d.name+" at entry "+result);}
 					if(errors==DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("more missing entries.");}
-					if(errors>=DATASET_MIN_EXCEPTIONS_FOR_STOP&&((double)errors/i>DATASET_EXCEPTION_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new RuntimeException("too many errors for dataset "+datasetName);}
+					if(errors>=DATASET_MIN_EXCEPTIONS_FOR_STOP&&((double)errors/i>DATASET_EXCEPTION_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,errors);}
 					continue;
 				}				
 				try
@@ -483,7 +487,7 @@ public class Main
 						}
 						case DATE:
 						{
-							dateExists=true;
+							//							dateExists=true;
 							JsonNode jsonDate = result.get(d.name);
 							//							String week = date.get("week");
 							int year = jsonDate.get("year").asInt();
@@ -529,7 +533,8 @@ public class Main
 			{
 				model.add(observation, DBO.currency, currency);				
 			}
-			if(yearLiteral!=null&&!dateExists)
+			if(yearLiteral!=null)
+				//			if(yearLiteral!=null&&!dateExists)
 			{				
 				model.addLiteral(observation,SDMXDIMENSION.refPeriod,yearLiteral);				
 			}
@@ -545,7 +550,7 @@ public class Main
 			}
 		}
 		writeModel(model,out);
-	}
+			}
 
 	static void writeModel(Model model, OutputStream out)
 	{
@@ -602,14 +607,26 @@ public class Main
 		return dsd;
 	}
 
+	static void deleteDataset(String datasetName)
+	{
+		System.out.println("******************************++deelte"+datasetName);
+		getDatasetFile(datasetName).delete();
+	}
+
 	/** Takes the url of an openspending dataset and extracts rdf into a jena model.
 	 * Each dataset contains a model which gets translated to a datastructure definition and entries that contain the actual measurements and get translated to a
 	 * DataCube. 
 	 * @param url json url that contains an openspending dataset, e.g. http://openspending.org/fukuoka_2013
 	 * @param model initialized model that the triples will be added to
+	 * @throws IOException 
+	 * @throws NoCurrencyFoundForCodeException 
+	 * @throws DatasetHasNoCurrencyException 
+	 * @throws UnknownMappingTypeException 
+	 * @throws TooManyMissingValuesException 
 	 * @returns if it was successfully created 
 	 */
-	static boolean createDataset(String datasetName,Model model,OutputStream out,Map<String,Property> componentPropertyByName) throws IOException, LangDetectException
+	static void createDataset(String datasetName,Model model,OutputStream out,Map<String,Property> componentPropertyByName)
+			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException		
 	{
 		@NonNull URL url = new URL(LS+datasetName);
 		@NonNull URL sourceUrl = new URL(OS+datasetName+".json");		
@@ -626,7 +643,7 @@ public class Main
 		{
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
-			if(currency == null) {log.warning("no currency found for code ");return false;}
+			if(currency == null) {throw new NoCurrencyFoundForCodeException(datasetName,currencyCode);}
 			model.add(dsd, QB.component, LinkedSpendingOntology.CurrencyComponentSpecification);			
 
 			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
@@ -635,21 +652,20 @@ public class Main
 			//			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
 			//			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
 			//			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
-		} else {log.warning("no currency for dataset "+datasetName+", skipping");return false;}
+		} else {log.warning("no currency for dataset "+datasetName+", skipping");throw new DatasetHasNoCurrencyException(datasetName);}
 		final Integer defaultYear;
 		{
 			String defaultYearString = cleanString(datasetJson.get("default_time").asText());
 			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
 		}
 		Set<ComponentProperty> componentProperties;
-		try
-		{componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);}
-		catch(MissingDataException e)
+		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);	}
+		catch (MissingDataException | UnknownMappingTypeException e)
 		{
-			log.warning("Missing data for "+datasetName+", skipping.");
-			e.printStackTrace();
-			return false;
+			log.severe("Error creating components for dataset "+datasetName);
+			throw e;
 		}
+		
 		model.add(dataSet, RDF.type, QB.DataSet);
 		model.add(dataSet, QB.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
@@ -680,7 +696,7 @@ public class Main
 			//		ArrayNode results = (ArrayNode)entries.get("results");
 			log.fine("creating entries");
 
-			createEntries(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
+			createObservations(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
 			log.fine("finished creating entries");
 		}
 		createViews(datasetName,model,dataSet);
@@ -703,8 +719,6 @@ public class Main
 		//		model.add(dataSet, RDFS.comment, description,language);
 		model.add(dataSet, RDFS.label, label);
 		model.add(dataSet, RDFS.comment, description);
-		return true;
-
 		// todo: find out the language
 		//		model.createStatement(arg0, arg1, arg2)
 		//		System.out.println("Converting dataset "+url);
@@ -789,6 +803,7 @@ public class Main
 		Model model = ModelFactory.createMemModelMaker().createDefaultModel();
 		model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
 		model.setNsPrefix("ls", LS);
+		model.setNsPrefix("lsp", LSP);
 		model.setNsPrefix("sdmx-subject",	"http://purl.org/linked-data/sdmx/2009/subject#");
 		model.setNsPrefix("sdmx-dimension",	"http://purl.org/linked-data/sdmx/2009/dimension#");
 		model.setNsPrefix("sdmx-attribute",	"http://purl.org/linked-data/sdmx/2009/attribute#");
@@ -804,10 +819,10 @@ public class Main
 		return readJSON(new URL(OS+datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();		 
 	}
 
-	public static void main(String[] args) throws MalformedURLException, IOException, LangDetectException, Exception
+	public static void main(String[] args) throws MalformedURLException, IOException
 	{
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINE);} catch ( Exception e ) { e.printStackTrace();}
+		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.INFO);} catch ( RuntimeException e ) { e.printStackTrace();}
 		try
 		{			
 			folder.mkdir();
@@ -824,18 +839,17 @@ public class Main
 			int fileexists=0; 
 			//			for(i=0;i<Math.min(datasetArray.length(),10);i++)
 			//			for(i=5;i<=5;i++)
-			for(String name : datasetNames)				
+			for(final String datasetName : datasetNames)				
 			{				
 				//				if(!name.contains("orcamento_brasil_2000_2013")) continue;
-				//								if(!name.contains("berlin_de")) continue;
+				//				if(!name.contains("berlin_de")) continue;
 				i++;				
 				Model model = newModel();
 				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
-				try
-				{
-					File file = new File(folder+"/"+name+".nt");					
+			
+					File file = getDatasetFile(datasetName);					
 					if(file.exists()&&file.length()>0)
 					{
 						log.finer("skipping already existing file nr "+i+": "+file);
@@ -845,7 +859,7 @@ public class Main
 					try(OutputStream out = new FileOutputStream(file, true))
 					{
 						//					JsonNode dataSetJson = datasetArray.get(i);
-						URL url = new URL(LS+name);
+						URL url = new URL(LS+datasetName);
 						//					URL url = new URL(dataSetJson.get("html_url").asText());
 						//					String name = dataSetJson.get("name").asText();
 						//					int nrOfEntries = nrEntries(name);
@@ -858,31 +872,62 @@ public class Main
 						//					//								URL url = new URL("http://openspending.org/berlin_de");
 						//					//		URL url = new URL("http://openspending.org/bmz-activities");
 						//					log.info("Dataset nr. "+i+"/"+datasetArray.size()+": "+url);
-						log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);				
-						boolean successful = createDataset(name,model,out,componentPropertyByName);
-						if(!successful) {faultyDatasets.add(name);}
-						////										
-						writeModel(model,out);
+						log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);										
+							try
+							{
+								createDataset(datasetName,model,out,componentPropertyByName);
+								writeModel(model,out);
+								}
+							catch (NoCurrencyFoundForCodeException | DatasetHasNoCurrencyException | MissingDataException| UnknownMappingTypeException | TooManyMissingValuesException | FileNotFoundException e)
+							{
+								deleteDataset(datasetName);
+								faultyDatasets.add(datasetName);
+								log.severe("Error creating dataset "+datasetName+". Skipping.");
+								e.printStackTrace();
+								if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
+								{									
+									log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
+									shutdown(1);
+								}
+
+							}
+						{
+						}						
 					}
 				}
-				catch(Exception e)
-				{
-					e.printStackTrace();
-					log.severe(e.getLocalizedMessage());
-					exceptions++;
+//				catch(TooManyMissingValuesException e)
+//				{
+//					e.printStackTrace();
+//					log.severe(e.getLocalizedMessage());
+//					exceptions++;
 					if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
 					{
 						if(USE_CACHE) {cache.getCacheManager().shutdown();}
-						throw new Exception("Too many exceptions ("+exceptions+" out of "+(i+1),e);
+						log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
+						shutdown(1);
 					}
-				}
-			}
+//				}
+			
 			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
 			if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+faultyDatasets);
 		}
 
 		// we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster 
-		catch(Exception e) {log.severe(e.getLocalizedMessage());CacheManager.getInstance().shutdown();throw e;}
-		CacheManager.getInstance().shutdown();
+		catch(RuntimeException e) {log.severe(e.getLocalizedMessage());shutdown(1);}
+		shutdown(0);
+	}
+	
+	static void shutdown(int status)
+	{
+		if(USE_CACHE) {CacheManager.getInstance().shutdown();}
+		System.exit(status);
+	}
+
+	static Map<String,File> files = new ConcurrentHashMap<String,File>();
+	private static File getDatasetFile(String name)
+	{
+		File file = files.get(name);
+		if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
+		return file;
 	}
 }
