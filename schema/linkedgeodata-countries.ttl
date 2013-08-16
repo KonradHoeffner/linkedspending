@@ -1,0 +1,656 @@
+<http://linkedgeodata.org/triplify/node424313853>	<http://www.w3.org/2000/01/rdf-schema#label>	"\u00C4quatorialguinea"@de .
+<http://linkedgeodata.org/triplify/node424313903>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1696850886>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425015>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kiribati"@en .
+<http://linkedgeodata.org/triplify/node424314088>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425123>	<http://www.w3.org/2000/01/rdf-schema#label>	"Zambia"@en .
+<http://linkedgeodata.org/triplify/node424314005>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316307>	<http://www.w3.org/2000/01/rdf-schema#label>	"Laos"@en .
+<http://linkedgeodata.org/triplify/node424314145>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1367931778>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297465>	<http://www.w3.org/2000/01/rdf-schema#label>	"Costa Rica"@de .
+<http://linkedgeodata.org/triplify/node249399419>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saudi Arabia"@en .
+<http://linkedgeodata.org/triplify/node424314123>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node466507355>	<http://www.w3.org/2000/01/rdf-schema#label>	"Abchasien"@de .
+<http://linkedgeodata.org/triplify/node424314123>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sierra Leone"@en .
+<http://linkedgeodata.org/triplify/node1696853468>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nagorno-Karabakh Republic"@en .
+<http://linkedgeodata.org/triplify/node424311658>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mosambik"@de .
+<http://linkedgeodata.org/triplify/node424314335>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298326>	<http://www.w3.org/2000/01/rdf-schema#label>	"Turkey"@en .
+<http://linkedgeodata.org/triplify/node424314276>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node26036352>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424989>	<http://www.w3.org/2000/01/rdf-schema#label>	"Greece"@en .
+<http://linkedgeodata.org/triplify/node1790048269>	<http://www.w3.org/2000/01/rdf-schema#label>	"Monaco"@en .
+<http://linkedgeodata.org/triplify/node424313764>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399296>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bahamas"@en .
+<http://linkedgeodata.org/triplify/node1367931778>	<http://www.w3.org/2000/01/rdf-schema#label>	"Neukaledonien"@de .
+<http://linkedgeodata.org/triplify/node424313760>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node2134362766>	<http://www.w3.org/2000/01/rdf-schema#label>	"Malaysia"@de .
+<http://linkedgeodata.org/triplify/node424311353>	<http://www.w3.org/2000/01/rdf-schema#label>	"Croatia"@en .
+<http://linkedgeodata.org/triplify/node424313832>	<http://www.w3.org/2000/01/rdf-schema#label>	"Estonia"@en .
+<http://linkedgeodata.org/triplify/node424313823>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316671>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nicaragua"@en .
+<http://linkedgeodata.org/triplify/node424297973>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sudan"@de .
+<http://linkedgeodata.org/triplify/node424314830>	<http://www.w3.org/2000/01/rdf-schema#label>	"Russland"@de .
+<http://linkedgeodata.org/triplify/node424311942>	<http://www.w3.org/2000/01/rdf-schema#label>	"Indonesien"@de .
+<http://linkedgeodata.org/triplify/node445970763>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313803>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297579>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gambia"@en .
+<http://linkedgeodata.org/triplify/node432425028>	<http://www.w3.org/2000/01/rdf-schema#label>	"Madagaskar"@de .
+<http://linkedgeodata.org/triplify/node424313836>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313832>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297609>	<http://www.w3.org/2000/01/rdf-schema#label>	"Guinea-Bissau"@de .
+<http://linkedgeodata.org/triplify/node424311658>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mozambique"@en .
+<http://linkedgeodata.org/triplify/node424297773>	<http://www.w3.org/2000/01/rdf-schema#label>	"Lithuania"@en .
+<http://linkedgeodata.org/triplify/node424313891>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1983711862>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1648342273>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ukraine"@de .
+<http://linkedgeodata.org/triplify/node432425064>	<http://www.w3.org/2000/01/rdf-schema#label>	"Rum\u00E4nien"@de .
+<http://linkedgeodata.org/triplify/node424313891>	<http://www.w3.org/2000/01/rdf-schema#label>	"Britisches Territorium im Indischen Ozean"@de .
+<http://linkedgeodata.org/triplify/node424313853>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314088>	<http://www.w3.org/2000/01/rdf-schema#label>	"Pakistan"@en .
+<http://linkedgeodata.org/triplify/node424297629>	<http://www.w3.org/2000/01/rdf-schema#label>	"Honduras"@de .
+<http://linkedgeodata.org/triplify/node1388794217>	<http://www.w3.org/2000/01/rdf-schema#label>	"Pitcairninseln"@de .
+<http://linkedgeodata.org/triplify/node424315932>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node2000380837>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424310875>	<http://www.w3.org/2000/01/rdf-schema#label>	"Angola"@en .
+<http://linkedgeodata.org/triplify/node424313734>	<http://www.w3.org/2000/01/rdf-schema#label>	"Brasilien"@de .
+<http://linkedgeodata.org/triplify/node424315709>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424315584>	<http://www.w3.org/2000/01/rdf-schema#label>	"Australia"@en .
+<http://linkedgeodata.org/triplify/node424297647>	<http://www.w3.org/2000/01/rdf-schema#label>	"Israel"@en .
+<http://linkedgeodata.org/triplify/node424314830>	<http://www.w3.org/2000/01/rdf-schema#label>	"Russia"@en .
+<http://linkedgeodata.org/triplify/node424311827>	<http://www.w3.org/2000/01/rdf-schema#label>	"Togo"@en .
+<http://linkedgeodata.org/triplify/node1038445031>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311738>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ruanda"@de .
+<http://linkedgeodata.org/triplify/node424316022>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298311>	<http://www.w3.org/2000/01/rdf-schema#label>	"Iran"@de .
+<http://linkedgeodata.org/triplify/node249399361>	<http://www.w3.org/2000/01/rdf-schema#label>	"North Korea"@en .
+<http://linkedgeodata.org/triplify/node424311891>	<http://www.w3.org/2000/01/rdf-schema#label>	"British Virgin Islands"@en .
+<http://linkedgeodata.org/triplify/node424313675>	<http://www.w3.org/2000/01/rdf-schema#label>	"Azerbaijan"@en .
+<http://linkedgeodata.org/triplify/node424316018>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node2218147140>	<http://www.w3.org/2000/01/rdf-schema#label>	"South Africa"@en .
+<http://linkedgeodata.org/triplify/node424316205>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399277>	<http://www.w3.org/2000/01/rdf-schema#label>	"Armenien"@de .
+<http://linkedgeodata.org/triplify/node2218147140>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298227>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ecuador"@en .
+<http://linkedgeodata.org/triplify/node249399288>	<http://www.w3.org/2000/01/rdf-schema#label>	"Burkina Faso"@en .
+<http://linkedgeodata.org/triplify/node424316074>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425028>	<http://www.w3.org/2000/01/rdf-schema#label>	"Madagascar"@en .
+<http://linkedgeodata.org/triplify/node424316307>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node269195852>	<http://www.w3.org/2000/01/rdf-schema#label>	"Svalbard"@en .
+<http://linkedgeodata.org/triplify/node1696853468>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316216>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399362>	<http://www.w3.org/2000/01/rdf-schema#label>	"South Korea"@en .
+<http://linkedgeodata.org/triplify/node1700777271>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314123>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sierra Leone"@de .
+<http://linkedgeodata.org/triplify/node424314691>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424315709>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bulgarien"@de .
+<http://linkedgeodata.org/triplify/node424314631>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kolumbien"@de .
+<http://linkedgeodata.org/triplify/node1388794217>	<http://www.w3.org/2000/01/rdf-schema#label>	"Pitcairn"@en .
+<http://linkedgeodata.org/triplify/node424314631>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311883>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vatikanstadt"@de .
+<http://linkedgeodata.org/triplify/node424314830>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317406>	<http://www.w3.org/2000/01/rdf-schema#label>	"Uganda"@en .
+<http://linkedgeodata.org/triplify/node249399444>	<http://www.w3.org/2000/01/rdf-schema#label>	"Trinidad und Tobago"@de .
+<http://linkedgeodata.org/triplify/node432425075>	<http://www.w3.org/2000/01/rdf-schema#label>	"Senegal"@en .
+<http://linkedgeodata.org/triplify/node424314784>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483527>	<http://www.w3.org/2000/01/rdf-schema#label>	"Korallenmeerinseln"@de .
+<http://linkedgeodata.org/triplify/node838090640>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vereinigtes K\u00F6nigreich"@de .
+<http://linkedgeodata.org/triplify/node249399440>	<http://www.w3.org/2000/01/rdf-schema#label>	"Turkmenistan"@en .
+<http://linkedgeodata.org/triplify/node424315291>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316307>	<http://www.w3.org/2000/01/rdf-schema#label>	"Laos"@de .
+<http://linkedgeodata.org/triplify/node249399300>	<http://www.w3.org/2000/01/rdf-schema#label>	"Wei\u00DFrussland"@de .
+<http://linkedgeodata.org/triplify/node369137525>	<http://www.w3.org/2000/01/rdf-schema#label>	"Serbien"@de .
+<http://linkedgeodata.org/triplify/node1363947712>	<http://www.w3.org/2000/01/rdf-schema#label>	"Frankreich"@de .
+<http://linkedgeodata.org/triplify/node148874198>	<http://www.w3.org/2000/01/rdf-schema#label>	"Andorra"@en .
+<http://linkedgeodata.org/triplify/node424315584>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424312026>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gr\u00F6nland"@de .
+<http://linkedgeodata.org/triplify/node424297773>	<http://www.w3.org/2000/01/rdf-schema#label>	"Litauen"@de .
+<http://linkedgeodata.org/triplify/node1640880787>	<http://www.w3.org/2000/01/rdf-schema#label>	"Zimbabwe"@en .
+<http://linkedgeodata.org/triplify/node424315405>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311802>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316018>	<http://www.w3.org/2000/01/rdf-schema#label>	"\u00C4gypten"@de .
+<http://linkedgeodata.org/triplify/node424311353>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kroatien"@de .
+<http://linkedgeodata.org/triplify/node432424952>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kambodscha"@de .
+<http://linkedgeodata.org/triplify/node424313803>	<http://www.w3.org/2000/01/rdf-schema#label>	"Czech Republic"@en .
+<http://linkedgeodata.org/triplify/node424297742>	<http://www.w3.org/2000/01/rdf-schema#label>	"Republic of Lebanon"@en .
+<http://linkedgeodata.org/triplify/node424311738>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316671>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nicaragua"@de .
+<http://linkedgeodata.org/triplify/node249399277>	<http://www.w3.org/2000/01/rdf-schema#label>	"Armenia"@en .
+<http://linkedgeodata.org/triplify/node424316216>	<http://www.w3.org/2000/01/rdf-schema#label>	"Jordanien"@de .
+<http://linkedgeodata.org/triplify/node148874198>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311814>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297579>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gambia"@de .
+<http://linkedgeodata.org/triplify/node424313803>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tschechien"@de .
+<http://linkedgeodata.org/triplify/node424311806>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425040>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mongolei"@de .
+<http://linkedgeodata.org/triplify/node424311848>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311827>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483519>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313891>	<http://www.w3.org/2000/01/rdf-schema#label>	"British Indian Ocean Territory"@en .
+<http://linkedgeodata.org/triplify/node2218147140>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00FCdafrika"@de .
+<http://linkedgeodata.org/triplify/node433483527>	<http://www.w3.org/2000/01/rdf-schema#label>	"Coral Sea Islands"@en .
+<http://linkedgeodata.org/triplify/node424311890>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399364>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kaimaninseln"@de .
+<http://linkedgeodata.org/triplify/node424298277>	<http://www.w3.org/2000/01/rdf-schema#label>	"Seychellen"@de .
+<http://linkedgeodata.org/triplify/node424311883>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483527>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399429>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00E3o Tom\u00E9 und Pr\u00EDncipe"@de .
+<http://linkedgeodata.org/triplify/node424310875>	<http://www.w3.org/2000/01/rdf-schema#label>	"Angola"@de .
+<http://linkedgeodata.org/triplify/node424312026>	<http://www.w3.org/2000/01/rdf-schema#label>	"Greenland"@en .
+<http://linkedgeodata.org/triplify/node424297647>	<http://www.w3.org/2000/01/rdf-schema#label>	"Israel"@de .
+<http://linkedgeodata.org/triplify/node424311573>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314088>	<http://www.w3.org/2000/01/rdf-schema#label>	"Pakistan"@de .
+<http://linkedgeodata.org/triplify/node424315709>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bulgaria"@en .
+<http://linkedgeodata.org/triplify/node432425060>	<http://www.w3.org/2000/01/rdf-schema#label>	"Poland"@en .
+<http://linkedgeodata.org/triplify/node424311565>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483540>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424972>	<http://www.w3.org/2000/01/rdf-schema#label>	"East Timor"@en .
+<http://linkedgeodata.org/triplify/node424311679>	<http://www.w3.org/2000/01/rdf-schema#label>	"Norfolk Island"@en .
+<http://linkedgeodata.org/triplify/node424313936>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kuwait"@en .
+<http://linkedgeodata.org/triplify/node424311645>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node823750101>	<http://www.w3.org/2000/01/rdf-schema#label>	"Salomonen"@de .
+<http://linkedgeodata.org/triplify/node26347360>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298227>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ecuador"@de .
+<http://linkedgeodata.org/triplify/node424311641>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483572>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399288>	<http://www.w3.org/2000/01/rdf-schema#label>	"Burkina Faso"@de .
+<http://linkedgeodata.org/triplify/node424311641>	<http://www.w3.org/2000/01/rdf-schema#label>	"Maldives"@en .
+<http://linkedgeodata.org/triplify/node424311662>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483552>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311658>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311151>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kap Verde"@de .
+<http://linkedgeodata.org/triplify/node424310982>	<http://www.w3.org/2000/01/rdf-schema#label>	"Burundi"@en .
+<http://linkedgeodata.org/triplify/node424311679>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313823>	<http://www.w3.org/2000/01/rdf-schema#label>	"Fidschi"@de .
+<http://linkedgeodata.org/triplify/node2043451343>	<http://www.w3.org/2000/01/rdf-schema#label>	"Transnistria"@en .
+<http://linkedgeodata.org/triplify/node424311675>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424315932>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kamerun"@de .
+<http://linkedgeodata.org/triplify/node424311675>	<http://www.w3.org/2000/01/rdf-schema#label>	"Niger"@en .
+<http://linkedgeodata.org/triplify/node823750101>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317315>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tunesien"@de .
+<http://linkedgeodata.org/triplify/node424312044>	<http://www.w3.org/2000/01/rdf-schema#label>	"F\u00E4r\u00F6er"@de .
+<http://linkedgeodata.org/triplify/node424311883>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vatican City"@en .
+<http://linkedgeodata.org/triplify/node424317406>	<http://www.w3.org/2000/01/rdf-schema#label>	"Uganda"@de .
+<http://linkedgeodata.org/triplify/node424313451>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1983711862>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bosnien und Herzegowina"@de .
+<http://linkedgeodata.org/triplify/node1602889766>	<http://www.w3.org/2000/01/rdf-schema#label>	"Isle of Man"@en .
+<http://linkedgeodata.org/triplify/node424316758>	<http://www.w3.org/2000/01/rdf-schema#label>	"Panama"@en .
+<http://linkedgeodata.org/triplify/node424313591>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node246422158>	<http://www.w3.org/2000/01/rdf-schema#label>	"Dominikanische Republik"@de .
+<http://linkedgeodata.org/triplify/node148874198>	<http://www.w3.org/2000/01/rdf-schema#label>	"Andorra"@de .
+<http://linkedgeodata.org/triplify/node249399440>	<http://www.w3.org/2000/01/rdf-schema#label>	"Turkmenistan"@de .
+<http://linkedgeodata.org/triplify/node1420871007>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ireland"@en .
+<http://linkedgeodata.org/triplify/node249399406>	<http://www.w3.org/2000/01/rdf-schema#label>	"Peru"@de .
+<http://linkedgeodata.org/triplify/node433483517>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313582>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313730>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313730>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bolivia"@en .
+<http://linkedgeodata.org/triplify/node424313675>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314005>	<http://www.w3.org/2000/01/rdf-schema#label>	"Montserrat"@en .
+<http://linkedgeodata.org/triplify/node424311521>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kazakhstan"@en .
+<http://linkedgeodata.org/triplify/node424313751>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425079>	<http://www.w3.org/2000/01/rdf-schema#label>	"Slowakei"@de .
+<http://linkedgeodata.org/triplify/node424313734>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424312044>	<http://www.w3.org/2000/01/rdf-schema#label>	"Faroe Islands"@en .
+<http://linkedgeodata.org/triplify/node424311806>	<http://www.w3.org/2000/01/rdf-schema#label>	"Syrien"@de .
+<http://linkedgeodata.org/triplify/node424316205>	<http://www.w3.org/2000/01/rdf-schema#label>	"Iraq"@en .
+<http://linkedgeodata.org/triplify/node424311814>	<http://www.w3.org/2000/01/rdf-schema#label>	"Turks and Caicos Islands"@en .
+<http://linkedgeodata.org/triplify/node424311942>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425063>	<http://www.w3.org/2000/01/rdf-schema#label>	"Republik Kongo"@de .
+<http://linkedgeodata.org/triplify/node1700777271>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kyrgyzstan"@en .
+<http://linkedgeodata.org/triplify/node424311891>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317935>	<http://www.w3.org/2000/01/rdf-schema#label>	"United States of America"@en .
+<http://linkedgeodata.org/triplify/node424312026>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311955>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313760>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kanada"@de .
+<http://linkedgeodata.org/triplify/node424313277>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314276>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tadschikistan"@de .
+<http://linkedgeodata.org/triplify/node424314691>	<http://www.w3.org/2000/01/rdf-schema#label>	"Elfenbeink\u00FCste"@de .
+<http://linkedgeodata.org/triplify/node424310601>	<http://www.w3.org/2000/01/rdf-schema#label>	"Albanien"@de .
+<http://linkedgeodata.org/triplify/node424312044>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425116>	<http://www.w3.org/2000/01/rdf-schema#label>	"Uruguay"@en .
+<http://linkedgeodata.org/triplify/node249399429>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00E3o Tom\u00E9 and Pr\u00EDncipe"@en .
+<http://linkedgeodata.org/triplify/node432424952>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cambodia"@en .
+<http://linkedgeodata.org/triplify/node1683325355>	<http://www.w3.org/2000/01/rdf-schema#label>	"Deutschland"@de .
+<http://linkedgeodata.org/triplify/node424313428>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313406>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424972>	<http://www.w3.org/2000/01/rdf-schema#label>	"Osttimor"@de .
+<http://linkedgeodata.org/triplify/node26847706>	<http://www.w3.org/2000/01/rdf-schema#label>	"Afghanistan"@de .
+<http://linkedgeodata.org/triplify/node424313903>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kenia"@de .
+<http://linkedgeodata.org/triplify/node424298227>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313936>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kuwait"@de .
+<http://linkedgeodata.org/triplify/node445970763>	<http://www.w3.org/2000/01/rdf-schema#label>	"Montenegro"@de .
+<http://linkedgeodata.org/triplify/node424298167>	<http://www.w3.org/2000/01/rdf-schema#label>	"South Africa"@en .
+<http://linkedgeodata.org/triplify/node424298311>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483552>	<http://www.w3.org/2000/01/rdf-schema#label>	"Niue"@en .
+<http://linkedgeodata.org/triplify/node424297207>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bahrain"@en .
+<http://linkedgeodata.org/triplify/node424313760>	<http://www.w3.org/2000/01/rdf-schema#label>	"Canada"@en .
+<http://linkedgeodata.org/triplify/node424298277>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node506562044>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1038445031>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cura\u00E7ao"@en .
+<http://linkedgeodata.org/triplify/node432425064>	<http://www.w3.org/2000/01/rdf-schema#label>	"Romania"@en .
+<http://linkedgeodata.org/triplify/node424310703>	<http://www.w3.org/2000/01/rdf-schema#label>	"United Arab Emirates"@en .
+<http://linkedgeodata.org/triplify/node424313582>	<http://www.w3.org/2000/01/rdf-schema#label>	"China"@de .
+<http://linkedgeodata.org/triplify/node424310982>	<http://www.w3.org/2000/01/rdf-schema#label>	"Burundi"@de .
+<http://linkedgeodata.org/triplify/node1363947712>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node26847709>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298326>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297810>	<http://www.w3.org/2000/01/rdf-schema#label>	"Macedonia"@en .
+<http://linkedgeodata.org/triplify/node249399347>	<http://www.w3.org/2000/01/rdf-schema#label>	"Hungary"@en .
+<http://linkedgeodata.org/triplify/node26847706>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399339>	<http://www.w3.org/2000/01/rdf-schema#label>	"South Georgia and South Sandwich Islands"@en .
+<http://linkedgeodata.org/triplify/node424311675>	<http://www.w3.org/2000/01/rdf-schema#label>	"Niger"@de .
+<http://linkedgeodata.org/triplify/node424313406>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cyprus"@en .
+<http://linkedgeodata.org/triplify/node2000380837>	<http://www.w3.org/2000/01/rdf-schema#label>	"Republic of Kosovo"@en .
+<http://linkedgeodata.org/triplify/node424310758>	<http://www.w3.org/2000/01/rdf-schema#label>	"St. Kitts und Nevis"@de .
+<http://linkedgeodata.org/triplify/node424297931>	<http://www.w3.org/2000/01/rdf-schema#label>	"Papua-Neuguinea"@de .
+<http://linkedgeodata.org/triplify/node1640880787>	<http://www.w3.org/2000/01/rdf-schema#label>	"Simbabwe"@de .
+<http://linkedgeodata.org/triplify/node424297931>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297917>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399280>	<http://www.w3.org/2000/01/rdf-schema#label>	"Argentinien"@de .
+<http://linkedgeodata.org/triplify/node1683325355>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node506535828>	<http://www.w3.org/2000/01/rdf-schema#label>	"Amerikanisch-Samoa"@de .
+<http://linkedgeodata.org/triplify/node424297973>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425064>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298076>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tschad"@de .
+<http://linkedgeodata.org/triplify/node424313751>	<http://www.w3.org/2000/01/rdf-schema#label>	"Botswana"@en .
+<http://linkedgeodata.org/triplify/node838090640>	<http://www.w3.org/2000/01/rdf-schema#label>	"United Kingdom"@en .
+<http://linkedgeodata.org/triplify/node432425063>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298076>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311252>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gabun"@de .
+<http://linkedgeodata.org/triplify/node432425075>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399444>	<http://www.w3.org/2000/01/rdf-schema#label>	"Trinidad and Tobago"@en .
+<http://linkedgeodata.org/triplify/node424298019>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424310703>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vereinigte Arabische Emirate"@de .
+<http://linkedgeodata.org/triplify/node432425070>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298167>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399402>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nepal"@en .
+<http://linkedgeodata.org/triplify/node432425087>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317372>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tuvalu"@en .
+<http://linkedgeodata.org/triplify/node2163914205>	<http://www.w3.org/2000/01/rdf-schema#label>	"\u00C4thiopien"@de .
+<http://linkedgeodata.org/triplify/node26847709>	<http://www.w3.org/2000/01/rdf-schema#label>	"\u00D6sterreich"@de .
+<http://linkedgeodata.org/triplify/node432424937>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bangladesh"@en .
+<http://linkedgeodata.org/triplify/node369137525>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298150>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425036>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mexiko"@de .
+<http://linkedgeodata.org/triplify/node432425079>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311151>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316417>	<http://www.w3.org/2000/01/rdf-schema#label>	"Moldawien"@de .
+<http://linkedgeodata.org/triplify/node432425116>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424968>	<http://www.w3.org/2000/01/rdf-schema#label>	"Denmark"@en .
+<http://linkedgeodata.org/triplify/node424311104>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425099>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316074>	<http://www.w3.org/2000/01/rdf-schema#label>	"Grenada"@en .
+<http://linkedgeodata.org/triplify/node424311244>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425028>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425036>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mexico"@en .
+<http://linkedgeodata.org/triplify/node424298167>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00FCdafrika"@de .
+<http://linkedgeodata.org/triplify/node424311237>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316216>	<http://www.w3.org/2000/01/rdf-schema#label>	"Jordan"@en .
+<http://linkedgeodata.org/triplify/node432425023>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313751>	<http://www.w3.org/2000/01/rdf-schema#label>	"Botsuana"@de .
+<http://linkedgeodata.org/triplify/node424311328>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399419>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saudi-Arabien"@de .
+<http://linkedgeodata.org/triplify/node432425036>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311252>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425032>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317039>	<http://www.w3.org/2000/01/rdf-schema#label>	"Somalia"@en .
+<http://linkedgeodata.org/triplify/node466507355>	<http://www.w3.org/2000/01/rdf-schema#label>	"Abkhazia"@en .
+<http://linkedgeodata.org/triplify/node424315932>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cameroon"@en .
+<http://linkedgeodata.org/triplify/node424311521>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node26847706>	<http://www.w3.org/2000/01/rdf-schema#label>	"Afghanistan"@en .
+<http://linkedgeodata.org/triplify/node424311565>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sri Lanka"@en .
+<http://linkedgeodata.org/triplify/node432425041>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313428>	<http://www.w3.org/2000/01/rdf-schema#label>	"Singapore"@en .
+<http://linkedgeodata.org/triplify/node432425023>	<http://www.w3.org/2000/01/rdf-schema#label>	"Libya"@en .
+<http://linkedgeodata.org/triplify/node424297198>	<http://www.w3.org/2000/01/rdf-schema#label>	"Norway"@en .
+<http://linkedgeodata.org/triplify/node424313582>	<http://www.w3.org/2000/01/rdf-schema#label>	"People's Republic of China"@en .
+<http://linkedgeodata.org/triplify/node424311353>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425040>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425070>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saint Vincent und die Grenadinen"@de .
+<http://linkedgeodata.org/triplify/node1983711862>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bosnia and Herzegovina"@en .
+<http://linkedgeodata.org/triplify/node424311244>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mikronesien"@de .
+<http://linkedgeodata.org/triplify/node424317039>	<http://www.w3.org/2000/01/rdf-schema#label>	"Somalia"@de .
+<http://linkedgeodata.org/triplify/node424310601>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425062>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1356260631>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316663>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nigeria"@en .
+<http://linkedgeodata.org/triplify/node432425060>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297207>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bahrain"@de .
+<http://linkedgeodata.org/triplify/node424310703>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1696874354>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nordzypern"@de .
+<http://linkedgeodata.org/triplify/node424313823>	<http://www.w3.org/2000/01/rdf-schema#label>	"Fiji"@en .
+<http://linkedgeodata.org/triplify/node424310680>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311641>	<http://www.w3.org/2000/01/rdf-schema#label>	"Malediven"@de .
+<http://linkedgeodata.org/triplify/node424310680>	<http://www.w3.org/2000/01/rdf-schema#label>	"Swasiland"@de .
+<http://linkedgeodata.org/triplify/node437146363>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425099>	<http://www.w3.org/2000/01/rdf-schema#label>	"Taiwan"@de .
+<http://linkedgeodata.org/triplify/node424310875>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424310758>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node26347360>	<http://www.w3.org/2000/01/rdf-schema#label>	"Italien"@de .
+<http://linkedgeodata.org/triplify/node424311028>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node2043451343>	<http://www.w3.org/2000/01/rdf-schema#label>	"Transnistrien"@de .
+<http://linkedgeodata.org/triplify/node424310982>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node506532878>	<http://www.w3.org/2000/01/rdf-schema#label>	"Antarktis"@de .
+<http://linkedgeodata.org/triplify/node249399361>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nordkorea"@de .
+<http://linkedgeodata.org/triplify/node249399394>	<http://www.w3.org/2000/01/rdf-schema#label>	"Malaysia"@en .
+<http://linkedgeodata.org/triplify/node424311679>	<http://www.w3.org/2000/01/rdf-schema#label>	"Norfolkinsel"@de .
+<http://linkedgeodata.org/triplify/node1648342273>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ukraine"@en .
+<http://linkedgeodata.org/triplify/node432425123>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425062>	<http://www.w3.org/2000/01/rdf-schema#label>	"Katar"@de .
+<http://linkedgeodata.org/triplify/node249399402>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nepal"@de .
+<http://linkedgeodata.org/triplify/node462226505>	<http://www.w3.org/2000/01/rdf-schema#label>	"French Polynesia"@en .
+<http://linkedgeodata.org/triplify/node506562044>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saint Barth\u00E9lemy"@en .
+<http://linkedgeodata.org/triplify/node424313277>	<http://www.w3.org/2000/01/rdf-schema#label>	"Schweden"@de .
+<http://linkedgeodata.org/triplify/node424297198>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424315291>	<http://www.w3.org/2000/01/rdf-schema#label>	"Oman"@en .
+<http://linkedgeodata.org/triplify/node424313591>	<http://www.w3.org/2000/01/rdf-schema#label>	"Jamaika"@de .
+<http://linkedgeodata.org/triplify/node2000314677>	<http://www.w3.org/2000/01/rdf-schema#label>	"Western Sahara"@en .
+<http://linkedgeodata.org/triplify/node424298326>	<http://www.w3.org/2000/01/rdf-schema#label>	"T\u00FCrkei"@de .
+<http://linkedgeodata.org/triplify/node424313764>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kokosinseln"@de .
+<http://linkedgeodata.org/triplify/node424297281>	<http://www.w3.org/2000/01/rdf-schema#label>	"Haiti"@de .
+<http://linkedgeodata.org/triplify/node432424985>	<http://www.w3.org/2000/01/rdf-schema#label>	"Georgien"@de .
+<http://linkedgeodata.org/triplify/node1770467684>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424968>	<http://www.w3.org/2000/01/rdf-schema#label>	"D\u00E4nemark"@de .
+<http://linkedgeodata.org/triplify/node249399429>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node823750101>	<http://www.w3.org/2000/01/rdf-schema#label>	"Solomon Islands"@en .
+<http://linkedgeodata.org/triplify/node249399285>	<http://www.w3.org/2000/01/rdf-schema#label>	"Barbados"@en .
+<http://linkedgeodata.org/triplify/node432424981>	<http://www.w3.org/2000/01/rdf-schema#label>	"Finland"@en .
+<http://linkedgeodata.org/triplify/node1684793666>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317744>	<http://www.w3.org/2000/01/rdf-schema#label>	"Martinique"@en .
+<http://linkedgeodata.org/triplify/node1790048269>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1708980402>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399444>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1644764586>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399440>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node246422158>	<http://www.w3.org/2000/01/rdf-schema#label>	"Dominican Republic"@en .
+<http://linkedgeodata.org/triplify/node424311955>	<http://www.w3.org/2000/01/rdf-schema#label>	"Marshall Islands"@en .
+<http://linkedgeodata.org/triplify/node424311848>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tonga"@en .
+<http://linkedgeodata.org/triplify/node433483540>	<http://www.w3.org/2000/01/rdf-schema#label>	"Jersey"@en .
+<http://linkedgeodata.org/triplify/node1504546320>	<http://www.w3.org/2000/01/rdf-schema#label>	"Schweiz"@de .
+<http://linkedgeodata.org/triplify/node1367931778>	<http://www.w3.org/2000/01/rdf-schema#label>	"New Caledonia"@en .
+<http://linkedgeodata.org/triplify/node249399459>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314784>	<http://www.w3.org/2000/01/rdf-schema#label>	"Iceland"@en .
+<http://linkedgeodata.org/triplify/node424316663>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nigeria"@de .
+<http://linkedgeodata.org/triplify/node424311738>	<http://www.w3.org/2000/01/rdf-schema#label>	"Rwanda"@en .
+<http://linkedgeodata.org/triplify/node424297629>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node208592566>	<http://www.w3.org/2000/01/rdf-schema#label>	"Slovenia"@en .
+<http://linkedgeodata.org/triplify/node424311814>	<http://www.w3.org/2000/01/rdf-schema#label>	"Turks- und Caicosinseln"@de .
+<http://linkedgeodata.org/triplify/node1694010854>	<http://www.w3.org/2000/01/rdf-schema#label>	"Brunei"@de .
+<http://linkedgeodata.org/triplify/node424297609>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399362>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425099>	<http://www.w3.org/2000/01/rdf-schema#label>	"Taiwan"@en .
+<http://linkedgeodata.org/triplify/node148332300>	<http://www.w3.org/2000/01/rdf-schema#label>	"Spanien"@de .
+<http://linkedgeodata.org/triplify/node424311237>	<http://www.w3.org/2000/01/rdf-schema#label>	"Falkland Islands"@en .
+<http://linkedgeodata.org/triplify/node249399361>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297647>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1529444079>	<http://www.w3.org/2000/01/rdf-schema#label>	"Samoa"@en .
+<http://linkedgeodata.org/triplify/node249399394>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313764>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cocos (Keeling) Islands"@en .
+<http://linkedgeodata.org/triplify/node424297773>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311806>	<http://www.w3.org/2000/01/rdf-schema#label>	"Syria"@en .
+<http://linkedgeodata.org/triplify/node506535828>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399364>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424929>	<http://www.w3.org/2000/01/rdf-schema#label>	"Antigua und Barbuda"@de .
+<http://linkedgeodata.org/triplify/node424297742>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316493>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mauretanien"@de .
+<http://linkedgeodata.org/triplify/node1694010854>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node506532878>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399406>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1683325355>	<http://www.w3.org/2000/01/rdf-schema#label>	"Germany"@en .
+<http://linkedgeodata.org/triplify/node424311521>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kasachstan"@de .
+<http://linkedgeodata.org/triplify/node424297816>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399364>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cayman Islands"@en .
+<http://linkedgeodata.org/triplify/node424297384>	<http://www.w3.org/2000/01/rdf-schema#label>	"Benin"@en .
+<http://linkedgeodata.org/triplify/node249399406>	<http://www.w3.org/2000/01/rdf-schema#label>	"Peru"@en .
+<http://linkedgeodata.org/triplify/node432425019>	<http://www.w3.org/2000/01/rdf-schema#label>	"Latvia"@en .
+<http://linkedgeodata.org/triplify/node249399402>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313853>	<http://www.w3.org/2000/01/rdf-schema#label>	"Equatorial Guinea"@en .
+<http://linkedgeodata.org/triplify/node424313451>	<http://www.w3.org/2000/01/rdf-schema#label>	"Japan"@en .
+<http://linkedgeodata.org/triplify/node424297810>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399419>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314335>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tansania"@de .
+<http://linkedgeodata.org/triplify/node424297217>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399280>	<http://www.w3.org/2000/01/rdf-schema#label>	"Argentina"@en .
+<http://linkedgeodata.org/triplify/node249399410>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314145>	<http://www.w3.org/2000/01/rdf-schema#label>	"Indien"@de .
+<http://linkedgeodata.org/triplify/node424313832>	<http://www.w3.org/2000/01/rdf-schema#label>	"Estland"@de .
+<http://linkedgeodata.org/triplify/node424297207>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node248120384>	<http://www.w3.org/2000/01/rdf-schema#label>	"New Zealand"@en .
+<http://linkedgeodata.org/triplify/node424297384>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424968>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425123>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sambia"@de .
+<http://linkedgeodata.org/triplify/node424297281>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1708980402>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mauritius"@en .
+<http://linkedgeodata.org/triplify/node432424956>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424937>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bangladesch"@de .
+<http://linkedgeodata.org/triplify/node424298019>	<http://www.w3.org/2000/01/rdf-schema#label>	"Luxembourg"@en .
+<http://linkedgeodata.org/triplify/node424297496>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311244>	<http://www.w3.org/2000/01/rdf-schema#label>	"Federated States of Micronesia"@en .
+<http://linkedgeodata.org/triplify/node432424981>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node435981993>	<http://www.w3.org/2000/01/rdf-schema#label>	"Democratic Republic of the Congo"@en .
+<http://linkedgeodata.org/triplify/node424315291>	<http://www.w3.org/2000/01/rdf-schema#label>	"Oman"@de .
+<http://linkedgeodata.org/triplify/node432424926>	<http://www.w3.org/2000/01/rdf-schema#label>	"Algerien"@de .
+<http://linkedgeodata.org/triplify/node424297465>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424972>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node208592566>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297586>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node2000314677>	<http://www.w3.org/2000/01/rdf-schema#label>	"Westsahara"@de .
+<http://linkedgeodata.org/triplify/node432424989>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314145>	<http://www.w3.org/2000/01/rdf-schema#label>	"India"@en .
+<http://linkedgeodata.org/triplify/node506532878>	<http://www.w3.org/2000/01/rdf-schema#label>	"Antarctica"@en .
+<http://linkedgeodata.org/triplify/node424297579>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424985>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1644732479>	<http://www.w3.org/2000/01/rdf-schema#label>	"Guatemala"@en .
+<http://linkedgeodata.org/triplify/node249399360>	<http://www.w3.org/2000/01/rdf-schema#label>	"Komoren"@de .
+<http://linkedgeodata.org/triplify/node432425019>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314335>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tanzania"@en .
+<http://linkedgeodata.org/triplify/node424297931>	<http://www.w3.org/2000/01/rdf-schema#label>	"Papua New Guinea"@en .
+<http://linkedgeodata.org/triplify/node466507355>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425015>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1529444079>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node433483517>	<http://www.w3.org/2000/01/rdf-schema#label>	"Anguilla"@en .
+<http://linkedgeodata.org/triplify/node249399285>	<http://www.w3.org/2000/01/rdf-schema#label>	"Barbados"@de .
+<http://linkedgeodata.org/triplify/node424297586>	<http://www.w3.org/2000/01/rdf-schema#label>	"Guinea"@en .
+<http://linkedgeodata.org/triplify/node1640880787>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1790048269>	<http://www.w3.org/2000/01/rdf-schema#label>	"Monaco"@de .
+<http://linkedgeodata.org/triplify/node249399296>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bahamas"@de .
+<http://linkedgeodata.org/triplify/node445970763>	<http://www.w3.org/2000/01/rdf-schema#label>	"Montenegro"@en .
+<http://linkedgeodata.org/triplify/node424316205>	<http://www.w3.org/2000/01/rdf-schema#label>	"Irak"@de .
+<http://linkedgeodata.org/triplify/node838090640>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1363947712>	<http://www.w3.org/2000/01/rdf-schema#label>	"France"@en .
+<http://linkedgeodata.org/triplify/node424314631>	<http://www.w3.org/2000/01/rdf-schema#label>	"Colombia"@en .
+<http://linkedgeodata.org/triplify/node432424929>	<http://www.w3.org/2000/01/rdf-schema#label>	"Antigua and Barbuda"@en .
+<http://linkedgeodata.org/triplify/node432425062>	<http://www.w3.org/2000/01/rdf-schema#label>	"Qatar"@en .
+<http://linkedgeodata.org/triplify/node432424929>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node437146363>	<http://www.w3.org/2000/01/rdf-schema#label>	"Thailand"@de .
+<http://linkedgeodata.org/triplify/node432424926>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node26347360>	<http://www.w3.org/2000/01/rdf-schema#label>	"Italy"@en .
+<http://linkedgeodata.org/triplify/node424298076>	<http://www.w3.org/2000/01/rdf-schema#label>	"Chad"@en .
+<http://linkedgeodata.org/triplify/node249399459>	<http://www.w3.org/2000/01/rdf-schema#label>	"Yemen"@en .
+<http://linkedgeodata.org/triplify/node432424952>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424937>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node208592566>	<http://www.w3.org/2000/01/rdf-schema#label>	"Slowenien"@de .
+<http://linkedgeodata.org/triplify/node424311662>	<http://www.w3.org/2000/01/rdf-schema#label>	"Namibia"@en .
+<http://linkedgeodata.org/triplify/node424297384>	<http://www.w3.org/2000/01/rdf-schema#label>	"Benin"@de .
+<http://linkedgeodata.org/triplify/node1700777271>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kirgisistan"@de .
+<http://linkedgeodata.org/triplify/node432425032>	<http://www.w3.org/2000/01/rdf-schema#label>	"Malta"@en .
+<http://linkedgeodata.org/triplify/node249399313>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kuba"@de .
+<http://linkedgeodata.org/triplify/node2163914205>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ethiopia"@en .
+<http://linkedgeodata.org/triplify/node424311252>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gabon"@en .
+<http://linkedgeodata.org/triplify/node424311891>	<http://www.w3.org/2000/01/rdf-schema#label>	"Britische Jungferninseln"@de .
+<http://linkedgeodata.org/triplify/node249399410>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saint Pierre and Miquelon"@en .
+<http://linkedgeodata.org/triplify/node1696850886>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00FCdossetien"@de .
+<http://linkedgeodata.org/triplify/node424313451>	<http://www.w3.org/2000/01/rdf-schema#label>	"Japan"@de .
+<http://linkedgeodata.org/triplify/node1420871007>	<http://www.w3.org/2000/01/rdf-schema#label>	"Irland"@de .
+<http://linkedgeodata.org/triplify/node424311151>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cape Verde"@en .
+<http://linkedgeodata.org/triplify/node1511934680>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297198>	<http://www.w3.org/2000/01/rdf-schema#label>	"Norwegen"@de .
+<http://linkedgeodata.org/triplify/node424316493>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mauritania"@en .
+<http://linkedgeodata.org/triplify/node424311802>	<http://www.w3.org/2000/01/rdf-schema#label>	"El Salvador"@en .
+<http://linkedgeodata.org/triplify/node1420871007>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1504546320>	<http://www.w3.org/2000/01/rdf-schema#label>	"Switzerland"@en .
+<http://linkedgeodata.org/triplify/node2110225115>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1388794217>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node435981993>	<http://www.w3.org/2000/01/rdf-schema#label>	"Demokratische Republik Kongo"@de .
+<http://linkedgeodata.org/triplify/node424297742>	<http://www.w3.org/2000/01/rdf-schema#label>	"Libanon"@de .
+<http://linkedgeodata.org/triplify/node1696853468>	<http://www.w3.org/2000/01/rdf-schema#label>	"Republik Bergkarabach"@de .
+<http://linkedgeodata.org/triplify/node424317315>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tunisia"@en .
+<http://linkedgeodata.org/triplify/node432424989>	<http://www.w3.org/2000/01/rdf-schema#label>	"Griechenland"@de .
+<http://linkedgeodata.org/triplify/node433483519>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bermuda"@en .
+<http://linkedgeodata.org/triplify/node435981993>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1644764586>	<http://www.w3.org/2000/01/rdf-schema#label>	"Paraguay"@en .
+<http://linkedgeodata.org/triplify/node1644732479>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node332779764>	<http://www.w3.org/2000/01/rdf-schema#label>	"Belize"@de .
+<http://linkedgeodata.org/triplify/node432425087>	<http://www.w3.org/2000/01/rdf-schema#label>	"Suriname"@en .
+<http://linkedgeodata.org/triplify/node369137525>	<http://www.w3.org/2000/01/rdf-schema#label>	"Serbia"@en .
+<http://linkedgeodata.org/triplify/node2134362766>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1770467684>	<http://www.w3.org/2000/01/rdf-schema#label>	"Aruba"@en .
+<http://linkedgeodata.org/triplify/node1696850886>	<http://www.w3.org/2000/01/rdf-schema#label>	"South Ossetia"@en .
+<http://linkedgeodata.org/triplify/node432425070>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saint Vincent and the Grenadines"@en .
+<http://linkedgeodata.org/triplify/node424317935>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vereinigte Staaten von Amerika"@de .
+<http://linkedgeodata.org/triplify/node424311645>	<http://www.w3.org/2000/01/rdf-schema#label>	"Malawi"@en .
+<http://linkedgeodata.org/triplify/node2110225115>	<http://www.w3.org/2000/01/rdf-schema#label>	"Pal\u00E4stina"@de .
+<http://linkedgeodata.org/triplify/node1602889766>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node246422158>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316478>	<http://www.w3.org/2000/01/rdf-schema#label>	"Myanmar"@en .
+<http://linkedgeodata.org/triplify/node1684793666>	<http://www.w3.org/2000/01/rdf-schema#label>	"Belgium"@en .
+<http://linkedgeodata.org/triplify/node424298150>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vietnam"@en .
+<http://linkedgeodata.org/triplify/node424297586>	<http://www.w3.org/2000/01/rdf-schema#label>	"Guinea"@de .
+<http://linkedgeodata.org/triplify/node424316018>	<http://www.w3.org/2000/01/rdf-schema#label>	"Egypt"@en .
+<http://linkedgeodata.org/triplify/node1511934680>	<http://www.w3.org/2000/01/rdf-schema#label>	"Palau"@en .
+<http://linkedgeodata.org/triplify/node424314784>	<http://www.w3.org/2000/01/rdf-schema#label>	"Island"@de .
+<http://linkedgeodata.org/triplify/node432425019>	<http://www.w3.org/2000/01/rdf-schema#label>	"Lettland"@de .
+<http://linkedgeodata.org/triplify/node424315405>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gibraltar"@en .
+<http://linkedgeodata.org/triplify/node249399296>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1356260631>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00FCdsudan"@de .
+<http://linkedgeodata.org/triplify/node432425063>	<http://www.w3.org/2000/01/rdf-schema#label>	"Republic of the Congo"@en .
+<http://linkedgeodata.org/triplify/node432424981>	<http://www.w3.org/2000/01/rdf-schema#label>	"Finnland"@de .
+<http://linkedgeodata.org/triplify/node249399288>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425040>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mongolia"@en .
+<http://linkedgeodata.org/triplify/node249399339>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00FCdgeorgien und die S\u00FCdlichen Sandwichinseln"@de .
+<http://linkedgeodata.org/triplify/node1696874354>	<http://www.w3.org/2000/01/rdf-schema#label>	"Northern Cyprus"@en .
+<http://linkedgeodata.org/triplify/node424297496>	<http://www.w3.org/2000/01/rdf-schema#label>	"Dominica"@en .
+<http://linkedgeodata.org/triplify/node424313734>	<http://www.w3.org/2000/01/rdf-schema#label>	"Brazil"@en .
+<http://linkedgeodata.org/triplify/node249399308>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311104>	<http://www.w3.org/2000/01/rdf-schema#label>	"Chile"@en .
+<http://linkedgeodata.org/triplify/node269195852>	<http://www.w3.org/2000/01/rdf-schema#label>	"Spitzbergen"@de .
+<http://linkedgeodata.org/triplify/node249399308>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cookinseln"@de .
+<http://linkedgeodata.org/triplify/node424297217>	<http://www.w3.org/2000/01/rdf-schema#label>	"The Netherlands"@en .
+<http://linkedgeodata.org/triplify/node432424956>	<http://www.w3.org/2000/01/rdf-schema#label>	"Zentralafrikanische Republik"@de .
+<http://linkedgeodata.org/triplify/node249399300>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node437146363>	<http://www.w3.org/2000/01/rdf-schema#label>	"Thailand"@en .
+<http://linkedgeodata.org/triplify/node424317428>	<http://www.w3.org/2000/01/rdf-schema#label>	"Uzbekistan"@en .
+<http://linkedgeodata.org/triplify/node424313836>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ghana"@en .
+<http://linkedgeodata.org/triplify/node249399339>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297810>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mazedonien"@de .
+<http://linkedgeodata.org/triplify/node424311890>	<http://www.w3.org/2000/01/rdf-schema#label>	"Venezuela"@en .
+<http://linkedgeodata.org/triplify/node248120384>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317315>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399313>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313903>	<http://www.w3.org/2000/01/rdf-schema#label>	"Kenya"@en .
+<http://linkedgeodata.org/triplify/node424317039>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399360>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node269195852>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1602894836>	<http://www.w3.org/2000/01/rdf-schema#label>	"St. Helena, Ascension und Tristan da Cunha"@de .
+<http://linkedgeodata.org/triplify/node424317406>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316022>	<http://www.w3.org/2000/01/rdf-schema#label>	"Eritrea"@en .
+<http://linkedgeodata.org/triplify/node249399347>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313428>	<http://www.w3.org/2000/01/rdf-schema#label>	"Singapur"@de .
+<http://linkedgeodata.org/triplify/node424314276>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tajikistan"@en .
+<http://linkedgeodata.org/triplify/node424317372>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399410>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saint-Pierre und Miquelon"@de .
+<http://linkedgeodata.org/triplify/node249399347>	<http://www.w3.org/2000/01/rdf-schema#label>	"Ungarn"@de .
+<http://linkedgeodata.org/triplify/node424317025>	<http://www.w3.org/2000/01/rdf-schema#label>	"San Marino"@en .
+<http://linkedgeodata.org/triplify/node432425023>	<http://www.w3.org/2000/01/rdf-schema#label>	"Libyen"@de .
+<http://linkedgeodata.org/triplify/node424317428>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1356260631>	<http://www.w3.org/2000/01/rdf-schema#label>	"South Sudan"@en .
+<http://linkedgeodata.org/triplify/node424313675>	<http://www.w3.org/2000/01/rdf-schema#label>	"Aserbaidschan"@de .
+<http://linkedgeodata.org/triplify/node424297816>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mali"@en .
+<http://linkedgeodata.org/triplify/node424311328>	<http://www.w3.org/2000/01/rdf-schema#label>	"Guyana"@en .
+<http://linkedgeodata.org/triplify/node1696874354>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317935>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297917>	<http://www.w3.org/2000/01/rdf-schema#label>	"Nauru"@en .
+<http://linkedgeodata.org/triplify/node332779764>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424317744>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424311802>	<http://www.w3.org/2000/01/rdf-schema#label>	"El Salvador"@de .
+<http://linkedgeodata.org/triplify/node424316319>	<http://www.w3.org/2000/01/rdf-schema#label>	"St. Lucia"@de .
+<http://linkedgeodata.org/triplify/node249399277>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node248120384>	<http://www.w3.org/2000/01/rdf-schema#label>	"Neuseeland"@de .
+<http://linkedgeodata.org/triplify/node424316417>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1708980402>	<http://www.w3.org/2000/01/rdf-schema#label>	"Mauritius"@de .
+<http://linkedgeodata.org/triplify/node424313730>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bolivien"@de .
+<http://linkedgeodata.org/triplify/node424311028>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bhutan"@en .
+<http://linkedgeodata.org/triplify/node424316417>	<http://www.w3.org/2000/01/rdf-schema#label>	"Moldova"@en .
+<http://linkedgeodata.org/triplify/node424316319>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399285>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425079>	<http://www.w3.org/2000/01/rdf-schema#label>	"Slovakia"@en .
+<http://linkedgeodata.org/triplify/node2163914205>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316493>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399280>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1644764586>	<http://www.w3.org/2000/01/rdf-schema#label>	"Paraguay"@de .
+<http://linkedgeodata.org/triplify/node424317428>	<http://www.w3.org/2000/01/rdf-schema#label>	"Usbekistan"@de .
+<http://linkedgeodata.org/triplify/node424316478>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399362>	<http://www.w3.org/2000/01/rdf-schema#label>	"S\u00FCdkorea"@de .
+<http://linkedgeodata.org/triplify/node424316671>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424316319>	<http://www.w3.org/2000/01/rdf-schema#label>	"Saint Lucia"@en .
+<http://linkedgeodata.org/triplify/node424316663>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node148332300>	<http://www.w3.org/2000/01/rdf-schema#label>	"Spain"@en .
+<http://linkedgeodata.org/triplify/node424317025>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424314691>	<http://www.w3.org/2000/01/rdf-schema#label>	"C\u00F4te d'Ivoire"@en .
+<http://linkedgeodata.org/triplify/node1602894836>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node1504546320>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432424985>	<http://www.w3.org/2000/01/rdf-schema#label>	"Georgia"@en .
+<http://linkedgeodata.org/triplify/node424316758>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298150>	<http://www.w3.org/2000/01/rdf-schema#label>	"Vietnam"@de .
+<http://linkedgeodata.org/triplify/node432425075>	<http://www.w3.org/2000/01/rdf-schema#label>	"Senegal"@de .
+<http://linkedgeodata.org/triplify/node424311237>	<http://www.w3.org/2000/01/rdf-schema#label>	"Falklandinseln"@de .
+<http://linkedgeodata.org/triplify/node2110225115>	<http://www.w3.org/2000/01/rdf-schema#label>	"Palestine"@en .
+<http://linkedgeodata.org/triplify/node424298277>	<http://www.w3.org/2000/01/rdf-schema#label>	"Seychelles"@en .
+<http://linkedgeodata.org/triplify/node1511934680>	<http://www.w3.org/2000/01/rdf-schema#label>	"Palau"@de .
+<http://linkedgeodata.org/triplify/node424313406>	<http://www.w3.org/2000/01/rdf-schema#label>	"Zypern"@de .
+<http://linkedgeodata.org/triplify/node424297465>	<http://www.w3.org/2000/01/rdf-schema#label>	"Costa Rica"@en .
+<http://linkedgeodata.org/triplify/node424315405>	<http://www.w3.org/2000/01/rdf-schema#label>	"Gibraltar"@de .
+<http://linkedgeodata.org/triplify/node462226505>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424297629>	<http://www.w3.org/2000/01/rdf-schema#label>	"Honduras"@en .
+<http://linkedgeodata.org/triplify/node432424956>	<http://www.w3.org/2000/01/rdf-schema#label>	"Central African Republic"@en .
+<http://linkedgeodata.org/triplify/node249399313>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cuba"@en .
+<http://linkedgeodata.org/triplify/node432425041>	<http://www.w3.org/2000/01/rdf-schema#label>	"Marokko"@de .
+<http://linkedgeodata.org/triplify/node424297217>	<http://www.w3.org/2000/01/rdf-schema#label>	"Niederlande"@de .
+<http://linkedgeodata.org/triplify/node462226505>	<http://www.w3.org/2000/01/rdf-schema#label>	"Franz\u00F6sisch-Polynesien"@de .
+<http://linkedgeodata.org/triplify/node424297973>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sudan"@en .
+<http://linkedgeodata.org/triplify/node424315584>	<http://www.w3.org/2000/01/rdf-schema#label>	"Australien"@de .
+<http://linkedgeodata.org/triplify/node424311104>	<http://www.w3.org/2000/01/rdf-schema#label>	"Chile"@de .
+<http://linkedgeodata.org/triplify/node332779764>	<http://www.w3.org/2000/01/rdf-schema#label>	"Belize"@en .
+<http://linkedgeodata.org/triplify/node432425060>	<http://www.w3.org/2000/01/rdf-schema#label>	"Polen"@de .
+<http://linkedgeodata.org/triplify/node424297609>	<http://www.w3.org/2000/01/rdf-schema#label>	"Guinea-Bissau"@en .
+<http://linkedgeodata.org/triplify/node424310601>	<http://www.w3.org/2000/01/rdf-schema#label>	"Albania"@en .
+<http://linkedgeodata.org/triplify/node2134362766>	<http://www.w3.org/2000/01/rdf-schema#label>	"Malaysia"@en .
+<http://linkedgeodata.org/triplify/node424311890>	<http://www.w3.org/2000/01/rdf-schema#label>	"Venezuela"@de .
+<http://linkedgeodata.org/triplify/node26036352>	<http://www.w3.org/2000/01/rdf-schema#label>	"Philippinen"@de .
+<http://linkedgeodata.org/triplify/node148332300>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424313277>	<http://www.w3.org/2000/01/rdf-schema#label>	"Sweden"@en .
+<http://linkedgeodata.org/triplify/node1648342273>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node432425041>	<http://www.w3.org/2000/01/rdf-schema#label>	"Morocco"@en .
+<http://linkedgeodata.org/triplify/node2000380837>	<http://www.w3.org/2000/01/rdf-schema#label>	"Republik Kosovo"@de .
+<http://linkedgeodata.org/triplify/node424316022>	<http://www.w3.org/2000/01/rdf-schema#label>	"Eritrea"@de .
+<http://linkedgeodata.org/triplify/node424311942>	<http://www.w3.org/2000/01/rdf-schema#label>	"Indonesia"@en .
+<http://linkedgeodata.org/triplify/node249399459>	<http://www.w3.org/2000/01/rdf-schema#label>	"Jemen"@de .
+<http://linkedgeodata.org/triplify/node424298311>	<http://www.w3.org/2000/01/rdf-schema#label>	"Iran"@en .
+<http://linkedgeodata.org/triplify/node432424926>	<http://www.w3.org/2000/01/rdf-schema#label>	"Algeria"@en .
+<http://linkedgeodata.org/triplify/node433483572>	<http://www.w3.org/2000/01/rdf-schema#label>	"Tokelau"@en .
+<http://linkedgeodata.org/triplify/node26847709>	<http://www.w3.org/2000/01/rdf-schema#label>	"Austria"@en .
+<http://linkedgeodata.org/triplify/node2000314677>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node424298019>	<http://www.w3.org/2000/01/rdf-schema#label>	"Luxemburg"@de .
+<http://linkedgeodata.org/triplify/node249399308>	<http://www.w3.org/2000/01/rdf-schema#label>	"Cook Islands"@en .
+<http://linkedgeodata.org/triplify/node249399360>	<http://www.w3.org/2000/01/rdf-schema#label>	"Comoros"@en .
+<http://linkedgeodata.org/triplify/node1684793666>	<http://www.w3.org/2000/01/rdf-schema#label>	"Belgien"@de .
+<http://linkedgeodata.org/triplify/node424311028>	<http://www.w3.org/2000/01/rdf-schema#label>	"Bhutan"@de .
+<http://linkedgeodata.org/triplify/node424311573>	<http://www.w3.org/2000/01/rdf-schema#label>	"Liberia"@en .
+<http://linkedgeodata.org/triplify/node424311955>	<http://www.w3.org/2000/01/rdf-schema#label>	"Marshallinseln"@de .
+<http://linkedgeodata.org/triplify/node2043451343>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+<http://linkedgeodata.org/triplify/node249399300>	<http://www.w3.org/2000/01/rdf-schema#label>	"Belarus"@en .
+<http://linkedgeodata.org/triplify/node1694010854>	<http://www.w3.org/2000/01/rdf-schema#label>	"Brunei"@en .
+<http://linkedgeodata.org/triplify/node424313936>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://linkedgeodata.org/ontology/Country> .
+
