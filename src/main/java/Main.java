@@ -428,7 +428,7 @@ public class Main
 		{			
 			String osUri = result.get("html_url").asText();
 			Resource osObservation = model.createResource();
-			String suffix = osUri.substring(osUri.lastIndexOf('/'));
+			String suffix = osUri.substring(osUri.lastIndexOf('/')+1);
 			String lsUri = LS+"observation-"+datasetName+"-"+suffix;
 			Resource observation = model.createResource(lsUri);		
 			model.add(observation, RDFS.label, datasetName+", observation "+suffix);
@@ -849,7 +849,7 @@ public class Main
 			{				
 				//				if(!name.contains("orcamento_brasil_2000_2013")) continue;
 				//				if(!datasetName.contains("berlin_de")) continue;
-				if(!datasetName.contains("2011saiki_budget")) continue;
+//				if(!datasetName.contains("2011saiki_budget")) continue;
 				
 				i++;				
 				Model model = newModel();
