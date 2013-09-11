@@ -13,7 +13,7 @@ ls:void rdf:type void:Dataset ;
  dcterms:description "OpenSpending governement financial transactions" ;
  dcterms:publisher <http://todo.org/unileipzigoderaksw>;
  dcterms:source <http://openspending.org> ;
- dcterms:license < http://www.opendatacommons.org/licenses/pddl/1.0/> ;
+ dcterms:license <http://www.opendatacommons.org/licenses/pddl/1.0/> ;
  void:sparqlEndpoint ls:sparql ;
  void:dataDump ls:downloads;
  void:vocabulary <http://www.w3.org/2000/01/rdf-schema#> ;
