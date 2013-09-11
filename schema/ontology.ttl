@@ -1,5 +1,9 @@
-@prefix : <http://linkedspending.aksw.org/ontology/> .
-@prefix qb : <http://purl.org/linked-data/cube#>
+@prefix : <http://linkedspending.aksw.org/ontology/>.
+@prefix qb: <http://purl.org/linked-data/cube#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix sdmx-attribute:  <http://purl.org/linked-data/sdmx/2009/attribute#> .
 
 :CountryComponentSpecification	a qb:ComponentSpecification;
 				rdfs:label "country";
@@ -8,14 +12,14 @@
 				qb:componentRequired "false"^^xsd:boolean;
 				qb:componentAttachment qb:DataSet,qb:Observation.
 
-:TimeComponentSpecification	a qb:ComponentSpecification;
+:DateComponentSpecification	a qb:ComponentSpecification;
 				rdfs:label "time";
-				qb:dimension sdmx-dimension:refPeriod;
+				qb:dimension :refDate;
 				qb:componentRequired "false"^^xsd:boolean.
 				
 :YearComponentSpecification	a qb:ComponentSpecification;
 				rdfs:label "year";
-				qb:dimension sdmx-dimension:refPeriod;
+				qb:dimension :refYear;
 				qb:componentAttachment qb:DataSet,qb:Observation;
 				qb:componentRequired "false"^^xsd:boolean.
 
@@ -24,3 +28,15 @@
 				qb:attribute <http://dbpedia.org/ontology/currency>;
 				qb:componentRequired "true"^^xsd:boolean;
 				qb:componentAttachment qb:Observation.
+				
+:refDate a rdf:Property;
+	rdfs:label "reference date";
+	rdfs:comment "the date an observation refers to";
+	rdfs:domain qb:Observation;
+	rdfs:range xsd:date. 
+
+:refYear
+	rdfs:label "reference year";
+	rdfs:comment "the year an observation refers to";
+	rdfs:domain qb:Observation;
+	rdfs:range xsd:gYear. 
