@@ -38,6 +38,8 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
+import de.konradhoeffner.commons.Pair;
+import de.konradhoeffner.commons.TSVReader;
 
 @NonNullByDefault
 @Log
@@ -50,7 +52,7 @@ public class Main
 	public static final String DATASETS = "http://openspending.org/datasets.json";	
 	static final String LSBASE = "http://linkedspending.aksw.org/";
 	static final String LS = LSBASE+"resource/";
-	static final String LSO = LSBASE+"ontology/";
+	//	static final String LSO = LSBASE+"ontology/";
 	static final String OS = "http://openspending.org/";
 
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
@@ -63,27 +65,41 @@ public class Main
 	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
-	static File folder = new File("output7");	 
+	static File folder = new File("output8");	 
 	//	static final boolean CACHING = true;
 	static {		
 		if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
 	}
 	static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
 
-	static Map<String,String> codeToCurrency = new HashMap<>();
+	static final Map<String,String> codeToCurrency = new HashMap<>();
 	static
 	{
-		try(Scanner in = new Scanner(Main.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
+		try(TSVReader in = new TSVReader(Main.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
 		{
-			while(in.hasNextLine())
+			while(in.hasNextTokens())
 			{
-				String line = in.nextLine();
-				if(line.trim().isEmpty()) {continue;} 
-				String[] tokens = line.split("\t");
+				String[] tokens = in.nextTokens();
 				codeToCurrency.put(tokens[0], tokens[1]);
 			}
-		}		
+		}
+		catch (Exception e) {throw new RuntimeException(e);}
 	}
+	
+	static final Map<Pair<String>,String> datasetPropertyNameToUri = new HashMap<>();
+	static
+	{
+		try(TSVReader in = new TSVReader(Main.class.getClassLoader().getResourceAsStream("propertymapping.tsv")))
+		{
+			while(in.hasNextTokens())
+			{
+				String[] tokens = in.nextTokens();
+				datasetPropertyNameToUri.put(new Pair<String>(tokens[0], tokens[1]),tokens[2]);
+			}
+		}
+		catch (Exception e) {throw new RuntimeException(e);}
+	}
+	
 	static public class NoCurrencyFoundForCodeException 			extends Exception {public NoCurrencyFoundForCodeException(String datasetName, String code) {super("no currency found for code "+code+" in dataset "+datasetName);}}	
 	static public class DatasetHasNoCurrencyException 			extends Exception {public DatasetHasNoCurrencyException(String datasetName) {super("dataset "+datasetName+" has no currency.");}}
 	static public class MissingDataException 			extends Exception {public MissingDataException(String s) 			{super(s);}}
@@ -119,12 +135,12 @@ public class Main
 
 	}
 
-	static public class SDMXDIMENSION
-	{
-		static final String sdmxDimension = "http://purl.org/linked-data/sdmx/2009/dimension#";
-		static final Property refPeriod = ResourceFactory.createProperty(sdmxDimension+"refPeriod");
-		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxDimension+"timePeriod");
-	}
+	//	static public class SDMXDIMENSION
+	//	{
+	//		static final String sdmxDimension = "http://purl.org/linked-data/sdmx/2009/dimension#";
+	////		static final Property refPeriod = ResourceFactory.createProperty(sdmxDimension+"refPeriod");
+	//		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxDimension+"timePeriod");
+	//	}
 
 	static public class SDMXMEASURE
 	{
@@ -153,12 +169,16 @@ public class Main
 		static final Property gYear = ResourceFactory.createProperty(xmlSchema+"gYear");
 	}
 
-	static public class LinkedSpendingOntology
+	static public class LSO
 	{
-		static public Resource CountryComponent = ResourceFactory.createResource(LSO+"CountryComponentSpecification");
-		static public Resource TimeComponentSpecification = ResourceFactory.createResource(LSO+"TimeComponentSpecification");
-		static public Resource YearComponentSpecification = ResourceFactory.createResource(LSO+"YearComponentSpecification");
-		static public Resource CurrencyComponentSpecification = ResourceFactory.createResource(LSO+"CurrencyComponentSpecification");
+		static final String URI = LSBASE+"ontology/";
+		static public Resource CountryComponent = ResourceFactory.createResource(URI+"CountryComponentSpecification");
+		static public Resource DateComponentSpecification = ResourceFactory.createResource(URI+"DateComponentSpecification");
+		static public Resource YearComponentSpecification = ResourceFactory.createResource(URI+"YearComponentSpecification");
+		static public Resource CurrencyComponentSpecification = ResourceFactory.createResource(URI+"CurrencyComponentSpecification");
+
+		static public Property refDate = ResourceFactory.createProperty(URI+"refDate");
+		static public Property refYear = ResourceFactory.createProperty(URI+"refYear");
 	}
 
 	static public class DBO
@@ -182,7 +202,7 @@ public class Main
 
 	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
 	 * @throws UnknownMappingTypeException */
-	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException 
+	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,String datasetName, Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException 
 	{
 		int attributeCount = 1; // currency is always there and dataset is not created if it is not found
 		int dimensionCount = 0;
@@ -205,14 +225,17 @@ public class Main
 			@Nullable String label = cleanString(componentJson.get("label").asText());
 
 			//			String componentPropertyUrl = componentJson.get("html_url");
-			String componentPropertyUrl = LSO+name;			
+			String componentPropertyUrl;
+			
+			String uri = datasetPropertyNameToUri.get(new Pair<String>(datasetName,name));
+			componentPropertyUrl=(uri!=null)?uri:LSO.URI+name;			
 
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
 			componentPropertyByName.put(name, componentProperty);
 
-			Resource componentSpecification = model.createResource(LSO+"-spec");			
+			Resource componentSpecification = model.createResource(componentPropertyUrl+"-spec");			
 			model.add(componentSpecification, RDFS.label, "specification of "+label);
-			
+
 			model.add(componentProperty, RDF.type, RDF.Property);
 
 			if(label!=null) {model.add(componentProperty,RDFS.label,label);}
@@ -234,8 +257,8 @@ public class Main
 				{
 					dateExists = true;
 					dimensionCount++;
-					componentSpecification = LinkedSpendingOntology.TimeComponentSpecification;
-					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.DATE));
+					componentSpecification = LSO.DateComponentSpecification;
+					componentProperties.add(new ComponentProperty(LSO.refDate,name,ComponentProperty.Type.DATE));
 					// it's a dimension
 					//					model.add(componentSpecification, QB.dimension, componentProperty);
 					//					model.add(componentProperty, RDF.type, QB.DimensionProperty);
@@ -289,7 +312,11 @@ public class Main
 			// backlink
 			model.add(dsd, QB.component, componentSpecification);
 		}
-		//		if(!dateExists) {throw new MissingDataException("No date for dataset "+dataset.getLocalName());}
+		//		if(dateExists||datasetHasYear)
+		//		{
+		//			
+		//		}
+		//if(!dateExists) {throw new MissingDataException("No date for dataset "+dataset.getLocalName());}
 		if(attributeCount==0||measureCount==0||dimensionCount==0)
 		{throw new MissingDataException("no "+(attributeCount==0?"attributes":(measureCount==0?"measures":"dimensions"))+" for dataset "+dataset.getLocalName());}
 		return componentProperties;
@@ -424,6 +451,8 @@ public class Main
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
 		int errors=0;
+		boolean dateExists = false;
+		Set<Integer> years = new HashSet<Integer>();
 		for(int i=0;(result=in.read())!=null;i++)		
 		{			
 			String osUri = result.get("html_url").asText();
@@ -493,13 +522,15 @@ public class Main
 						}
 						case DATE:
 						{
-							//							dateExists=true;
+							dateExists=true;
 							JsonNode jsonDate = result.get(d.name);
 							//							String week = date.get("week");
 							int year = jsonDate.get("year").asInt();
 							int month = jsonDate.get("month").asInt();
 							int day = jsonDate.get("day").asInt();							
-							model.addLiteral(observation,SDMXDIMENSION.refPeriod,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));							
+							model.addLiteral(observation,LSO.refDate,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));
+							model.addLiteral(observation,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
+							years.add(year);
 						}
 					}
 
@@ -539,10 +570,10 @@ public class Main
 			{
 				model.add(observation, DBO.currency, currency);				
 			}
-			if(yearLiteral!=null)
-				//			if(yearLiteral!=null&&!dateExists)
+
+			if(yearLiteral!=null&&!dateExists) // fallback, in case entry doesnt have a date attached we use year of the whole dataset
 			{				
-				model.addLiteral(observation,SDMXDIMENSION.refPeriod,yearLiteral);				
+				model.addLiteral(observation,LSO.refYear,yearLiteral);				
 			}
 			for(Resource country: countries)
 			{
@@ -554,6 +585,11 @@ public class Main
 				log.fine("writing triples");
 				writeModel(model,out);				
 			}
+		}
+		// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
+		for(int year: years)
+		{
+			model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 		}
 		writeModel(model,out);
 			}
@@ -650,7 +686,7 @@ public class Main
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
 			if(currency == null) {throw new NoCurrencyFoundForCodeException(datasetName,currencyCode);}
-			model.add(dsd, QB.component, LinkedSpendingOntology.CurrencyComponentSpecification);			
+			model.add(dsd, QB.component, LSO.CurrencyComponentSpecification);			
 
 			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
 			//			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
@@ -662,10 +698,12 @@ public class Main
 		final Integer defaultYear;
 		{
 			String defaultYearString = cleanString(datasetJson.get("default_time").asText());
+			// we only want the year, not date and time which are 1-1 and 0:0:0 anyways
+			if(defaultYearString!=null) defaultYearString = defaultYearString.substring(0, 4);
 			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
 		}
 		Set<ComponentProperty> componentProperties;
-		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,dataSet, dsd,componentPropertyByName);	}
+		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,componentPropertyByName,defaultYear!=null);	}
 		catch (MissingDataException | UnknownMappingTypeException e)
 		{
 			log.severe("Error creating components for dataset "+datasetName);
@@ -681,14 +719,13 @@ public class Main
 		@Nullable Literal yearLiteral = null; 
 		if(defaultYear!=null)
 		{
-			model.add(dsd, QB.component, LinkedSpendingOntology.YearComponentSpecification);
-			yearLiteral = model.createTypedLiteral(defaultYear+"", XSD.gYear.getURI());
-			model.add(dataSet,SDMXDIMENSION.refPeriod,yearLiteral);
-
+			model.add(dsd, QB.component, LSO.YearComponentSpecification);
+			yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
+			model.add(dataSet,LSO.refYear,yearLiteral);
 		}
 		if(!territories.isEmpty())
 		{			
-			model.add(dsd, QB.component, LinkedSpendingOntology.CountryComponent);
+			model.add(dsd, QB.component, LSO.CountryComponent);
 			for(String territory: territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
@@ -809,7 +846,7 @@ public class Main
 		Model model = ModelFactory.createMemModelMaker().createDefaultModel();
 		model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
 		model.setNsPrefix("ls", LS);
-		model.setNsPrefix("lso", LSO);
+		model.setNsPrefix("lso", LSO.URI);
 		model.setNsPrefix("sdmx-subject",	"http://purl.org/linked-data/sdmx/2009/subject#");
 		model.setNsPrefix("sdmx-dimension",	"http://purl.org/linked-data/sdmx/2009/dimension#");
 		model.setNsPrefix("sdmx-attribute",	"http://purl.org/linked-data/sdmx/2009/attribute#");
@@ -848,9 +885,9 @@ public class Main
 			for(final String datasetName : datasetNames)				
 			{				
 				//				if(!name.contains("orcamento_brasil_2000_2013")) continue;
-				//				if(!datasetName.contains("berlin_de")) continue;
-//				if(!datasetName.contains("2011saiki_budget")) continue;
-				
+//				if(!datasetName.contains("berlin_de")) continue;
+				//				if(!datasetName.contains("2011saiki_budget")) continue;
+
 				i++;				
 				Model model = newModel();
 				Map<String,Property> componentPropertyByName = new HashMap<>();

@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import de.konradhoeffner.commons.TSVReader;
 
 /** Script to generate a gnuplot data file out of multiple outputs of "uniq -c"**/
 public class CreateHistogram

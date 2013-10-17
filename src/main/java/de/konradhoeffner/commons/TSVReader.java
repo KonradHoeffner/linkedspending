@@ -1,8 +1,9 @@
+package de.konradhoeffner.commons;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.InputStream;
 import java.util.Scanner;
 
 public class TSVReader implements Closeable 
@@ -10,13 +11,17 @@ public class TSVReader implements Closeable
 	final Scanner in;
 	String peekLine = null;
 
+	public TSVReader(InputStream stream) throws FileNotFoundException
+	{
+		in = new Scanner(stream);
+	}
+
 	public TSVReader(File f) throws FileNotFoundException
 	{
-		System.out.println(f);
 		in = new Scanner(f);
 	}
-	
-	boolean hasNextTokens()
+
+	public boolean hasNextTokens()
 	{
 		if(peekLine!=null) return true;
 		if(!in.hasNextLine()) {return false;}
@@ -26,7 +31,7 @@ public class TSVReader implements Closeable
 		return true;		
 	}
 
-	String[] nextTokens()
+	public String[] nextTokens()
 	{
 		if(!hasNextTokens()) return null;		
 		String[] tokens = peekLine.split("[\\s\t]+");

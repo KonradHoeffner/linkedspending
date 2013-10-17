@@ -1,4 +1,4 @@
 #!/bin/bash
-cd output7
+cd output8
 ls -la | grep " 0 " | grep -o "[^ ]*$" | xargs rm
 cd ..
