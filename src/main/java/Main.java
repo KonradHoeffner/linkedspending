@@ -51,7 +51,7 @@ public class Main
 	static final boolean USE_CACHE = true;
 	public static final String DATASETS = "http://openspending.org/datasets.json";	
 	static final String LSBASE = "http://linkedspending.aksw.org/";
-	static final String LS = LSBASE+"resource/";
+	static final String LS = LSBASE+"instance/";
 	//	static final String LSO = LSBASE+"ontology/";
 	static final String OS = "http://openspending.org/";
 
@@ -134,13 +134,6 @@ public class Main
 		static final Property parentChildProperty = ResourceFactory.createProperty(qb+"parentChildProperty");
 
 	}
-
-	//	static public class SDMXDIMENSION
-	//	{
-	//		static final String sdmxDimension = "http://purl.org/linked-data/sdmx/2009/dimension#";
-	////		static final Property refPeriod = ResourceFactory.createProperty(sdmxDimension+"refPeriod");
-	//		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxDimension+"timePeriod");
-	//	}
 
 	static public class SDMXMEASURE
 	{
@@ -496,6 +489,9 @@ public class Main
 								continue;
 							}
 							JsonNode urlNode = jsonDim.get("html_url");
+// todo enhancement: interlinking auf dem label -> besser extern
+// todo enhancement: ressource nicht mehrfach erzeugen - aber aufpassen dass der speicher nicht voll wird! wird wohl nur im datenset gehen
+
 							Resource instance = model.createResource(urlNode.asText());
 
 							if(jsonDim.has("label")) {model.addLiteral(instance,RDFS.label,model.createLiteral(jsonDim.get("label").asText()));}
