@@ -1,10 +1,12 @@
+package org.aksw.linkedspending;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import de.konradhoeffner.commons.TSVReader;
 
-/** Script to generate a gnuplot data file out of multiple outputs of "uniq -c"**/
+/** Is only used to create data for the scientific publication.
+ * Script to generate a gnuplot data file out of multiple outputs of "uniq -c"**/
 public class CreateHistogram
 {
 

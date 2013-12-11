@@ -1,3 +1,4 @@
+package org.aksw.linkedspending;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -41,6 +42,8 @@ import com.hp.hpl.jena.vocabulary.XSD;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
 
+/** The main application which does the conversion. Requires JSONDownloader.main() to be called first in order for the input files to exist.
+ * Output consists of ntriples files in the chosen folder.**/
 @NonNullByDefault
 @Log
 @SuppressWarnings("serial")

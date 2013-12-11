@@ -1,3 +1,4 @@
+package org.aksw.linkedspending;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.extern.java.Log;
@@ -47,8 +47,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-/** Used for downloading entry files from openspending.org and retrieving them as a string. Multithreaded. 
- * */
+/** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java. Multithreaded. */
 @NonNullByDefault
 @Log
 public class JsonDownloader
@@ -74,12 +73,12 @@ public class JsonDownloader
 		return names;
 	}
 
-	static SortedSet<String> datasetNames = null;
-	public static SortedSet<String> getDatasetNames() throws JsonProcessingException, IOException
+	static protected SortedSet<String> datasetNames = new TreeSet<>();
+	
+	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
-		if(datasetNames!=null) return datasetNames;
-
-		SortedSet<String> names = new TreeSet<>();
+		if(!datasetNames.isEmpty()) return datasetNames;
+ 
 		JsonNode datasets;
 		if(DATASETS_CACHED.exists())
 		{
@@ -95,10 +94,9 @@ public class JsonDownloader
 		for(int i=0;i<datasetArray.size();i++)
 		{
 			JsonNode dataSetJson = datasetArray.get(i);
-			names.add(dataSetJson.get("name").textValue());
+			datasetNames.add(dataSetJson.get("name").textValue());
 		}
-		datasetNames=names;
-		return names;
+		return datasetNames;
 	}
 
 
@@ -244,7 +242,8 @@ public class JsonDownloader
 			return true;
 		}		
 	}
-
+	
+	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. */
 	static void downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
 	{
 		int successCount = 0;
@@ -272,6 +271,7 @@ public class JsonDownloader
 
 	enum Position {TOP,MID,BOTTOM}; 
 
+	/** reconstructs full dataset files out of parts. */
 	static void puzzleTogether() throws IOException
 	{
 		Set<String> inParts = new HashSet<>();
@@ -323,6 +323,7 @@ public class JsonDownloader
 		}		
 	}
 
+	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
 	static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{		
 		if(emptyDatasetFile.exists())
@@ -349,6 +350,7 @@ public class JsonDownloader
 		}	
 	}
 
+	/** Download all new datasets as json. */
 	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );

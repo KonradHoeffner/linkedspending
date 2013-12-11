@@ -1,15 +1,15 @@
+import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import lombok.extern.java.Log;
+import org.junit.Test;
 
-@Log
-public class Test
+public class CodeToCurrencyTest
 {
-	public static void main(String[] args) 
+	@Test public void testCodeToCurrency() 
 	{
 		Map<String,String> codeToCurrency = new HashMap<>();
-		try(Scanner in = new Scanner(Test.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
+		try(Scanner in = new Scanner(this.getClass().getClassLoader().getResourceAsStream("codetocurrency.tsv")))
 		{
 			while(in.hasNextLine())
 			{
@@ -19,6 +19,6 @@ public class Test
 				codeToCurrency.put(tokens[0], tokens[1]);
 			}
 		}
-		System.out.println(codeToCurrency);
+		assertEquals(codeToCurrency.get("JPY"),"http://dbpedia.org/resource/Japanese_yen");
 	}
 }

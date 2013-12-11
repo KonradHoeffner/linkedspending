@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
+/** Reader for the tab separated values format (a basic table format without escapings or anything where the rows are separated by tabulators).**/
 public class TSVReader implements Closeable 
 {
 	final Scanner in;
@@ -16,10 +17,8 @@ public class TSVReader implements Closeable
 		in = new Scanner(stream);
 	}
 
-	public TSVReader(File f) throws FileNotFoundException
-	{
-		in = new Scanner(f);
-	}
+	/**Constructs a new TSVReader which produces values scanned from the specified input stream.*/
+	public TSVReader(File f) throws FileNotFoundException {in = new Scanner(f);}
 
 	public boolean hasNextTokens()
 	{

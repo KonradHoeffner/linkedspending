@@ -1,7 +1,10 @@
+package org.aksw.linkedspending;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/** Just a stupid data holding class for the country code to resource mapping extracted from LinkedGeoData.
+ * Could have done it with a file but I sometimes prefer low tech because thats most robust (always works even when deployed to a web application etc.).**/
 public class Countries
 {	
 	public static void main(String[] args)
@@ -10,13 +13,13 @@ public class Countries
 	}
 	
 	static final String[][] countryCodes = 
-		{{"http://linkedgeodata.org/triplify/node432424981",	"FI"},
+		{{"http://linkedgeodata.org/triplify/node432424981","FI"},
 		{"http://linkedgeodata.org/triplify/node424310500",	"DE"},
 		{"http://linkedgeodata.org/triplify/node249399440",	"TM"},
 		{"http://linkedgeodata.org/triplify/node424313760",	"CA"},
 		{"http://linkedgeodata.org/triplify/node838090640",	"GB"},
 		{"http://linkedgeodata.org/triplify/node424315689",	"BE"},
-		{"http://linkedgeodata.org/triplify/node1363947712",	"FR"},
+		{"http://linkedgeodata.org/triplify/node1363947712","FR"},
 		{"http://linkedgeodata.org/triplify/node148332300",	"ES"},
 		{"http://linkedgeodata.org/triplify/node26847709",	"AT"},
 		{"http://linkedgeodata.org/triplify/node424315584",	"AU"},
@@ -39,7 +42,7 @@ public class Countries
 		{"http://linkedgeodata.org/triplify/node445970763",	"ME"},
 		{"http://linkedgeodata.org/triplify/node424315405",	"GI"},
 		{"http://linkedgeodata.org/triplify/node424310758",	"KN"},
-		{"http://linkedgeodata.org/triplify/node1356260631",	"SS"},
+		{"http://linkedgeodata.org/triplify/node1356260631","SS"},
 		{"http://linkedgeodata.org/triplify/node249399280",	"AR"},
 		{"http://linkedgeodata.org/triplify/node432424926",	"DZ"},
 		{"http://linkedgeodata.org/triplify/node432424989",	"GR"},
@@ -53,9 +56,9 @@ public class Countries
 		{"http://linkedgeodata.org/triplify/node424310998",	"BN"},
 		{"http://linkedgeodata.org/triplify/node424311521",	"KZ"},
 		{"http://linkedgeodata.org/triplify/node432424968",	"DK"},
-		{"http://linkedgeodata.org/triplify/node1038445031",	"CW"},
+		{"http://linkedgeodata.org/triplify/node1038445031","CW"},
 		{"http://linkedgeodata.org/triplify/node424316663",	"NG"},
-		{"http://linkedgeodata.org/triplify/node1367931778",	"NC"},
+		{"http://linkedgeodata.org/triplify/node1367931778","NC"},
 		{"http://linkedgeodata.org/triplify/node432425040",	"MN"},
 		{"http://linkedgeodata.org/triplify/node424317315",	"TN"},
 		{"http://linkedgeodata.org/triplify/node424311675",	"NE"},
@@ -68,7 +71,7 @@ public class Countries
 		{"http://linkedgeodata.org/triplify/node424298326",	"TR"},
 		{"http://linkedgeodata.org/triplify/node424297742",	"LB"},
 		{"http://linkedgeodata.org/triplify/node26847706",	"AF"},
-		{"http://linkedgeodata.org/triplify/node1504546320",	"CH"},
+		{"http://linkedgeodata.org/triplify/node1504546320","CH"},
 		{"http://linkedgeodata.org/triplify/node424311222",	"ET"},
 		{"http://linkedgeodata.org/triplify/node432425079",	"SK"},
 		{"http://linkedgeodata.org/triplify/node432424952",	"KH"},
@@ -146,7 +149,7 @@ public class Countries
 		{"http://linkedgeodata.org/triplify/node424316478",	"MM"},
 		{"http://linkedgeodata.org/triplify/node424314784",	"IS"},
 		{"http://linkedgeodata.org/triplify/node269195852",	"SJ"},
-		{"http://linkedgeodata.org/triplify/node1420871007",	"IE"},
+		{"http://linkedgeodata.org/triplify/node1420871007","IE"},
 		{"http://linkedgeodata.org/triplify/node424311104",	"CL"},
 		{"http://linkedgeodata.org/triplify/node148874198",	"AD"},
 		{"http://linkedgeodata.org/triplify/node424297973",	"SD"},
@@ -220,7 +223,7 @@ public class Countries
 		{"http://linkedgeodata.org/triplify/node424311573",	"LR"},
 		{"http://linkedgeodata.org/triplify/node424314276",	"TJ"},
 		{"http://linkedgeodata.org/triplify/node424313853",	"GQ"},
-		{"http://linkedgeodata.org/triplify/node1388794217",	"PN"},
+		{"http://linkedgeodata.org/triplify/node1388794217","PN"},
 		{"http://linkedgeodata.org/triplify/node424317428",	"UZ"},
 		{"http://linkedgeodata.org/triplify/node432424937",	"BD"}};
 	
