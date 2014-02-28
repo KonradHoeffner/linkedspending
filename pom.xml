@@ -33,7 +33,7 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>0.11.8</version>
-			<scope>provided</scope>
+			<!-- <scope>provided</scope> -->
 		</dependency>
 		<dependency>
 			<groupId>com.cybozu.labs</groupId>
@@ -55,10 +55,10 @@
 	</dependencies>
 
 	<repositories>
-		<repository>
+<!-- 		<repository>
 			<id>m2test</id>
 			<url>http://build.eclipse.org/tools/objectteams/m2test</url>
-		</repository>
+		</repository> -->
 		<repository>
 			<id>maven.aksw.internal</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
@@ -70,18 +70,18 @@
 			<name>University Leipzig, AKSW Maven2 Repository</name>
 			<url>http://maven.aksw.org/archiva/repository/snapshots</url>
 		</repository>
-		<repository>
+ <!-- 		<repository>
 			<id>apache.releases</id>
 			<name>Apache Maven Repository</name>
 			<url>https://repository.apache.org/content/repositories/releases/</url>
-		</repository>
+		</repository> -->
 	</repositories>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>3.0</version>
 				<configuration>
 					<source>${maven.compiler.source}</source>
 					<target>${maven.compiler.target}</target>

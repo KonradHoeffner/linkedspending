@@ -1,11 +1,15 @@
 package org.aksw.linkedspending;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,14 +65,16 @@ public class Main
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
 	//	private static final int	MAX_ENTRIES	= 30;
 	private static final int	DATASET_MIN_EXCEPTIONS_FOR_STOP	= 30;
-	private static final int	DATASET_MAX_EXCEPTIONS_FOR_LOGGING	= 3;
+	private static final int	DATASET_MAX_EXCEPTIONS_FOR_LOGGING	= 2;
 	private static final float	DATASET_EXCEPTION_STOP_RATIO = 0.1f;
 
 	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
 	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
-	static File folder = new File("output8");	 
+	static File folder = new File("output8");
+	static File statistics = new File("statistics");
+		
 	//	static final boolean CACHING = true;
 	static {		
 		if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
@@ -446,17 +452,19 @@ public class Main
 			{
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
-		int errors=0;
 		boolean dateExists = false;
 		Set<Integer> years = new HashSet<Integer>();
-		for(int i=0;(result=in.read())!=null;i++)		
+		int missingAllProperties = 0;
+		Map<ComponentProperty,Integer> missingForProperty = new HashMap<>();
+		int i;
+		for(i=0;(result=in.read())!=null;i++)		
 		{			
 			String osUri = result.get("html_url").asText();
 			Resource osObservation = model.createResource();
 			String suffix = osUri.substring(osUri.lastIndexOf('/')+1);
 			String lsUri = LS+"observation-"+datasetName+"-"+suffix;
 			Resource observation = model.createResource(lsUri);		
-			model.add(observation, RDFS.label, datasetName+", observation "+suffix);
+			model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
 			model.add(observation, QB.dataSet, dataSet);			
 			model.add(observation, RDF.type, QB.Observation);
 			model.add(observation,DCMI.source,osObservation);
@@ -466,10 +474,13 @@ public class Main
 				//				if(d.name==null) {throw new RuntimeException("no name for component property "+d);}
 				if(!result.has(d.name))
 				{
-					errors++;
-					if(errors<=DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("no entry for property "+d.name+" at entry "+result);}
-					if(errors==DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("more missing entries.");}
-					if(errors>=DATASET_MIN_EXCEPTIONS_FOR_STOP&&((double)errors/i>DATASET_EXCEPTION_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,errors);}
+					Integer missing = missingForProperty.get(d);
+					missing = (missing==null)?1:missing+1;					
+					missingForProperty.put(d,missing);
+					missingAllProperties++;
+					if(missingForProperty.get(d)<=DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("no entry for property "+d.name+" at entry "+result);}
+					if(missingForProperty.get(d)==DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("more missing entries for property "+d.name+".");}
+					if(missingForProperty.get(d)>=DATASET_MIN_EXCEPTIONS_FOR_STOP&&((double)missingAllProperties/i>DATASET_EXCEPTION_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingAllProperties);}
 					continue;
 				}				
 				try
@@ -488,7 +499,7 @@ public class Main
 							if(!jsonDim.has("html_url"))
 							{
 								log.warning("no url for "+jsonDim);
-								errors++;
+								missingAllProperties++;
 								continue;
 							}
 							JsonNode urlNode = jsonDim.get("html_url");
@@ -591,7 +602,11 @@ public class Main
 			model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 		}
 		writeModel(model,out);
-			}
+		// write missing statistics
+		try(PrintWriter statisticsOut  = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
+		{statisticsOut.println(datasetName+'\t'+((double)missingAllProperties/i)+'\t'+(double)Collections.max(missingForProperty.values())/i);}
+		
+	}
 
 	static void writeModel(Model model, OutputStream out)
 	{
