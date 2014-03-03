@@ -64,16 +64,16 @@ public class Main
 
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
 	//	private static final int	MAX_ENTRIES	= 30;
-	private static final int	DATASET_MIN_EXCEPTIONS_FOR_STOP	= 30;
-	private static final int	DATASET_MAX_EXCEPTIONS_FOR_LOGGING	= 2;
-	private static final float	DATASET_EXCEPTION_STOP_RATIO = 0.1f;
+	private static final int	DATASET_MIN_VALUES_MISSING_FOR_STOP	= 1000;
+	private static final int	DATASET_MAX_VALUES_MISSING_LOGGED	= 2;
+	private static final float	DATASET_MISSING_STOP_RATIO = 1f;
 
 	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
 	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
 	static File folder = new File("output8");
-	static File statistics = new File("statistics");
+	static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
 		
 	//	static final boolean CACHING = true;
 	static {		
@@ -174,26 +174,27 @@ public class Main
 	static public class LSO
 	{
 		static final String URI = LSBASE+"ontology/";
-		static public Resource CountryComponent = ResourceFactory.createResource(URI+"CountryComponentSpecification");
-		static public Resource DateComponentSpecification = ResourceFactory.createResource(URI+"DateComponentSpecification");
-		static public Resource YearComponentSpecification = ResourceFactory.createResource(URI+"YearComponentSpecification");
-		static public Resource CurrencyComponentSpecification = ResourceFactory.createResource(URI+"CurrencyComponentSpecification");
+		static final public Resource CountryComponent = ResourceFactory.createResource(URI+"CountryComponentSpecification");
+		static final public Resource DateComponentSpecification = ResourceFactory.createResource(URI+"DateComponentSpecification");
+		static final public Resource YearComponentSpecification = ResourceFactory.createResource(URI+"YearComponentSpecification");
+		static final public Resource CurrencyComponentSpecification = ResourceFactory.createResource(URI+"CurrencyComponentSpecification");
 
-		static public Property refDate = ResourceFactory.createProperty(URI+"refDate");
-		static public Property refYear = ResourceFactory.createProperty(URI+"refYear");
+		static final public Property refDate = ResourceFactory.createProperty(URI+"refDate");
+		static final public Property refYear = ResourceFactory.createProperty(URI+"refYear");
+		static final public Property completeness = ResourceFactory.createProperty(URI+"completeness");
 	}
 
-	static public class DBO
+	static final public class DBO
 	{
 		static final String DBO = "http://dbpedia.org/ontology/";
-		static public Property currency = ResourceFactory.createProperty(DBO,"currency");		
+		static final public Property currency = ResourceFactory.createProperty(DBO,"currency");		
 	}
 
-	static public class DCMI
+	static final public class DCMI
 	{
 		static final String DCMI = "http://dublincore.org/documents/2012/06/14/dcmi-terms/";
-		static public Property source = ResourceFactory.createProperty(DCMI,"source");		
-		static public Property created = ResourceFactory.createProperty(DCMI,"created");
+		static final public Property source = ResourceFactory.createProperty(DCMI,"source");		
+		static final public Property created = ResourceFactory.createProperty(DCMI,"created");
 	}
 
 	@Nullable static String cleanString(@Nullable String s)
@@ -204,12 +205,12 @@ public class Main
 
 	/** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
 	 * @throws UnknownMappingTypeException */
-	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,String datasetName, Resource dataset, Resource dsd,Map<String,Property> componentPropertyByName, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException 
+	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,String datasetName, Resource dataset, Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException 
 	{
 		int attributeCount = 1; // currency is always there and dataset is not created if it is not found
 		int dimensionCount = 0;
 		int measureCount = 0;
-
+		Map<String,Property> componentPropertyByName = new HashMap<>();
 		Set<ComponentProperty> componentProperties = new HashSet<>();
 		//		ArrayNode dimensionArray = readArrayNode(url);		
 		boolean dateExists = false;
@@ -454,7 +455,8 @@ public class Main
 		JsonNode result;
 		boolean dateExists = false;
 		Set<Integer> years = new HashSet<Integer>();
-		int missingAllProperties = 0;
+		int missingValues = 0;
+		int expectedValues = 0;
 		Map<ComponentProperty,Integer> missingForProperty = new HashMap<>();
 		int i;
 		for(i=0;(result=in.read())!=null;i++)		
@@ -472,15 +474,16 @@ public class Main
 			for(ComponentProperty d: componentProperties)
 			{
 				//				if(d.name==null) {throw new RuntimeException("no name for component property "+d);}
+				expectedValues++;
 				if(!result.has(d.name))
 				{
 					Integer missing = missingForProperty.get(d);
 					missing = (missing==null)?1:missing+1;					
 					missingForProperty.put(d,missing);
-					missingAllProperties++;
-					if(missingForProperty.get(d)<=DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("no entry for property "+d.name+" at entry "+result);}
-					if(missingForProperty.get(d)==DATASET_MAX_EXCEPTIONS_FOR_LOGGING) {log.warning("more missing entries for property "+d.name+".");}
-					if(missingForProperty.get(d)>=DATASET_MIN_EXCEPTIONS_FOR_STOP&&((double)missingAllProperties/i>DATASET_EXCEPTION_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingAllProperties);}
+					missingValues++;
+					if(missingForProperty.get(d)<=DATASET_MAX_VALUES_MISSING_LOGGED) {log.warning("no entry for property "+d.name+" at entry "+result);}
+					if(missingForProperty.get(d)==DATASET_MAX_VALUES_MISSING_LOGGED) {log.warning("more missing entries for property "+d.name+".");}
+					if(missingValues>=DATASET_MIN_VALUES_MISSING_FOR_STOP&&((double)missingValues/expectedValues>=DATASET_MISSING_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingValues);}
 					continue;
 				}				
 				try
@@ -499,7 +502,7 @@ public class Main
 							if(!jsonDim.has("html_url"))
 							{
 								log.warning("no url for "+jsonDim);
-								missingAllProperties++;
+								missingValues++;
 								continue;
 							}
 							JsonNode urlNode = jsonDim.get("html_url");
@@ -576,6 +579,7 @@ public class Main
 			//				case "measure":return;
 			//				case "attribute":return;
 			//			}
+			
 			if(currency!=null)
 			{
 				model.add(observation, DBO.currency, currency);				
@@ -596,6 +600,13 @@ public class Main
 				writeModel(model,out);				
 			}
 		}
+		// completeness statistics
+		model.addLiteral(dataSet, LSO.completeness, 1-(double)(missingValues/expectedValues));
+		for(ComponentProperty d: componentProperties)
+		{
+			model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
+		}
+		
 		// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
 		for(int year: years)
 		{
@@ -604,7 +615,7 @@ public class Main
 		writeModel(model,out);
 		// write missing statistics
 		try(PrintWriter statisticsOut  = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
-		{statisticsOut.println(datasetName+'\t'+((double)missingAllProperties/i)+'\t'+(double)Collections.max(missingForProperty.values())/i);}
+		{statisticsOut.println(datasetName+'\t'+((double)missingValues/i)+'\t'+(double)Collections.max(missingForProperty.values())/i);}
 		
 	}
 
@@ -681,7 +692,7 @@ public class Main
 	 * @throws TooManyMissingValuesException 
 	 * @returns if it was successfully created 
 	 */
-	static void createDataset(String datasetName,Model model,OutputStream out,Map<String,Property> componentPropertyByName)
+	static void createDataset(String datasetName,Model model,OutputStream out)
 			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException		
 			{
 		@NonNull URL url = new URL(LS+datasetName);
@@ -717,7 +728,7 @@ public class Main
 			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
 		}
 		Set<ComponentProperty> componentProperties;
-		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,componentPropertyByName,defaultYear!=null);	}
+		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,defaultYear!=null);	}
 		catch (MissingDataException | UnknownMappingTypeException e)
 		{
 			log.severe("Error creating components for dataset "+datasetName);
@@ -890,7 +901,7 @@ public class Main
 			//			JsonNode datasets = m.readTree(new URL(DATASETS));			
 			//			ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
 			int exceptions = 0;
-			int notexisting = 0;
+//			int notexisting = 0;
 			int offset = 0;
 			int i=0;
 			int fileexists=0; 
@@ -904,7 +915,7 @@ public class Main
 
 				i++;				
 				Model model = newModel();
-				Map<String,Property> componentPropertyByName = new HashMap<>();
+//				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 
@@ -934,11 +945,12 @@ public class Main
 					log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);										
 					try
 					{
-						createDataset(datasetName,model,out,componentPropertyByName);
+						createDataset(datasetName,model,out);
 						writeModel(model,out);
 					}
 					catch (NoCurrencyFoundForCodeException | DatasetHasNoCurrencyException | MissingDataException| UnknownMappingTypeException | TooManyMissingValuesException | FileNotFoundException e)
 					{
+						exceptions++;
 						deleteDataset(datasetName);
 						faultyDatasets.add(datasetName);
 						log.severe("Error creating dataset "+datasetName+". Skipping.");
@@ -967,7 +979,8 @@ public class Main
 			}
 			//				}
 
-			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
+//			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
+			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created).");
 			if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+faultyDatasets);
 		}
 
