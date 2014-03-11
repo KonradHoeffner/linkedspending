@@ -43,8 +43,11 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
+import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
+
+// bug? berlin_de doesnt have any measure (should at least have "amount") on sparql endpoint 
 
 /** The main application which does the conversion. Requires JSONDownloader.main() to be called first in order for the input files to exist.
  * Output consists of ntriples files in the chosen folder.**/
@@ -53,6 +56,7 @@ import de.konradhoeffner.commons.TSVReader;
 @SuppressWarnings("serial")
 public class Main
 {
+	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 	static ObjectMapper m = new ObjectMapper();
 	static final int MAX_MODEL_TRIPLES = 500_000;
 	static final boolean USE_CACHE = true;
@@ -620,9 +624,11 @@ public class Main
 	}
 
 	static void writeModel(Model model, OutputStream out)
-	{
+	{		
 		model.write(out,"N-TRIPLE");
 		//		model.write(out,"TURTLE");
+		// assuming that most memory is consumed before model cleaning
+		memoryBenchmark.updateAndGetMaxMemoryBytes();
 		model.removeAll();
 	}
 
@@ -889,7 +895,8 @@ public class Main
 
 	public static void main(String[] args) throws MalformedURLException, IOException
 	{
-		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+		long startTime = System.currentTimeMillis();
+		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );		
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.INFO);} catch ( RuntimeException e ) { e.printStackTrace();}
 		try
 		{			
@@ -980,7 +987,8 @@ public class Main
 			//				}
 
 //			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
-			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created).");
+			log.info("** FINISHED CONVERSION: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
+					+"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 			if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+faultyDatasets);
 		}
 

@@ -46,12 +46,14 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import de.konradhoeffner.commons.MemoryBenchmark;
 
 /** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java. Multithreaded. */
 @NonNullByDefault
 @Log
 public class JsonDownloader
 {
+	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 	static final int MAX_THREADS = 10;
 	static final int PAGE_SIZE = 50000;
 	static File folder = new File("json");
@@ -233,7 +235,10 @@ public class JsonDownloader
 				System.out.println(entries);
 				ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
 				try(FileOutputStream fos = new FileOutputStream(f))
-				{fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);}				
+				{fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);}
+				// ideally, memory should be measured during the transfer but thats not easily possible except
+				// by creating another thread which is overkill. Because it is multithreaded anyways I hope this value isn't too far from the truth.
+				memoryBenchmark.updateAndGetMaxMemoryBytes();
 			}
 			// TODO: sometimes at the end "]}" is missing, add it in this case
 			// manually solvable in terminal with cat /tmp/problems  | xargs -I  @  sh -c "echo ']}' >> '@'"
@@ -353,10 +358,12 @@ public class JsonDownloader
 	/** Download all new datasets as json. */
 	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
+		long startTime = System.currentTimeMillis();
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
 		downloadAll();
 		puzzleTogether();
+		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
 	}
 
