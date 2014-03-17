@@ -1,0 +1,31 @@
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/linked-data/cube#ComponentSpecification> .
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://www.w3.org/2000/01/rdf-schema#label> "country" .
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://www.w3.org/2000/01/rdf-schema#comment> "The country a dataset references."@en .
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://purl.org/linked-data/cube#attribute> <http://purl.org/linked-data/sdmx/2009/attribute#refArea> .
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://purl.org/linked-data/cube#componentRequired> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://purl.org/linked-data/cube#componentAttachment> <http://purl.org/linked-data/cube#DataSet> .
+<http://linkedspending.aksw.org/ontology/CountryComponentSpecification> <http://purl.org/linked-data/cube#componentAttachment> <http://purl.org/linked-data/cube#Observation> .
+<http://linkedspending.aksw.org/ontology/DateComponentSpecification> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/linked-data/cube#ComponentSpecification> .
+<http://linkedspending.aksw.org/ontology/DateComponentSpecification> <http://www.w3.org/2000/01/rdf-schema#label> "time" .
+<http://linkedspending.aksw.org/ontology/DateComponentSpecification> <http://purl.org/linked-data/cube#dimension> <http://linkedspending.aksw.org/ontology/refDate> .
+<http://linkedspending.aksw.org/ontology/DateComponentSpecification> <http://purl.org/linked-data/cube#componentRequired> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<http://linkedspending.aksw.org/ontology/YearComponentSpecification> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/linked-data/cube#ComponentSpecification> .
+<http://linkedspending.aksw.org/ontology/YearComponentSpecification> <http://www.w3.org/2000/01/rdf-schema#label> "year" .
+<http://linkedspending.aksw.org/ontology/YearComponentSpecification> <http://purl.org/linked-data/cube#dimension> <http://linkedspending.aksw.org/ontology/refYear> .
+<http://linkedspending.aksw.org/ontology/YearComponentSpecification> <http://purl.org/linked-data/cube#componentAttachment> <http://purl.org/linked-data/cube#DataSet> .
+<http://linkedspending.aksw.org/ontology/YearComponentSpecification> <http://purl.org/linked-data/cube#componentAttachment> <http://purl.org/linked-data/cube#Observation> .
+<http://linkedspending.aksw.org/ontology/YearComponentSpecification> <http://purl.org/linked-data/cube#componentRequired> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/linked-data/cube#ComponentSpecification> .
+<http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://www.w3.org/2000/01/rdf-schema#label> "currency" .
+<http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://purl.org/linked-data/cube#attribute> <http://dbpedia.org/ontology/currency> .
+<http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://purl.org/linked-data/cube#componentRequired> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://purl.org/linked-data/cube#componentAttachment> <http://purl.org/linked-data/cube#Observation> .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#label> "reference date" .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#comment> "the date an observation refers to" .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#domain> <http://purl.org/linked-data/cube#Observation> .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#date> .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#label> "reference year" .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#comment> "the year an observation refers to" .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#domain> <http://purl.org/linked-data/cube#Observation> .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#gYear> .
