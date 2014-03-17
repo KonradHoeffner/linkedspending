@@ -58,7 +58,7 @@ import de.konradhoeffner.commons.TSVReader;
 public class Main
 {
 	enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
-	static final ConversionMode conversionMode = ConversionMode.SCHEMA_ONLY;
+	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
 	
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 	static ObjectMapper m = new ObjectMapper();	
@@ -80,7 +80,7 @@ public class Main
 	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
-	static File folder = new File("outputschema");
+	static File folder = new File("output20143");
 	static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
 		
 	//	static final boolean CACHING = true;
