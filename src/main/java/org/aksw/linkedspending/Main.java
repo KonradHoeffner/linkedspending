@@ -1,5 +1,6 @@
 package org.aksw.linkedspending;
 import java.io.BufferedWriter;
+import static org.aksw.linkedspending.Main.ConversionMode.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -56,15 +57,18 @@ import de.konradhoeffner.commons.TSVReader;
 @SuppressWarnings("serial")
 public class Main
 {
+	enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
+	static final ConversionMode conversionMode = ConversionMode.SCHEMA_ONLY;
+	
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-	static ObjectMapper m = new ObjectMapper();
+	static ObjectMapper m = new ObjectMapper();	
 	static final int MAX_MODEL_TRIPLES = 500_000;
 	static final boolean USE_CACHE = true;
-	public static final String DATASETS = "http://openspending.org/datasets.json";	
+	public static final String DATASETS = "https://openspending.org/datasets.json";	
 	static final String LSBASE = "http://linkedspending.aksw.org/";
 	static final String LS = LSBASE+"instance/";
 	//	static final String LSO = LSBASE+"ontology/";
-	static final String OS = "http://openspending.org/";
+	static final String OS = "https://openspending.org/";
 
 	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
 	//	private static final int	MAX_ENTRIES	= 30;
@@ -76,7 +80,7 @@ public class Main
 	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
-	static File folder = new File("output8");
+	static File folder = new File("outputschema");
 	static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
 		
 	//	static final boolean CACHING = true;
@@ -770,7 +774,7 @@ public class Main
 			//		ArrayNode results = (ArrayNode)entries.get("results");
 			log.fine("creating entries");
 
-			createObservations(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
+			if(conversionMode==SCHEMA_AND_OBSERVATIONS) createObservations(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
 			log.fine("finished creating entries");
 		}
 		createViews(datasetName,model,dataSet);
@@ -901,7 +905,8 @@ public class Main
 		try
 		{			
 			folder.mkdir();
-			SortedSet<String> datasetNames = JsonDownloader.getSavedDatasetNames();
+			// observations use saved datasets so we need the saved names, if we only create the schema we can use the newest dataset names
+			SortedSet<String> datasetNames = conversionMode==SCHEMA_AND_OBSERVATIONS?JsonDownloader.getSavedDatasetNames():JsonDownloader.getDatasetNames();
 			// TODO: parallelize
 			//		DetectorFactory.loadProfile("languageprofiles");			
 

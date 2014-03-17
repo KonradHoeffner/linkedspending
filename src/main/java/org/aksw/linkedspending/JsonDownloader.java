@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -80,7 +81,7 @@ public class JsonDownloader
 	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
 		if(!datasetNames.isEmpty()) return datasetNames;
- 
+ 				
 		JsonNode datasets;
 		if(DATASETS_CACHED.exists())
 		{
@@ -88,6 +89,7 @@ public class JsonDownloader
 		}
 		else
 		{
+//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
 			datasets = Main.m.readTree(new URL(Main.DATASETS));
 			Main.m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 		}
