@@ -233,7 +233,7 @@ public class JsonDownloader
 				File f = nrOfPages == 1 ? path.toFile(): new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
 				if(f.exists()) {continue;}
 				if(nrOfPages>1) log.fine(nr+" page "+page+"/"+nrOfPages);				
-				URL entries = new URL("http://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE+"&page="+page);
+				URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE+"&page="+page);
 				System.out.println(entries);
 				ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
 				try(FileOutputStream fos = new FileOutputStream(f))
