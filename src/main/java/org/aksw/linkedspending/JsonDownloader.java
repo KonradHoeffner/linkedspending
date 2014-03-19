@@ -80,8 +80,6 @@ public class JsonDownloader
 	
 	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
-		return new TreeSet<String>(Collections.singleton("berlin_de"));
-/*
 		if(!datasetNames.isEmpty()) return datasetNames;
  				
 		JsonNode datasets;
@@ -103,7 +101,6 @@ public class JsonDownloader
 			datasetNames.add(dataSetJson.get("name").textValue());
 		}
 		return datasetNames;
-		*/
 	}
 
 
