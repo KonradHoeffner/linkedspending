@@ -55,8 +55,8 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 public class JsonDownloader
 {
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-	static final int MAX_THREADS = 10;
-	static final int PAGE_SIZE = 50000;
+	static final int MAX_THREADS = 30;
+	static final int INITIAL_PAGE_SIZE = 200;
 	static File folder = new File("json");
 	static File rootPartsFolder = new File("json/parts");
 	static File modelFolder = new File("json/model");
@@ -80,6 +80,8 @@ public class JsonDownloader
 	
 	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
+		return new TreeSet<String>(Collections.singleton("berlin_de"));
+/*
 		if(!datasetNames.isEmpty()) return datasetNames;
  				
 		JsonNode datasets;
@@ -101,6 +103,7 @@ public class JsonDownloader
 			datasetNames.add(dataSetJson.get("name").textValue());
 		}
 		return datasetNames;
+		*/
 	}
 
 
@@ -186,7 +189,7 @@ public class JsonDownloader
 		{			
 			Path path = Paths.get(folder.getPath(),datasetName);
 			File file = path.toFile();
-			File partsFolder = new File(folder.toString()+"/parts/"+PAGE_SIZE+"/"+datasetName);			
+			File partsFolder = new File(folder.toString()+"/parts/"+INITIAL_PAGE_SIZE+"/"+datasetName);			
 			File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");			
 			//			Path partsPath = Paths.get(partsFolder.getPath(),datasetName);			
 			if(file.exists())
@@ -222,7 +225,7 @@ public class JsonDownloader
 				return false;				
 			}
 			log.info(nr+" Starting download of "+datasetName+", "+nrEntries+" entries.");
-			int nrOfPages = (int)(Math.ceil((double)nrEntries/PAGE_SIZE));
+			int nrOfPages = (int)(Math.ceil((double)nrEntries/INITIAL_PAGE_SIZE));
 
 			if(nrOfPages>1)
 			{
@@ -233,7 +236,7 @@ public class JsonDownloader
 				File f = nrOfPages == 1 ? path.toFile(): new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
 				if(f.exists()) {continue;}
 				if(nrOfPages>1) log.fine(nr+" page "+page+"/"+nrOfPages);				
-				URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE+"&page="+page);
+				URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+INITIAL_PAGE_SIZE+"&page="+page);
 				System.out.println(entries);
 				ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
 				try(FileOutputStream fos = new FileOutputStream(f))
