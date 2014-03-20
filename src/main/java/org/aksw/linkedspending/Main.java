@@ -8,8 +8,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -59,7 +61,7 @@ public class Main
 {
 	enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
 	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
-	
+
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 	static ObjectMapper m = new ObjectMapper();	
 	static final int MAX_MODEL_TRIPLES = 500_000;
@@ -82,7 +84,7 @@ public class Main
 
 	static File folder = new File("output20143");
 	static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
-		
+
 	//	static final boolean CACHING = true;
 	static {		
 		if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
@@ -102,7 +104,7 @@ public class Main
 		}
 		catch (Exception e) {throw new RuntimeException(e);}
 	}
-	
+
 	static final Map<Pair<String>,String> datasetPropertyNameToUri = new HashMap<>();
 	static
 	{
@@ -116,7 +118,7 @@ public class Main
 		}
 		catch (Exception e) {throw new RuntimeException(e);}
 	}
-	
+
 	static public class NoCurrencyFoundForCodeException 			extends Exception {public NoCurrencyFoundForCodeException(String datasetName, String code) {super("no currency found for code "+code+" in dataset "+datasetName);}}	
 	static public class DatasetHasNoCurrencyException 			extends Exception {public DatasetHasNoCurrencyException(String datasetName) {super("dataset "+datasetName+" has no currency.");}}
 	static public class MissingDataException 			extends Exception {public MissingDataException(String s) 			{super(s);}}
@@ -237,7 +239,7 @@ public class Main
 
 			//			String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl;
-			
+
 			String uri = datasetPropertyNameToUri.get(new Pair<String>(datasetName,name));
 			componentPropertyUrl=(uri!=null)?uri:LSO.URI+name;			
 
@@ -514,8 +516,8 @@ public class Main
 								continue;
 							}
 							JsonNode urlNode = jsonDim.get("html_url");
-// todo enhancement: interlinking auf dem label -> besser extern
-// todo enhancement: ressource nicht mehrfach erzeugen - aber aufpassen dass der speicher nicht voll wird! wird wohl nur im datenset gehen
+							// todo enhancement: interlinking auf dem label -> besser extern
+							// todo enhancement: ressource nicht mehrfach erzeugen - aber aufpassen dass der speicher nicht voll wird! wird wohl nur im datenset gehen
 
 							Resource instance = model.createResource(urlNode.asText());
 
@@ -587,7 +589,7 @@ public class Main
 			//				case "measure":return;
 			//				case "attribute":return;
 			//			}
-			
+
 			if(currency!=null)
 			{
 				model.add(observation, DBO.currency, currency);				
@@ -614,7 +616,7 @@ public class Main
 		{
 			model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
 		}
-		
+
 		// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
 		for(int year: years)
 		{
@@ -624,8 +626,8 @@ public class Main
 		// write missing statistics
 		try(PrintWriter statisticsOut  = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
 		{statisticsOut.println(datasetName+'\t'+((double)missingValues/i)+'\t'+(double)Collections.max(missingForProperty.values())/i);}
-		
-	}
+
+			}
 
 	static void writeModel(Model model, OutputStream out)
 	{		
@@ -830,7 +832,24 @@ public class Main
 			Element e = cache.get(url.toString());
 			if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
 		}
-		if(detailedLogging) {log.fine("cache miss for "+url.toString());}
+		if(detailedLogging) {log.fine("cache miss for "+url.toString());}		
+
+		// SWP 14 team: here is a start for the response code handling which you should get to work, I discontinued it because the connection
+		// may be a non-httpurlconnection (if the url relates to a file) so maybe there should be two readJsonString methods, one for a file and one for an http url
+		// or maybe it should be split into two methods where this one only gets a string as an input and the error handling for connections should be somewhere else
+		// of course there shouldn't be System.out.println() statements, they are just placeholders.
+		// error handling isnt even that critical here but needs to be in any case in the JSON downloader for the big parts 
+		//		HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+		//		connection.connect();
+		//		int response = connection.getResponseCode(); 
+		//		switch(response)
+		//		{
+		//			case HttpURLConnection.HTTP_OK: System.out.println("OK"); // fine, continue			
+		//			case HttpURLConnection.HTTP_GATEWAY_TIMEOUT: System.out.println("gateway timeout"); // retry
+		//			case HttpURLConnection.HTTP_UNAVAILABLE: System.out.println("unavailable"); // abort
+		//			default: log.error("unhandled http response code "+response+". Aborting download of dataset."); // abort
+		//		}
+		//		try(Scanner undelimited = new Scanner(connection.getInputStream(), "UTF-8"))
 		try(Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
 		{
 			try(Scanner scanner = undelimited.useDelimiter("\\A"))
@@ -913,7 +932,7 @@ public class Main
 			//			JsonNode datasets = m.readTree(new URL(DATASETS));			
 			//			ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
 			int exceptions = 0;
-//			int notexisting = 0;
+			//			int notexisting = 0;
 			int offset = 0;
 			int i=0;
 			int fileexists=0; 
@@ -922,12 +941,12 @@ public class Main
 			for(final String datasetName : datasetNames)				
 			{				
 				//				if(!name.contains("orcamento_brasil_2000_2013")) continue;
-//				if(!datasetName.contains("berlin_de")) continue;
+				//				if(!datasetName.contains("berlin_de")) continue;
 				//				if(!datasetName.contains("2011saiki_budget")) continue;
 
 				i++;				
 				Model model = newModel();
-//				Map<String,Property> componentPropertyByName = new HashMap<>();
+				//				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 
@@ -991,7 +1010,7 @@ public class Main
 			}
 			//				}
 
-//			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
+			//			log.info("Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+notexisting+" not existing datasets, "+fileexists+" already existing ("+(i-exceptions-notexisting-fileexists)+" newly created).");
 			log.info("** FINISHED CONVERSION: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
 					+"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 			if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+faultyDatasets);

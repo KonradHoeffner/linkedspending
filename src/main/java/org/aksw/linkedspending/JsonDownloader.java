@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -49,14 +48,15 @@ import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
 
-/** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java. Multithreaded. */
+/** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java.
+ * Datasets are processed in paralllel. Each dataset with more than {@value #INITIAL_PAGE_SIZE} entries is split into parts with that many entries. **/
 @NonNullByDefault
 @Log
 public class JsonDownloader
 {
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-	static final int MAX_THREADS = 30;
-	static final int INITIAL_PAGE_SIZE = 200;
+	static final int MAX_THREADS = 10;
+	static final int INITIAL_PAGE_SIZE = 50000;
 	static File folder = new File("json");
 	static File rootPartsFolder = new File("json/parts");
 	static File modelFolder = new File("json/model");
@@ -64,7 +64,7 @@ public class JsonDownloader
 	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
 	static {if(!folder.exists()) {folder.mkdir();}}
 	static {if(!rootPartsFolder.exists()) {rootPartsFolder.mkdir();}}
-	static Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
+	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -183,7 +183,7 @@ public class JsonDownloader
 		}
 
 		@Override public @Nullable Boolean call() throws IOException
-		{			
+		{
 			Path path = Paths.get(folder.getPath(),datasetName);
 			File file = path.toFile();
 			File partsFolder = new File(folder.toString()+"/parts/"+INITIAL_PAGE_SIZE+"/"+datasetName);			
@@ -260,7 +260,7 @@ public class JsonDownloader
 		int i=0;		
 		for(String dataset: datasets)
 		{
-			{futures.add(service.submit(new DownloadCallable(dataset,i++)));}			
+			{futures.add(service.submit(new DownloadCallable(dataset,i++)));}
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);
 		monitor.start();
@@ -271,7 +271,7 @@ public class JsonDownloader
 		}
 		log.info(successCount+" datasets newly created.");
 		service.shutdown();
-		service.awaitTermination(10, TimeUnit.DAYS);
+		service.awaitTermination(4, TimeUnit.DAYS);
 		monitor.stopMonitoring();
 		
 	}
@@ -337,7 +337,7 @@ public class JsonDownloader
 		{
 			try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(emptyDatasetFile)))
 			{
-				emptyDatasets = (Set<String>) in.readObject();
+				emptyDatasets.addAll((Set<String>) in.readObject());
 			}
 			catch (Exception e) {log.warning("Error reading empty datasets file");}
 		}
