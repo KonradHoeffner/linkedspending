@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -31,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.extern.java.Log;
@@ -47,16 +49,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
+import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
 /** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java.
- * Datasets are processed in paralllel. Each dataset with more than {@value #INITIAL_PAGE_SIZE} entries is split into parts with that many entries. **/
+ * Datasets are processed in paralllel. Each dataset with more than {@value #pageSize} entries is split into parts with that many entries. **/
 @NonNullByDefault
 @Log
+@SuppressWarnings("serial")
 public class JsonDownloader
 {
-	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-	static final int MAX_THREADS = 10;
-	static final int INITIAL_PAGE_SIZE = 50000;
+	static boolean TEST_MODE_ONLY_BERLIN = true;
+
+	static final int MAX_THREADS = 5;
+	static final int INITIAL_PAGE_SIZE = 10000;
+	static final int MIN_PAGE_SIZE = 1000;
+	static final int pageSize = INITIAL_PAGE_SIZE;
 	static File folder = new File("json");
 	static File rootPartsFolder = new File("json/parts");
 	static File modelFolder = new File("json/model");
@@ -65,6 +72,9 @@ public class JsonDownloader
 	static {if(!folder.exists()) {folder.mkdir();}}
 	static {if(!rootPartsFolder.exists()) {rootPartsFolder.mkdir();}}
 	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
+	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
+
+	private static final long	TERMINATION_WAIT_DAYS	= 2;
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -77,11 +87,11 @@ public class JsonDownloader
 	}
 
 	static protected SortedSet<String> datasetNames = new TreeSet<>();
-	
+
 	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
 		if(!datasetNames.isEmpty()) return datasetNames;
- 				
+
 		JsonNode datasets;
 		if(DATASETS_CACHED.exists())
 		{
@@ -89,7 +99,7 @@ public class JsonDownloader
 		}
 		else
 		{
-//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
+			//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
 			datasets = Main.m.readTree(new URL(Main.DATASETS));
 			Main.m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 		}
@@ -167,6 +177,7 @@ public class JsonDownloader
 		}
 	}
 
+
 	/** If the dataset has no more than PAGE_SIZE results, it gets saved to json/datasetName, else it gets split into parts
 	 * in the folder json/parts/pagesize/datasetname with filenames datasetname.0, datasetname.1, ... , datasetname.final **/
 	static class DownloadCallable implements Callable<Boolean>
@@ -174,19 +185,21 @@ public class JsonDownloader
 		final String datasetName;
 		//		final URL entries;
 		final int nr;
+		//		int pageSize;
 
 		DownloadCallable(String datasetName,int nr) throws MalformedURLException
 		{
 			this.datasetName = datasetName;
 			this.nr=nr;
+			//			this.pageSize=pageSize;
 			//			entries = new URL("http://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE);
 		}
 
-		@Override public @Nullable Boolean call() throws IOException
+		@Override public @Nullable Boolean call() throws IOException, InterruptedException
 		{
 			Path path = Paths.get(folder.getPath(),datasetName);
 			File file = path.toFile();
-			File partsFolder = new File(folder.toString()+"/parts/"+INITIAL_PAGE_SIZE+"/"+datasetName);			
+			File partsFolder = new File(folder.toString()+"/parts/"+pageSize+"/"+datasetName);			
 			File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");			
 			//			Path partsPath = Paths.get(partsFolder.getPath(),datasetName);			
 			if(file.exists())
@@ -222,7 +235,7 @@ public class JsonDownloader
 				return false;				
 			}
 			log.info(nr+" Starting download of "+datasetName+", "+nrEntries+" entries.");
-			int nrOfPages = (int)(Math.ceil((double)nrEntries/INITIAL_PAGE_SIZE));
+			int nrOfPages = (int)(Math.ceil((double)nrEntries/pageSize));
 
 			if(nrOfPages>1)
 			{
@@ -233,8 +246,19 @@ public class JsonDownloader
 				File f = nrOfPages == 1 ? path.toFile(): new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
 				if(f.exists()) {continue;}
 				if(nrOfPages>1) log.fine(nr+" page "+page+"/"+nrOfPages);				
-				URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+INITIAL_PAGE_SIZE+"&page="+page);
-				System.out.println(entries);
+				URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+pageSize+"&page="+page);
+				//				System.out.println(entries);
+
+				try
+				{
+					HttpURLConnection connection = getConnection(entries);
+				}
+				catch (HttpTimeoutException | HttpUnavailableException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
 				ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
 				try(FileOutputStream fos = new FileOutputStream(f))
 				{fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);}
@@ -249,7 +273,7 @@ public class JsonDownloader
 			return true;
 		}		
 	}
-	
+
 	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. */
 	static void downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
 	{
@@ -271,9 +295,9 @@ public class JsonDownloader
 		}
 		log.info(successCount+" datasets newly created.");
 		service.shutdown();
-		service.awaitTermination(4, TimeUnit.DAYS);
+		service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
 		monitor.stopMonitoring();
-		
+
 	}
 
 	enum Position {TOP,MID,BOTTOM}; 
@@ -308,7 +332,7 @@ public class JsonDownloader
 				for(File f: parts)
 				{
 					if(f.length()==0) {throw new RuntimeException(f+" is existing but empty.");}
-										
+
 					Position pos = Position.TOP;
 					try(BufferedReader in = new BufferedReader(new FileReader(f)))
 					{
@@ -332,25 +356,28 @@ public class JsonDownloader
 
 	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
 	static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
-	{		
-		if(emptyDatasetFile.exists())
+	{
+		if(TEST_MODE_ONLY_BERLIN) {datasetNames=new TreeSet<>(Collections.singleton("berlin_de"));}
+		else
 		{
-			try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(emptyDatasetFile)))
+			if(emptyDatasetFile.exists())
 			{
-				emptyDatasets.addAll((Set<String>) in.readObject());
+				try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(emptyDatasetFile)))
+				{
+					emptyDatasets.addAll((Set<String>) in.readObject());
+				}
+				catch (Exception e) {log.warning("Error reading empty datasets file");}
 			}
-			catch (Exception e) {log.warning("Error reading empty datasets file");}
+			Collection<String> datasetNames = getDatasetNames();
+
+			datasetNames.removeAll(emptyDatasets);
+			{
+				List datasetNamesShuffled = new ArrayList<>(datasetNames);
+				Collections.shuffle(datasetNamesShuffled);
+				datasetNames=datasetNamesShuffled;
+			}					
 		}
-		Collection<String> datasetNames = getDatasetNames();
-
-		datasetNames.removeAll(emptyDatasets);
-		{
-			List datasetNamesShuffled = new ArrayList<>(datasetNames);
-			Collections.shuffle(datasetNamesShuffled);
-			datasetNames=datasetNamesShuffled;
-		}		
 		downloadIfNotExisting(datasetNames);
-
 		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
 		{
 			out.writeObject(emptyDatasets);
