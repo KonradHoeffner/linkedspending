@@ -58,7 +58,7 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader
 {
-	static boolean TEST_MODE_ONLY_BERLIN = true;
+	static boolean TEST_MODE_ONLY_BERLIN = false;
 
 	static final int MAX_THREADS = 5;
 	static final int INITIAL_PAGE_SIZE = 10000;
