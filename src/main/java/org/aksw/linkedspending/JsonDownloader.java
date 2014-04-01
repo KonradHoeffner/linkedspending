@@ -162,7 +162,7 @@ public class JsonDownloader
 			Set<Integer> nrs = new TreeSet<Integer>();
 			while(running)
 			{
-				try{Thread.sleep(5000);} catch (InterruptedException e)	{throw new RuntimeException();}				
+				try{Thread.sleep(5000);} catch (InterruptedException e)	{log.warning("interrupted thread monitor");}				
 				//				synchronized(callables)
 				//				{
 				//					for(DownloadCallable callable: callables)
@@ -204,9 +204,16 @@ public class JsonDownloader
 			//			Path partsPath = Paths.get(partsFolder.getPath(),datasetName);			
 			if(file.exists())
 			{
-				if(file.length()==0) {throw new RuntimeException(file+" is empty");}
-				log.finer(nr+" File "+path+" already exists, skipping download.");
-				return false;
+				if(file.length()==0)
+				{
+					log.severe(file+" exists but is empty, deleting and recreating.");
+					file.delete();
+				}
+				else
+				{
+					log.finer(nr+" File "+path+" already exists, skipping download.");
+					return false;
+				}
 			}			
 			if(partsFolder.exists())
 			{

@@ -34,7 +34,8 @@ public class HttpConnectionUtil
 				Thread.sleep(RETRY_DELAY_MS);
 			}
 			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-			switch (connection.getResponseCode()) {
+			int code = connection.getResponseCode();
+			switch (code) {
 				case HttpURLConnection.HTTP_OK:
 					log.fine(url + " **OK**");
 					return connection; // **EXIT POINT** fine, go on
@@ -42,10 +43,10 @@ public class HttpConnectionUtil
 					log.warning(url + " **gateway timeout**");
 					break;// retry
 				case HttpURLConnection.HTTP_UNAVAILABLE:
-					log.warning(url + "**unavailable**");
+					log.warning(url + " **unavailable**");
 					throw new HttpUnavailableException(url);
 				default:
-					log.severe(url + " **unknown response code**.");
+					log.severe(url + " **unknown response code: "+code+"**.");
 					throw new RuntimeException();
 			}
 			// we did not succeed with connection (or we would have returned the connection).
