@@ -60,8 +60,8 @@ public class JsonDownloader
 {
 	static boolean TEST_MODE_ONLY_BERLIN = false;
 
-	static final int MAX_THREADS = 5;
-	static final int INITIAL_PAGE_SIZE = 10000;
+	static final int MAX_THREADS = 10;
+	static final int INITIAL_PAGE_SIZE = 5000;
 	static final int MIN_PAGE_SIZE = 1000;
 	static final int pageSize = INITIAL_PAGE_SIZE;
 	static File folder = new File("json");

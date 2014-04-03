@@ -10,8 +10,10 @@ import lombok.extern.java.Log;
 @SuppressWarnings("serial")
 public class HttpConnectionUtil
 {
-	static final int RETRY_DELAY_MS=10000;
-	static final int RETRIES=2;
+	static final int INITIAL_RETRY_DELAY_MS=10000;
+	static final int	MAX_DELAY_MS	= 1000000; // ~ 15 min
+	static final int RETRIES=5; // 10s*2^5 = 320s ~ 5 min
+	
 
 	@AllArgsConstructor
 	public static class HttpException extends Exception
@@ -28,10 +30,12 @@ public class HttpConnectionUtil
 	public static final HttpURLConnection getConnection(URL url) throws InterruptedException, IOException, HttpTimeoutException, HttpUnavailableException
 	{
 		int retry = 0;
+		int delayMs=INITIAL_RETRY_DELAY_MS;
 		boolean delay = false;
 		do {
 			if (delay) {
-				Thread.sleep(RETRY_DELAY_MS);
+				Thread.sleep(INITIAL_RETRY_DELAY_MS);
+				delayMs=Math.max(delayMs*2,MAX_DELAY_MS);
 			}
 			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 			int code = connection.getResponseCode();
