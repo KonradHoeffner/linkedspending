@@ -1,0 +1,11 @@
+echo "Repairing incorrectly merged JSON files..."
+for file in json/*;do
+if [ -f "$file" ];
+then
+ echo $file"...";
+ sed -i "s|^  ]$||" $file
+ sed -i "s|^}$||" $file
+ echo -e  "\n  ]\n}" >> $file
+fi;
+done; 
+
