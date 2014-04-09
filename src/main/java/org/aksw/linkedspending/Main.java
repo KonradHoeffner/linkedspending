@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -460,7 +461,7 @@ public class Main
 
 	static void createObservations(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral)
 			throws MalformedURLException, IOException, TooManyMissingValuesException
-			{
+			{		
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
 		boolean dateExists = false;
@@ -468,8 +469,8 @@ public class Main
 		int missingValues = 0;
 		int expectedValues = 0;
 		Map<ComponentProperty,Integer> missingForProperty = new HashMap<>();
-		int i;
-		for(i=0;(result=in.read())!=null;i++)		
+		int observations;
+		for(observations=0;(result=in.read())!=null;observations++)		
 		{			
 			String osUri = result.get("html_url").asText();
 			Resource osObservation = model.createResource();
@@ -625,8 +626,11 @@ public class Main
 		writeModel(model,out);
 		// write missing statistics
 		try(PrintWriter statisticsOut  = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
-		{statisticsOut.println(datasetName+'\t'+((double)missingValues/i)+'\t'+(double)Collections.max(missingForProperty.values())/i);}
-
+		{
+			if(missingForProperty.isEmpty()) {statisticsOut.println("no missing values");}
+			else {statisticsOut.println(datasetName+'\t'+((double)missingValues/observations)+'\t'+(double)Collections.max(missingForProperty.values())/observations);}
+		}
+		log.info(observations+" observations created.");
 			}
 
 	static void writeModel(Model model, OutputStream out)
@@ -1017,7 +1021,7 @@ public class Main
 		}
 
 		// we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster 
-		catch(RuntimeException e) {log.severe(e.getLocalizedMessage());shutdown(1);}
+		catch(RuntimeException e) {log.log(Level.SEVERE,e.getLocalizedMessage(),e);shutdown(1);}
 		shutdown(0);
 	}
 

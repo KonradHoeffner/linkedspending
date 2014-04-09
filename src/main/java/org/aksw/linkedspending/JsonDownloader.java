@@ -62,6 +62,7 @@ public class JsonDownloader
 
 	static final int MAX_THREADS = 10;
 //	static boolean USE_PAGE_SIZE=false;
+	// at the moment the pagesize is constant but a possible improvement is dynamic one, starting out high and turning it down when there are errors
 	static final int INITIAL_PAGE_SIZE = 100;
 	static final int MIN_PAGE_SIZE = 100;
 	static final int pageSize = INITIAL_PAGE_SIZE;
@@ -141,7 +142,7 @@ public class JsonDownloader
 		}
 
 		@Nullable public JsonNode read() throws JsonParseException, IOException
-		{
+		{			
 			if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}			  
 			JsonNode node = jp.readValueAsTree();
 			return node;
@@ -310,7 +311,7 @@ public class JsonDownloader
 
 	enum Position {TOP,MID,BOTTOM}; 
 
-	/** reconstructs full dataset files out of parts. */
+	/** reconstructs full dataset files out of parts. if you find a better name feel free to change it :-) */
 	static void puzzleTogether() throws IOException
 	{
 		Set<String> inParts = new HashSet<>();
