@@ -612,23 +612,29 @@ public class Main
 			}
 		}
 		// completeness statistics
-		model.addLiteral(dataSet, LSO.completeness, 1-(double)(missingValues/expectedValues));
-		for(ComponentProperty d: componentProperties)
+		if(expectedValues==0)
 		{
-			model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
-		}
+			log.warning("no observations for dataset "+datasetName+".");			
+		} else
+		{
+			model.addLiteral(dataSet, LSO.completeness, 1-(double)(missingValues/expectedValues));
+			for(ComponentProperty d: componentProperties)
+			{
+				model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
+			}
 
-		// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
-		for(int year: years)
-		{
-			model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
-		}
-		writeModel(model,out);
-		// write missing statistics
-		try(PrintWriter statisticsOut  = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
-		{
-			if(missingForProperty.isEmpty()) {statisticsOut.println("no missing values");}
-			else {statisticsOut.println(datasetName+'\t'+((double)missingValues/observations)+'\t'+(double)Collections.max(missingForProperty.values())/observations);}
+			// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
+			for(int year: years)
+			{
+				model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
+			}
+			writeModel(model,out);
+			// write missing statistics
+			try(PrintWriter statisticsOut  = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
+			{
+				if(missingForProperty.isEmpty()) {statisticsOut.println("no missing values");}
+				else {statisticsOut.println(datasetName+'\t'+((double)missingValues/observations)+'\t'+(double)Collections.max(missingForProperty.values())/observations);}
+			}
 		}
 		log.info(observations+" observations created.");
 			}
