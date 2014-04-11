@@ -989,7 +989,8 @@ public class Main
 						createDataset(datasetName,model,out);
 						writeModel(model,out);
 					}
-					catch (NoCurrencyFoundForCodeException | DatasetHasNoCurrencyException | MissingDataException| UnknownMappingTypeException | TooManyMissingValuesException | FileNotFoundException e)
+					catch(Exception e)
+//					catch (NoCurrencyFoundForCodeException | DatasetHasNoCurrencyException | MissingDataException| UnknownMappingTypeException | TooManyMissingValuesException | FileNotFoundException e)
 					{
 						exceptions++;
 						deleteDataset(datasetName);
