@@ -1,0 +1,18 @@
+if [ -z $1 ] ; then
+    echo 'Error: no folder given. Virtuoso Upload All Usage: virtloadall foldername'
+    exit 0
+fi
+
+folder=$1
+echo "Uploading all files in folder "$folder" to virtuoso..."
+count=0
+for file in $folder/*; do
+if [ -f "$file" ];
+then
+ count=$(( count+1 ))
+ echo "Uploading to virtuoso: "$file"...";
+ virtload $file http://linkedspending.aksw.org/
+fi;
+done; 
+echo "Done uploading "$count" files in folder "$folder" to Virtuoso."
+

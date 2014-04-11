@@ -1,1 +1,6 @@
 target/
+statistics*
+cache
+*.log
+json
+output*
