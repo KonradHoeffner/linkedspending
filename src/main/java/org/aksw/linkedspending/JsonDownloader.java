@@ -224,7 +224,7 @@ public class JsonDownloader
 					log.fine(nr+" dataset exists in parts, skipping download..");					
 					return false;
 				}
-				log.fine(nr+"dataset exists in parts but is incomplete, continuing...");
+				log.fine(nr+" dataset exists in parts but is incomplete, continuing...");
 			}
 			log.fine(nr+" Fetching number of entries for dataset "+datasetName);		
 			int nrEntries = Main.nrEntries(datasetName);
@@ -324,7 +324,7 @@ public class JsonDownloader
 			}
 		}
 		//		Set<String> unpuzzled = datasetToFolder.keySet();		
-		//		unpuzzled.removeAll(getSavedDatasetNames());		
+		//		unpuzzled.removeAll(getSavedDatasetNames());
 		for(String dataset:datasetToFolder.keySet())
 		{			
 			File targetFile = new File(folder.getPath()+"/"+dataset);
@@ -400,7 +400,7 @@ public class JsonDownloader
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
 		downloadAll();
-		puzzleTogether();
+        puzzleTogether();
 		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
 	}
