@@ -312,7 +312,7 @@ public class JsonDownloader
 	enum Position {TOP,MID,BOTTOM}; 
 
 	/** reconstructs full dataset files out of parts. if you find a better name feel free to change it :-) */
-	static void puzzleTogether() throws IOException
+	protected static void puzzleTogether() throws IOException
 	{
 		Set<String> inParts = new HashSet<>();
 		Map<String,File> datasetToFolder = new HashMap<>();
