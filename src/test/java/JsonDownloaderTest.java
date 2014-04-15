@@ -24,7 +24,7 @@ public class JsonDownloaderTest
 		assertTrue(names.contains("berlin_de"));
 	}
 
-    @Test public void testPuzzleTogether() throws FileNotFoundException,IOException
+    /**@Test public void testPuzzleTogether() throws FileNotFoundException,IOException
     {
         File testfile1 = new File("json/parts/testfile1");
         try (PrintWriter out = new PrintWriter(testfile1))
@@ -56,10 +56,11 @@ public class JsonDownloaderTest
                 "{\n" +
                 "welt\n" +
                 "},");
-        assertTrue(result == 0);
         testfile1.delete();
         testfile2.delete();
-    }
+        assertTrue(result == 0);
+
+    }*/
 
     public class JsonDownloaderProxy extends JsonDownloader
     {
