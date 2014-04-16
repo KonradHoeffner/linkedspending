@@ -221,12 +221,12 @@ public class JsonDownloader
 			{
 				if(finalPart.exists())
 				{
-					log.fine(nr+" dataset exists in parts, skipping download..");					
+					log.fine(nr+" dataset exists in parts, skipping download..");
 					return false;
 				}
 				log.fine(nr+" dataset exists in parts but is incomplete, continuing...");
 			}
-			log.fine(nr+" Fetching number of entries for dataset "+datasetName);		
+			log.fine(nr+" Fetching number of entries for dataset "+datasetName);
 			int nrEntries = Main.nrEntries(datasetName);
 			if(nrEntries==0)
 			{
@@ -241,7 +241,7 @@ public class JsonDownloader
 					}
 				}
 				// save as empty file to make it faster? but then it slows down normal use
-				return false;				
+				return false;
 			}
 			log.info(nr+" Starting download of "+datasetName+", "+nrEntries+" entries.");
 			int nrOfPages = (int)(Math.ceil((double)nrEntries/pageSize));
@@ -251,10 +251,10 @@ public class JsonDownloader
 				partsFolder.mkdirs();
 			}
 			for(int page=1;page<=nrOfPages;page++)
-			{				
+			{
 				File f = nrOfPages == 1 ? path.toFile(): new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
 				if(f.exists()) {continue;}
-				if(nrOfPages>1) log.fine(nr+" page "+page+"/"+nrOfPages);				
+				if(nrOfPages>1) log.fine(nr+" page "+page+"/"+nrOfPages);
 				URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+pageSize+"&page="+page);
 				//				System.out.println(entries);
 
@@ -277,10 +277,10 @@ public class JsonDownloader
 			}
 			// TODO: sometimes at the end "]}" is missing, add it in this case
 			// manually solvable in terminal with cat /tmp/problems  | xargs -I  @  sh -c "echo ']}' >> '@'"
-			// where /tmp/problems is the file containing the list of files with the error 
-			log.info(nr+" Finished download of "+datasetName+".");			
+			// where /tmp/problems is the file containing the list of files with the error
+			log.info(nr+" Finished download of "+datasetName+".");
 			return true;
-		}		
+		}
 	}
 
 	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. */
@@ -290,7 +290,7 @@ public class JsonDownloader
 		ThreadPoolExecutor service = (ThreadPoolExecutor)Executors.newFixedThreadPool(MAX_THREADS);
 
 		List<Future<Boolean>> futures = new LinkedList<>();
-		int i=0;		
+		int i=0;
 		for(String dataset: datasets)
 		{
 			{futures.add(service.submit(new DownloadCallable(dataset,i++)));}
@@ -309,7 +309,7 @@ public class JsonDownloader
 
 	}
 
-	enum Position {TOP,MID,BOTTOM}; 
+	enum Position {TOP,MID,BOTTOM};
 
 	/** reconstructs full dataset files out of parts. if you find a better name feel free to change it :-) */
 	protected static void puzzleTogether() throws IOException
@@ -317,27 +317,27 @@ public class JsonDownloader
 		Set<String> inParts = new HashSet<>();
 		Map<String,File> datasetToFolder = new HashMap<>();
 		for(File pageSizeFolder : rootPartsFolder.listFiles())
-		{			
+		{
 			for(File folder : pageSizeFolder.listFiles())
-			{				
+			{
 				datasetToFolder.put(folder.getName(),folder);
 			}
 		}
-		//		Set<String> unpuzzled = datasetToFolder.keySet();		
+		//		Set<String> unpuzzled = datasetToFolder.keySet();
 		//		unpuzzled.removeAll(getSavedDatasetNames());
 		for(String dataset:datasetToFolder.keySet())
-		{			
+		{
 			File targetFile = new File(folder.getPath()+"/"+dataset);
 			if(targetFile.exists())
 			{
-				if(targetFile.length()==0) {throw new RuntimeException(targetFile+" is existing but empty.");}	
+				if(targetFile.length()==0) {throw new RuntimeException(targetFile+" is existing but empty.");}
 				log.finer(targetFile+" already exists. Skipping.");
 				continue;
 			}
 			try(PrintWriter out = new PrintWriter(targetFile))
 			{
 				int partNr=0;
-				File[] parts = datasetToFolder.get(dataset).listFiles();				
+				File[] parts = datasetToFolder.get(dataset).listFiles();
 				for(File f: parts)
 				{
 					if(f.length()==0) {throw new RuntimeException(f+" is existing but empty.");}
@@ -349,18 +349,18 @@ public class JsonDownloader
 						while((line= in.readLine())!=null)
 						{
 							switch(pos)
-							{	
+							{
 								case TOP:		if(partNr==0) out.println(line);if(line.contains("\"results\": [")) pos=Position.MID;break;
-								case MID:		out.println(line);if(line.equals("}")) pos=Position.BOTTOM;break;							
+								case MID:		out.println(line);if(line.equals("}")) pos=Position.BOTTOM;break;
 								case BOTTOM:	if(partNr==parts.length-1) out.println(line);break;
 							}
-						}					
+						}
 					}
 					if(partNr!=parts.length-1) out.print(",");
-					partNr++;					
+					partNr++;
 				}
 			}
-		}		
+		}
 	}
 
 	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
@@ -384,13 +384,13 @@ public class JsonDownloader
 				List datasetNamesShuffled = new ArrayList<>(datasetNames);
 				Collections.shuffle(datasetNamesShuffled);
 				datasetNames=datasetNamesShuffled;
-			}					
+			}
 		}
 		downloadIfNotExisting(datasetNames);
 		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
 		{
 			out.writeObject(emptyDatasets);
-		}	
+		}
 	}
 
 	/** Download all new datasets as json. */
