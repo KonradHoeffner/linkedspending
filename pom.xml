@@ -57,6 +57,11 @@
 			<type>pom</type>
 			<version>2.10.0</version>
 		</dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
 	</dependencies>
 
 	<repositories>
@@ -94,6 +99,22 @@
 					<fork>true</fork>
 				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>org.aksw.linkedspending.JsonDownloader</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
