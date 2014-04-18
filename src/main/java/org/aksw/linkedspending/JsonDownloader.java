@@ -56,9 +56,11 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @NonNullByDefault
 @Log
 @SuppressWarnings("serial")
-public class JsonDownloader
+public class JsonDownloader implements Runnable
 {
 	static boolean TEST_MODE_ONLY_BERLIN = false;
+
+    static boolean currentlyRunning = true;
 
 	static final int MAX_THREADS = 10;
 //	static boolean USE_PAGE_SIZE=false;
@@ -76,7 +78,11 @@ public class JsonDownloader
 	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 
+    public static boolean downloadStopped = false;             //testing purposes
+
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
+
+    protected static void setCurrentlyRunning(boolean setTo) {currentlyRunning=setTo;}
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -283,8 +289,8 @@ public class JsonDownloader
 		}		
 	}
 
-	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. */
-	static void downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
+	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. Returns true if stopped by Scheduler */
+	static boolean downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
 	{
 		int successCount = 0;
 		ThreadPoolExecutor service = (ThreadPoolExecutor)Executors.newFixedThreadPool(MAX_THREADS);
@@ -293,12 +299,22 @@ public class JsonDownloader
 		int i=0;		
 		for(String dataset: datasets)
 		{
-			{futures.add(service.submit(new DownloadCallable(dataset,i++)));}
+			{
+                futures.add(service.submit(new DownloadCallable(dataset,i++)));
+                if(currentlyRunning = false)             //added to make Downloader stoppable
+                {
+                    service.shutdown();
+                    service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
+                    downloadStopped = true;
+                    return true;
+                }
+            }
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);
 		monitor.start();
 		for(Future<Boolean> future : futures)
 		{
+		    //if(currentlyRunning = false) break;             //added to make Downloader stoppable
 			try{if(future.get()) {successCount++;}}
 			catch(ExecutionException e) {e.printStackTrace();}
 		}
@@ -306,13 +322,13 @@ public class JsonDownloader
 		service.shutdown();
 		service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
 		monitor.stopMonitoring();
-
+        return false;
 	}
 
 	enum Position {TOP,MID,BOTTOM}; 
 
 	/** reconstructs full dataset files out of parts. if you find a better name feel free to change it :-) */
-	static void puzzleTogether() throws IOException
+	protected static void puzzleTogether() throws IOException
 	{
 		Set<String> inParts = new HashSet<>();
 		Map<String,File> datasetToFolder = new HashMap<>();
@@ -364,8 +380,9 @@ public class JsonDownloader
 	}
 
 	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
-	static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+	protected static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
+        downloadStopped = false;
 		if(TEST_MODE_ONLY_BERLIN) {datasetNames=new TreeSet<>(Collections.singleton("berlin_de"));}
 		else
 		{
@@ -392,17 +409,44 @@ public class JsonDownloader
 			out.writeObject(emptyDatasets);
 		}	
 	}
+/*
+    public static void start() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+    {
+        long startTime = System.currentTimeMillis();
+        System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+        try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
+        downloadAll();
+        puzzleTogether();
+        log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
+        System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
+    }
+*/
 
+    @Override
+    public void run() /*throws JsonProcessingException, IOException, InterruptedException, ExecutionException*/
+    {
+        long startTime = System.currentTimeMillis();
+        System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+        try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
+        //downloadAll();
+        //puzzleTogether();
+        Scheduler.runDownloader();
+        Scheduler.stopDownloader();
+        log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
+        System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
+    }
 	/** Download all new datasets as json. */
-	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+	/*public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
 		long startTime = System.currentTimeMillis();
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-		downloadAll();
-        puzzleTogether();
+		//downloadAll();
+        //puzzleTogether();
+        Scheduler.runDownloader();
+        Scheduler.stopDownloader();
 		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-	}
+	}*/
 
 }
