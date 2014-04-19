@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.tools;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
