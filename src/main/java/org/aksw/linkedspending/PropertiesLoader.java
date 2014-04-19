@@ -9,22 +9,25 @@ import java.util.HashMap;
 import java.util.Properties;
 
 /**
- * helper class to load property files
+ * static helper class for loading properties
  *
  * @author tovo
  */
-public class PropertiesLoader {
+public final class PropertiesLoader {
     /** logger */
     protected final static Logger LOG = LoggerFactory.getLogger(PropertiesLoader.class);
     /** properties */
     private static HashMap<String, Properties> propertiesList = new HashMap<>();
+
+    /** suppression of default constructor*/
+    private PropertiesLoader() {}
 
     /**
      * creates properties from file
      * @param filename file name
      * @return properties
      */
-    public Properties getProperties(String filename) {
+    public static Properties getProperties(String filename) {
         if(propertiesList.containsKey(filename)) {
             Properties properties = loadProperties(filename);
             propertiesList.put(filename, properties);
@@ -37,7 +40,7 @@ public class PropertiesLoader {
      * @param filename file name
      * @return properties
      */
-    private Properties loadProperties(String filename) {
+    private static Properties loadProperties(String filename) {
         Properties properties = new Properties();
         InputStream propertiesFile = null;
         try {

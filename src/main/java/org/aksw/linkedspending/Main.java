@@ -12,18 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -50,6 +39,8 @@ import com.hp.hpl.jena.vocabulary.XSD;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // bug? berlin_de doesnt have any measure (should at least have "amount") on sparql endpoint 
 
@@ -60,7 +51,12 @@ import de.konradhoeffner.commons.TSVReader;
 @SuppressWarnings("serial")
 public class Main
 {
-	enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
+    /** logger */
+    protected final static Logger LOG = LoggerFactory.getLogger(Main.class);
+    /** properties */
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+    enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
 	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
 
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
