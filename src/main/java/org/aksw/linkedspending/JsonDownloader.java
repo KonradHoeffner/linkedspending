@@ -15,27 +15,17 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -49,6 +39,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
 /** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java.
@@ -58,7 +51,12 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader implements Runnable
 {
-	static boolean TEST_MODE_ONLY_BERLIN = false;
+    /** logger */
+    protected final static Logger LOG = LoggerFactory.getLogger(JsonDownloader.class);
+    /** properties */
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+    static boolean TEST_MODE_ONLY_BERLIN = false;
 
     static boolean currentlyRunning = true;
 
@@ -108,7 +106,7 @@ public class JsonDownloader implements Runnable
 		else
 		{
 			//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
-			datasets = Main.m.readTree(new URL(Main.DATASETS));
+			datasets = Main.m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
 			Main.m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 		}
 		ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");

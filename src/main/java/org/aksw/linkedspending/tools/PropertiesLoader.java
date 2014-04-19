@@ -28,7 +28,7 @@ public final class PropertiesLoader {
      * @return properties
      */
     public static Properties getProperties(String filename) {
-        if(propertiesList.containsKey(filename)) {
+        if(!propertiesList.containsKey(filename)) {
             Properties properties = loadProperties(filename);
             propertiesList.put(filename, properties);
         }
