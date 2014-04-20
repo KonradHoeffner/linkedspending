@@ -433,14 +433,18 @@ public class Main
 	//
 	//		}
 	//	}
-	/**deletes the model! @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
-	 * @param componentProperties the dimensions which are expected to be values for in all entries. 
-	 * @param countries 
+	/**reads JSON-file from json folder and generates observations
+     * writes observations to output folder
+     * writes statistics
+     * deletes the model! @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?)
+	 * @param componentProperties the dimensions which are expected to be values for in all entries.
+	 * @param countries
+     * @param datasetName the JSON-file to be read from
 	 * @param defaultYear default year in case no other date is given */
 
 	static void createObservations(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral)
 			throws MalformedURLException, IOException, TooManyMissingValuesException
-			{		
+			{
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
 		boolean dateExists = false;
@@ -449,15 +453,15 @@ public class Main
 		int expectedValues = 0;
 		Map<ComponentProperty,Integer> missingForProperty = new HashMap<>();
 		int observations;
-		for(observations=0;(result=in.read())!=null;observations++)		
-		{			
+		for(observations=0;(result=in.read())!=null;observations++)
+		{
 			String osUri = result.get("html_url").asText();
 			Resource osObservation = model.createResource();
 			String suffix = osUri.substring(osUri.lastIndexOf('/')+1);
 			String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-"+datasetName+"-"+suffix;
-			Resource observation = model.createResource(lsUri);		
+			Resource observation = model.createResource(lsUri);
 			model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
-			model.add(observation, QB.dataSet, dataSet);			
+			model.add(observation, QB.dataSet, dataSet);
 			model.add(observation, RDF.type, QB.Observation);
 			model.add(observation,DCMI.source,osObservation);
 			//			boolean dateExists=false;
@@ -468,7 +472,7 @@ public class Main
 				if(!result.has(d.name))
 				{
 					Integer missing = missingForProperty.get(d);
-					missing = (missing==null)?1:missing+1;					
+					missing = (missing==null)?1:missing+1;
 					missingForProperty.put(d,missing);
 					missingValues++;
                     int minMissing = Integer.parseInt(PROPERTIES.getProperty("minValuesMissingForStop"));
@@ -478,14 +482,14 @@ public class Main
 					if(missingForProperty.get(d)==maxMissing) {log.warning("more missing entries for property "+d.name+".");}
 					if(missingValues>=minMissing&&((double)missingValues/expectedValues>=missingStopRatio)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingValues);}
 					continue;
-				}				
+				}
 				try
 				{
 					switch(d.type)
 					{
 						case COMPOUND:
 						{
-							JsonNode jsonDim = result.get(d.name);							
+							JsonNode jsonDim = result.get(d.name);
 							//							if(jsonDim==null)
 							//							{
 							//								errors++;
@@ -513,7 +517,7 @@ public class Main
 						case ATTRIBUTE:
 						{
 							String s = result.get(d.name).asText();
-							model.addLiteral(observation,d.property,model.createLiteral(s));			
+							model.addLiteral(observation,d.property,model.createLiteral(s));
 							break;
 						}
 						case MEASURE:
@@ -533,7 +537,7 @@ public class Main
 							//							String week = date.get("week");
 							int year = jsonDate.get("year").asInt();
 							int month = jsonDate.get("month").asInt();
-							int day = jsonDate.get("day").asInt();							
+							int day = jsonDate.get("day").asInt();
 							model.addLiteral(observation,LSO.refDate,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));
 							model.addLiteral(observation,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 							years.add(year);
@@ -542,11 +546,11 @@ public class Main
 
 				}
 				catch(Exception e)
-				{					
+				{
 					throw new RuntimeException("problem with componentproperty "+d.name+": "+observation,e);
 				}
 			}
-			//			
+			//
 			//			String label = result.get("label");
 			//
 			//			if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
@@ -556,7 +560,7 @@ public class Main
 			//				if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
 			//			}
 			//			String description = result.get("description");
-			//			if(description!=null&&!description.equals("null")) {model.add(observation,RDFS.comment,description);}				
+			//			if(description!=null&&!description.equals("null")) {model.add(observation,RDFS.comment,description);}
 			//
 			//			String type = result.get("type");
 			//			switch(type)
@@ -575,12 +579,12 @@ public class Main
 
 			if(currency!=null)
 			{
-				model.add(observation, DBO.currency, currency);				
+				model.add(observation, DBO.currency, currency);
 			}
 
 			if(yearLiteral!=null&&!dateExists) // fallback, in case entry doesnt have a date attached we use year of the whole dataset
-			{				
-				model.addLiteral(observation,LSO.refYear,yearLiteral);				
+			{
+				model.addLiteral(observation,LSO.refYear,yearLiteral);
 			}
 			for(Resource country: countries)
 			{
@@ -590,13 +594,13 @@ public class Main
 			if(model.size()>Integer.parseInt(PROPERTIES.getProperty("maxModelTriples")))
 			{
 				log.fine("writing triples");
-				writeModel(model,out);				
+				writeModel(model,out);
 			}
 		}
 		// completeness statistics
 		if(expectedValues==0)
 		{
-			log.warning("no observations for dataset "+datasetName+".");			
+			log.warning("no observations for dataset "+datasetName+".");
 		} else
 		{
 			model.addLiteral(dataSet, LSO.completeness, 1-(double)(missingValues/expectedValues));
@@ -605,7 +609,7 @@ public class Main
 				model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
 			}
 
-			// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
+			// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset
 			for(int year: years)
 			{
 				model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
@@ -768,7 +772,7 @@ public class Main
 			//		ArrayNode results = (ArrayNode)entries.get("results");
 			log.fine("creating entries");
 
-			if(conversionMode==SCHEMA_AND_OBSERVATIONS) createObservations(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
+			if(conversionMode==SCHEMA_AND_OBSERVATIONS) createObservations(datasetName, model, out, dataSet, componentProperties, currency, countries, yearLiteral);
 			log.fine("finished creating entries");
 		}
 		createViews(datasetName,model,dataSet);

@@ -13,8 +13,10 @@ public class Converter {
     static Map<String,File> files = new ConcurrentHashMap<String,File>();
 
 
+
+
     /**
-     * Gets the file with difference-data to be converted into rdf. Uses ConcurrentHashMap to track all files in Converter.
+     * Gets a file that is already provided by JSON-Downloader to be converted into rdf. Uses ConcurrentHashMap to track all files in Converter.
      * @param name the name of the JSON-file(LS JSON Diff)
      * @return the file to be converted into the tripple-store
      */
