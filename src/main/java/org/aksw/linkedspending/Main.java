@@ -2,29 +2,14 @@ package org.aksw.linkedspending;
 import java.io.BufferedWriter;
 import static org.aksw.linkedspending.Main.ConversionMode.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.NonNull;
@@ -32,6 +17,7 @@ import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
+import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,6 +36,8 @@ import com.hp.hpl.jena.vocabulary.XSD;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // bug? berlin_de doesnt have any measure (should at least have "amount") on sparql endpoint 
 
@@ -60,27 +48,18 @@ import de.konradhoeffner.commons.TSVReader;
 @SuppressWarnings("serial")
 public class Main
 {
-	enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
+    /** logger */
+    protected final static Logger LOG = LoggerFactory.getLogger(Main.class);
+    /** properties */
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+    enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
 	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
 
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-	static ObjectMapper m = new ObjectMapper();	
-	static final int MAX_MODEL_TRIPLES = 500_000;
-	static final boolean USE_CACHE = true;
-	public static final String DATASETS = "https://openspending.org/datasets.json";	
-	static final String LSBASE = "http://linkedspending.aksw.org/";
-	static final String LS = LSBASE+"instance/";
-	//	static final String LSO = LSBASE+"ontology/";
-	static final String OS = "https://openspending.org/";
+	static ObjectMapper m = new ObjectMapper();
+    static final boolean USE_CACHE = true;
 
-	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
-	//	private static final int	MAX_ENTRIES	= 30;
-	private static final int	DATASET_MIN_VALUES_MISSING_FOR_STOP	= 1000;
-	private static final int	DATASET_MAX_VALUES_MISSING_LOGGED	= 2;
-	private static final float	DATASET_MISSING_STOP_RATIO = 1f;
-
-	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
-	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
 	static File folder = new File("output20143");
@@ -184,7 +163,7 @@ public class Main
 
 	static public class LSO
 	{
-		static final String URI = LSBASE+"ontology/";
+		static final String URI = PROPERTIES.getProperty("urlOntology");
 		static final public Resource CountryComponent = ResourceFactory.createResource(URI+"CountryComponentSpecification");
 		static final public Resource DateComponentSpecification = ResourceFactory.createResource(URI+"DateComponentSpecification");
 		static final public Resource YearComponentSpecification = ResourceFactory.createResource(URI+"YearComponentSpecification");
@@ -475,7 +454,7 @@ public class Main
 			String osUri = result.get("html_url").asText();
 			Resource osObservation = model.createResource();
 			String suffix = osUri.substring(osUri.lastIndexOf('/')+1);
-			String lsUri = LS+"observation-"+datasetName+"-"+suffix;
+			String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-"+datasetName+"-"+suffix;
 			Resource observation = model.createResource(lsUri);		
 			model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
 			model.add(observation, QB.dataSet, dataSet);			
@@ -492,9 +471,12 @@ public class Main
 					missing = (missing==null)?1:missing+1;					
 					missingForProperty.put(d,missing);
 					missingValues++;
-					if(missingForProperty.get(d)<=DATASET_MAX_VALUES_MISSING_LOGGED) {log.warning("no entry for property "+d.name+" at entry "+result);}
-					if(missingForProperty.get(d)==DATASET_MAX_VALUES_MISSING_LOGGED) {log.warning("more missing entries for property "+d.name+".");}
-					if(missingValues>=DATASET_MIN_VALUES_MISSING_FOR_STOP&&((double)missingValues/expectedValues>=DATASET_MISSING_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingValues);}
+                    int minMissing = Integer.parseInt(PROPERTIES.getProperty("minValuesMissingForStop"));
+                    int maxMissing = Integer.parseInt(PROPERTIES.getProperty("maxValuesMissingLogged"));
+					float missingStopRatio = Float.parseFloat(PROPERTIES.getProperty("datasetMissingStopRatio"));
+                    if(missingForProperty.get(d)<=maxMissing) {log.warning("no entry for property "+d.name+" at entry "+result);}
+					if(missingForProperty.get(d)==maxMissing) {log.warning("more missing entries for property "+d.name+".");}
+					if(missingValues>=minMissing&&((double)missingValues/expectedValues>=missingStopRatio)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingValues);}
 					continue;
 				}				
 				try
@@ -605,7 +587,7 @@ public class Main
 				// add the countries to the observations as well (not just the dataset)
 				model.add(observation,SDMXATTRIBUTE.refArea,country);
 			}
-			if(model.size()>MAX_MODEL_TRIPLES)
+			if(model.size()>Integer.parseInt(PROPERTIES.getProperty("maxModelTriples")))
 			{
 				log.fine("writing triples");
 				writeModel(model,out);				
@@ -699,7 +681,7 @@ public class Main
 	static void deleteDataset(String datasetName)
 	{
 		System.out.println("******************************++deelte"+datasetName);
-		getDatasetFile(datasetName).delete();
+		Converter.getDatasetFile(datasetName).delete();
 	}
 
 	/** Takes the url of an openspending dataset and extracts rdf into a jena model.
@@ -717,12 +699,12 @@ public class Main
 	static void createDataset(String datasetName,Model model,OutputStream out)
 			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException		
 			{
-		@NonNull URL url = new URL(LS+datasetName);
-		@NonNull URL sourceUrl = new URL(OS+datasetName+".json");		
+		@NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
+		@NonNull URL sourceUrl = new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+".json");
 		@NonNull JsonNode datasetJson = readJSON(sourceUrl);		
 		@NonNull Resource dataSet = model.createResource(url.toString());		
 		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);		
-		model.add(dataSet,DCMI.source,model.createResource(OS+datasetName));
+		model.add(dataSet,DCMI.source,model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
 		model.add(dataSet,DCMI.created,model.createTypedLiteral(GregorianCalendar.getInstance()));
 
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
@@ -750,7 +732,7 @@ public class Main
 			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
 		}
 		Set<ComponentProperty> componentProperties;
-		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,defaultYear!=null);	}
+		try {componentProperties = createComponents(readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,defaultYear!=null);	}
 		catch (MissingDataException | UnknownMappingTypeException e)
 		{
 			log.severe("Error creating components for dataset "+datasetName);
@@ -817,12 +799,12 @@ public class Main
 	/** @param sourceUrl	 e.g. http://openspending.org/cameroon_visualisation/views (.json will be added internally)*/
 	public static void createViews(String datasetName,Model model, Resource dataSet) throws MalformedURLException, IOException
 	{	
-		ArrayNode views = readArrayNode(new URL(OS+datasetName+"/views.json"));
+		ArrayNode views = readArrayNode(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/views.json"));
 		for(int i=0;i<views.size();i++)
 		{
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
-			Resource view = model.createResource(LS+datasetName+"/views/"+name);
+			Resource view = model.createResource(PROPERTIES.getProperty("urlInstance") + datasetName+"/views/"+name);
 			model.add(view,RDF.type,QB.Slice);
 			model.add(dataSet,QB.slice,view);
 			String label = jsonView.get("label").asText();
@@ -909,7 +891,7 @@ public class Main
 	{
 		Model model = ModelFactory.createMemModelMaker().createDefaultModel();
 		model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
-		model.setNsPrefix("ls", LS);
+		model.setNsPrefix("ls", PROPERTIES.getProperty("urlInstance"));
 		model.setNsPrefix("lso", LSO.URI);
 		model.setNsPrefix("sdmx-subject",	"http://purl.org/linked-data/sdmx/2009/subject#");
 		model.setNsPrefix("sdmx-dimension",	"http://purl.org/linked-data/sdmx/2009/dimension#");
@@ -923,7 +905,7 @@ public class Main
 
 	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
-		return readJSON(new URL(OS+datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();		 
+		return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
 	}
 
 	public static void main(String[] args) throws MalformedURLException, IOException
@@ -933,7 +915,9 @@ public class Main
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.INFO);} catch ( RuntimeException e ) { e.printStackTrace();}
 		try
 		{			
-			folder.mkdir();
+			int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
+            float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
+            folder.mkdir();
 			// observations use saved datasets so we need the saved names, if we only create the schema we can use the newest dataset names
 			SortedSet<String> datasetNames = conversionMode==SCHEMA_AND_OBSERVATIONS?JsonDownloader.getSavedDatasetNames():JsonDownloader.getDatasetNames();
 			// TODO: parallelize
@@ -960,7 +944,7 @@ public class Main
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 
-				File file = getDatasetFile(datasetName);					
+				File file = Converter.getDatasetFile(datasetName);
 				if(file.exists()&&file.length()>0)
 				{
 					log.finer("skipping already existing file nr "+i+": "+file);
@@ -970,7 +954,7 @@ public class Main
 				try(OutputStream out = new FileOutputStream(file, true))
 				{
 					//					JsonNode dataSetJson = datasetArray.get(i);
-					URL url = new URL(LS+datasetName);
+					URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
 					//					URL url = new URL(dataSetJson.get("html_url").asText());
 					//					String name = dataSetJson.get("name").asText();
 					//					int nrOfEntries = nrEntries(name);
@@ -997,7 +981,7 @@ public class Main
 						faultyDatasets.add(datasetName);
 						log.severe("Error creating dataset "+datasetName+". Skipping.");
 						e.printStackTrace();
-						if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
+						if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio	)
 						{									
 							log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
 							shutdown(1);
@@ -1013,7 +997,7 @@ public class Main
 			//					e.printStackTrace();
 			//					log.severe(e.getLocalizedMessage());
 			//					exceptions++;
-			if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
+			if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio	)
 			{
 				if(USE_CACHE) {cache.getCacheManager().shutdown();}
 				log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
@@ -1038,11 +1022,5 @@ public class Main
 		System.exit(status);
 	}
 
-	static Map<String,File> files = new ConcurrentHashMap<String,File>();
-	private static File getDatasetFile(String name)
-	{
-		File file = files.get(name);
-		if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
-		return file;
-	}
+
 }
