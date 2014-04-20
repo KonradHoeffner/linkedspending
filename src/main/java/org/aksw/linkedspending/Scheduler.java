@@ -4,20 +4,11 @@ package org.aksw.linkedspending;
 public class Scheduler
 {
 
-    /** Starts JsonDownloader */
+    /** Starts JsonDownloader in new thread */
     protected static void runDownloader()
     {
         Thread jDl = new Thread(new JsonDownloader());
         jDl.start();
-        /*try
-        {
-            JsonDownloader.downloadAll();
-
-            JsonDownloader.puzzleTogether();
-        } catch (Exception e)
-        {
-            //TODO: Error Handling
-        }*/
     }
 
     /** Stops JsonDownloader. Already started downloads of datasets will be finished, but no new downloads will be started. */
@@ -32,12 +23,7 @@ public class Scheduler
 
     public static void main(String[] args)
     {
-        //long startTime = System.currentTimeMillis();
-       // System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-        //try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-        runDownloader();
-        stopDownloader();
-        //log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
-        //System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
+       runDownloader();
+        //stopDownloader();
     }
 }

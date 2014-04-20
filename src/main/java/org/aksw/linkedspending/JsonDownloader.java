@@ -82,7 +82,7 @@ public class JsonDownloader implements Runnable
 
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
 
-    protected static void setCurrentlyRunning(boolean setTo) {currentlyRunning=setTo;}
+    public static void setCurrentlyRunning(boolean setTo) {currentlyRunning=setTo;}
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -301,7 +301,7 @@ public class JsonDownloader implements Runnable
 		{
 			{
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(currentlyRunning = false)             //added to make Downloader stoppable
+                if(!currentlyRunning)             //added to make Downloader stoppable
                 {
                     service.shutdown();
                     service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
@@ -314,7 +314,6 @@ public class JsonDownloader implements Runnable
 		monitor.start();
 		for(Future<Boolean> future : futures)
 		{
-		    //if(currentlyRunning = false) break;             //added to make Downloader stoppable
 			try{if(future.get()) {successCount++;}}
 			catch(ExecutionException e) {e.printStackTrace();}
 		}
@@ -409,18 +408,6 @@ public class JsonDownloader implements Runnable
 			out.writeObject(emptyDatasets);
 		}	
 	}
-/*
-    public static void start() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
-    {
-        long startTime = System.currentTimeMillis();
-        System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-        try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-        downloadAll();
-        puzzleTogether();
-        log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
-        System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-    }
-*/
 
     @Override
     public void run() /*throws JsonProcessingException, IOException, InterruptedException, ExecutionException*/
@@ -428,10 +415,12 @@ public class JsonDownloader implements Runnable
         long startTime = System.currentTimeMillis();
         System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
         try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-        //downloadAll();
-        //puzzleTogether();
-        Scheduler.runDownloader();
-        Scheduler.stopDownloader();
+        try
+        {
+            downloadAll();
+            puzzleTogether();
+        }
+        catch (Exception e){/*TODO: Exception Handling*/}
         log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
         System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
     }
