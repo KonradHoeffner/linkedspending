@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.NonNull;
@@ -682,7 +681,7 @@ public class Main
 	static void deleteDataset(String datasetName)
 	{
 		System.out.println("******************************++deelte"+datasetName);
-		getDatasetFile(datasetName).delete();
+		Converter.getDatasetFile(datasetName).delete();
 	}
 
 	/** Takes the url of an openspending dataset and extracts rdf into a jena model.
@@ -945,7 +944,7 @@ public class Main
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 
-				File file = getDatasetFile(datasetName);					
+				File file = Converter.getDatasetFile(datasetName);
 				if(file.exists()&&file.length()>0)
 				{
 					log.finer("skipping already existing file nr "+i+": "+file);
@@ -1023,11 +1022,5 @@ public class Main
 		System.exit(status);
 	}
 
-	static Map<String,File> files = new ConcurrentHashMap<String,File>();
-	private static File getDatasetFile(String name)
-	{
-		File file = files.get(name);
-		if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
-		return file;
-	}
+
 }
