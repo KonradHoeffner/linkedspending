@@ -61,6 +61,8 @@ public class JsonDownloader implements Runnable
 	static boolean TEST_MODE_ONLY_BERLIN = false;
 
     static boolean currentlyRunning = true;
+    static boolean completeRun = true;
+    static String toBeDownloaded;
 
 	static final int MAX_THREADS = 10;
 //	static boolean USE_PAGE_SIZE=false;
@@ -82,7 +84,11 @@ public class JsonDownloader implements Runnable
 
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
 
+    public static void setToBeDownloaded(String setTo) {toBeDownloaded = setTo;}
+
     public static void setCurrentlyRunning(boolean setTo) {currentlyRunning=setTo;}
+
+    public static void setCompleteRun(boolean setTo) {completeRun = setTo;}
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -378,6 +384,16 @@ public class JsonDownloader implements Runnable
 		}		
 	}
 
+    protected static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
+    {
+        datasetNames = new TreeSet<>(Collections.singleton(datasetName));
+        downloadIfNotExisting(datasetNames);
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
+        {
+            out.writeObject(emptyDatasets);
+        }
+    }
+
 	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
 	protected static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
@@ -417,7 +433,8 @@ public class JsonDownloader implements Runnable
         try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
         try
         {
-            downloadAll();
+            if(completeRun) {downloadAll();}
+            else {downloadSpecific(toBeDownloaded);}
             puzzleTogether();
         }
         catch (Exception e){/*TODO: Exception Handling*/}

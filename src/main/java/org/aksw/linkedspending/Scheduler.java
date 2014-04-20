@@ -4,7 +4,7 @@ package org.aksw.linkedspending;
 public class Scheduler
 {
 
-    /** Starts JsonDownloader in new thread */
+    /** Starts complete download */
     protected static void runDownloader()
     {
         Thread jDl = new Thread(new JsonDownloader());
@@ -21,9 +21,20 @@ public class Scheduler
         runDownloader();        //improve performance: does everything up to point from where to resume as well
     }
 
+    /** Starts downloading a specified dataset */
+    protected static void downloadDataset(String datasetName)
+    {
+        JsonDownloader j = new JsonDownloader();
+        j.setCompleteRun(false);
+        j.setToBeDownloaded(datasetName);
+        Thread jThr = new Thread(j);
+        jThr.start();
+    }
+
     public static void main(String[] args)
     {
-       runDownloader();
+        //downloadDataset("berlin_de");
+        runDownloader();
         //stopDownloader();
     }
 }
