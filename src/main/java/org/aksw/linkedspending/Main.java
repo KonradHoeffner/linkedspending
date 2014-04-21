@@ -1,4 +1,5 @@
 package org.aksw.linkedspending;
+
 import java.io.BufferedWriter;
 import static org.aksw.linkedspending.Main.ConversionMode.*;
 import java.io.File;
@@ -46,7 +47,7 @@ import de.konradhoeffner.commons.TSVReader;
 public class Main
 {
     /** properties */
-    protected static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 
     enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
 	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
