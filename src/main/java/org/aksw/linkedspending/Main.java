@@ -18,6 +18,7 @@ import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
+import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -29,7 +30,6 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
@@ -102,75 +102,7 @@ public class Main
 	static public class TooManyMissingValuesException extends Exception
 	{public TooManyMissingValuesException(String datasetName, int i) {super(i+" missing values in dataset "+datasetName);}}
 
-	static public class QB
-	{
-		static final String qb = "http://purl.org/linked-data/cube#";
-		static final Resource DataStructureDefinition = ResourceFactory.createResource(qb+"DataStructureDefinition");
-		static final Resource DataSet = ResourceFactory.createResource(qb+"DataSet");
-		static final Property dataSet = ResourceFactory.createProperty(qb+"dataSet");
-		static final Property component = ResourceFactory.createProperty(qb+"component");
-		static final Resource DimensionProperty = ResourceFactory.createResource(qb+"DimensionProperty");
-		static final Resource MeasureProperty = ResourceFactory.createResource(qb+"MeasureProperty");
-		static final Resource AttributeProperty = ResourceFactory.createResource(qb+"AttributeProperty");
-		static final Resource SliceKey = ResourceFactory.createResource(qb+"SliceKey");
-		static final Resource HierarchicalCodeList = ResourceFactory.createResource(qb+"HierarchicalCodeList");
-		static final Resource ComponentSpecification	= ResourceFactory.createResource(qb+"ComponentSpecification");
-
-		static final Property structure = ResourceFactory.createProperty(qb+"structure");
-		static final Property componentProperty = ResourceFactory.createProperty(qb+"componentProperty");
-		static final Property dimension = ResourceFactory.createProperty(qb+"dimension");
-		static final Property measure = ResourceFactory.createProperty(qb+"measure");
-		static final Property attribute = ResourceFactory.createProperty(qb+"attribute");
-		static final Property concept = ResourceFactory.createProperty(qb+"concept");
-		static final Resource Observation	= ResourceFactory.createResource(qb+"Observation");
-		static final Resource Slice	= ResourceFactory.createResource(qb+"Slice");
-		static final Property slice	= ResourceFactory.createProperty(qb+"slice");;
-		static final Property sliceStructure	= ResourceFactory.createProperty(qb+"sliceStructure");;
-		static final Property parentChildProperty = ResourceFactory.createProperty(qb+"parentChildProperty");
-
-	}
-
-	static public class SDMXMEASURE
-	{
-		static final String sdmxMeasure = "http://purl.org/linked-data/sdmx/2009/measure#";
-		static final Property obsValue = ResourceFactory.createProperty(sdmxMeasure+"obsValue");		
-	}
-
-	static public class SDMXATTRIBUTE
-	{
-		static final String sdmxAttribute = "http://purl.org/linked-data/sdmx/2009/attribute#";
-		//		static final Property currency = ResourceFactory.createProperty(sdmxAttribute+"currency");
-		static final Property	refArea	= ResourceFactory.createProperty(sdmxAttribute+"refArea");
-	}
-
-	static public class SDMXCONCEPT
-	{
-		static final String sdmxConcept = "http://purl.org/linked-data/sdmx/2009/concept#";
-		static final Property obsValue = ResourceFactory.createProperty(sdmxConcept+"obsValue");		
-		//		static final Property refPeriod = ResourceFactory.createProperty(sdmxConcept+"refPeriod");
-		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxConcept+"timePeriod");
-	}
-
-	static public class XmlSchema
-	{
-		static final String xmlSchema = "http://www.w3.org/2001/XMLSchema#";
-		static final Property gYear = ResourceFactory.createProperty(xmlSchema+"gYear");
-	}
-
-    static final public class DBO
-	{
-		static final String DBO = "http://dbpedia.org/ontology/";
-		static final public Property currency = ResourceFactory.createProperty(DBO,"currency");		
-	}
-
-	static final public class DCMI
-	{
-		static final String DCMI = "http://dublincore.org/documents/2012/06/14/dcmi-terms/";
-		static final public Property source = ResourceFactory.createProperty(DCMI,"source");		
-		static final public Property created = ResourceFactory.createProperty(DCMI,"created");
-	}
-
-	@Nullable static String cleanString(@Nullable String s)
+    @Nullable static String cleanString(@Nullable String s)
 	{
 		if(s==null||"null".equals(s)||s.trim().isEmpty()) return null;
 		return s;
@@ -252,20 +184,20 @@ public class Main
 				{
 					dimensionCount++;
 					// it's a dimension
-					model.add(componentSpecification, QB.dimension, componentProperty);
-					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
-					model.add(componentProperty, RDF.type, QB.DimensionProperty);
+					model.add(componentSpecification, DataModel.QB.getDimension(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.QB.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.QB.getDimensionProperty());
 					//						assertTrue(); TODO: assert that the "attributes" of the json are always "name" and "label"
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.COMPOUND));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???); 
+					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				case "measure":
 				{
 					measureCount++;
-					model.add(componentSpecification, QB.measure, componentProperty);
-					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
-					model.add(componentProperty, RDF.type, QB.MeasureProperty);
+					model.add(componentSpecification, DataModel.QB.getMeasure(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.QB.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.QB.getMeasureProperty());
 
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.MEASURE));
 					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
@@ -275,9 +207,9 @@ public class Main
 				{
 					attributeCount++;
 					// TODO: attribute the same meaning as in DataCube?
-					model.add(componentSpecification, QB.attribute, componentProperty);
-					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
-					model.add(componentProperty, RDF.type, QB.AttributeProperty);
+					model.add(componentSpecification, DataModel.QB.getAttribute(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.QB.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.QB.getAttributeProperty());
 
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.ATTRIBUTE));
 					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
@@ -286,11 +218,11 @@ public class Main
 				default: throw new UnknownMappingTypeException("unkown type: "+type+"of mapping element "+componentJson);
 			}
 			// backlink
-			model.add(dsd, QB.component, componentSpecification);
+			model.add(dsd, DataModel.QB.getComponent(), componentSpecification);
 		}
 		//		if(dateExists||datasetHasYear)
 		//		{
-		//			
+		//
 		//		}
 		//if(!dateExists) {throw new MissingDataException("No date for dataset "+dataset.getLocalName());}
 		if(attributeCount==0||measureCount==0||dimensionCount==0)
@@ -309,7 +241,7 @@ public class Main
 	//			String label = view.get("label");
 	//			String description = view.get("description");
 	//
-	//			JsonNode state = view.get("state");			
+	//			JsonNode state = view.get("state");
 	//			String year = state.get("year"); // TODO: what to do with the year?
 	//			Integer.valueOf(year); // throws an exception if its not an integer
 	//
@@ -351,11 +283,11 @@ public class Main
 	}
 
 	//	static void createViews(URL datasetUrl, ArrayNode views, Model model,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException
-	//	{		
+	//	{
 	//		for(int i=0;i<views.length();i++)
 	//		{
 	//			JsonNode view = views.get(i);
-	//			String entity = view.get("entity");			
+	//			String entity = view.get("entity");
 	//			String name = view.get("name");
 	//			String drilldownName = view.get("drilldown");
 	//			Property drilldownProperty = componentPropertyByName.get("drilldown");
@@ -371,7 +303,7 @@ public class Main
 	//					Resource codeList = model.createResource(datasetUrl+"/codelists/"+name);
 	//					model.add(codeList,RDF.type,QB.HierarchicalCodeList);
 	//					model.add(codeList,RDFS.label,model.createLiteral("code list for property "+drilldownName,"en"));
-	//					codeListByName.put(drilldownName, codeList);					
+	//					codeListByName.put(drilldownName, codeList);
 	//					break;
 	//				}
 	//				case "dimension":
@@ -383,7 +315,7 @@ public class Main
 	//				default: throw new RuntimeException("unknown entity value: "+entity+" for view "+view);
 	//			}
 	//
-	//			JsonNode state = view.get("state");			
+	//			JsonNode state = view.get("state");
 	//			String year = state.get("year"); // TODO: what to do with the year?
 	//			Integer.valueOf(year); // throws an exception if its not an integer
 	//
@@ -444,9 +376,9 @@ public class Main
 			String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-"+datasetName+"-"+suffix;
 			Resource observation = model.createResource(lsUri);
 			model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
-			model.add(observation, QB.dataSet, dataSet);
-			model.add(observation, RDF.type, QB.Observation);
-			model.add(observation,DCMI.source,osObservation);
+			model.add(observation, DataModel.QB.getDataSet(), dataSet);
+			model.add(observation, RDF.type, DataModel.QB.getObservation());
+			model.add(observation, DataModel.DCMI.source,osObservation);
 			//			boolean dateExists=false;
 			for(ComponentProperty d: componentProperties)
 			{
@@ -562,7 +494,7 @@ public class Main
 
 			if(currency!=null)
 			{
-				model.add(observation, DBO.currency, currency);
+				model.add(observation, DataModel.DBO.currency, currency);
 			}
 
 			if(yearLiteral!=null&&!dateExists) // fallback, in case entry doesnt have a date attached we use year of the whole dataset
@@ -572,7 +504,7 @@ public class Main
 			for(Resource country: countries)
 			{
 				// add the countries to the observations as well (not just the dataset)
-				model.add(observation,SDMXATTRIBUTE.refArea,country);
+				model.add(observation, DataModel.SDMXATTRIBUTE.getRefArea(),country);
 			}
 			if(model.size()>Integer.parseInt(PROPERTIES.getProperty("maxModelTriples")))
 			{
@@ -609,7 +541,7 @@ public class Main
 			}
 
 	static void writeModel(Model model, OutputStream out)
-	{		
+	{
 		model.write(out,"N-TRIPLE");
 		//		model.write(out,"TURTLE");
 		// assuming that most memory is consumed before model cleaning
@@ -617,16 +549,16 @@ public class Main
 		model.removeAll();
 	}
 
-	/** Takes a json url of an openspending dataset model and extracts rdf into a jena model.  
+	/** Takes a json url of an openspending dataset model and extracts rdf into a jena model.
 	 * The DataStructureDefinition (DSD) specifies the structure of a dataset and contains a set of qb:ComponentSpecification resources.
-	 * @param url json url that contains an openspending dataset model, e.g. http://openspending.org/fukuoka_2013/model  
+	 * @param url json url that contains an openspending dataset model, e.g. http://openspending.org/fukuoka_2013/model
 	 * @param model initialized model that the triples will be added to
 	 */
 	static Resource createDataStructureDefinition(final URL url,Model model) throws MalformedURLException, IOException
-	{		
+	{
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
-		model.add(dsd, RDF.type, QB.DataStructureDefinition);
+		model.add(dsd, RDF.type, DataModel.QB.getDataStructureDefinition());
 		//		JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
 		//		JsonNode mapping = dsdJson.get("mapping");
@@ -658,7 +590,7 @@ public class Main
 
 		//		if(dsdJson.has("views"))
 		//		{
-		//			ArrayNode views = dsdJson.getArrayNode("views");	
+		//			ArrayNode views = dsdJson.getArrayNode("views");
 		//		}
 
 		//		System.out.println("Converting dataset "+url);
@@ -673,28 +605,28 @@ public class Main
 
 	/** Takes the url of an openspending dataset and extracts rdf into a jena model.
 	 * Each dataset contains a model which gets translated to a datastructure definition and entries that contain the actual measurements and get translated to a
-	 * DataCube. 
+	 * DataCube.
 	 * @param url json url that contains an openspending dataset, e.g. http://openspending.org/fukuoka_2013
 	 * @param model initialized model that the triples will be added to
-	 * @throws IOException 
-	 * @throws NoCurrencyFoundForCodeException 
-	 * @throws DatasetHasNoCurrencyException 
-	 * @throws UnknownMappingTypeException 
-	 * @throws TooManyMissingValuesException 
-	 * @returns if it was successfully created 
+	 * @throws IOException
+	 * @throws NoCurrencyFoundForCodeException
+	 * @throws DatasetHasNoCurrencyException
+	 * @throws UnknownMappingTypeException
+	 * @throws TooManyMissingValuesException
+	 * @returns if it was successfully created
 	 */
 	static void createDataset(String datasetName,Model model,OutputStream out)
-			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException		
+			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException
 			{
 		@NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
 		@NonNull URL sourceUrl = new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+".json");
-		@NonNull JsonNode datasetJson = readJSON(sourceUrl);		
-		@NonNull Resource dataSet = model.createResource(url.toString());		
-		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);		
-		model.add(dataSet,DCMI.source,model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
-		model.add(dataSet,DCMI.created,model.createTypedLiteral(GregorianCalendar.getInstance()));
+		@NonNull JsonNode datasetJson = readJSON(sourceUrl);
+		@NonNull Resource dataSet = model.createResource(url.toString());
+		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
+		model.add(dataSet, DataModel.DCMI.source,model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
+		model.add(dataSet, DataModel.DCMI.created,model.createTypedLiteral(GregorianCalendar.getInstance()));
 
-		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
+		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation
 		Resource currency = null;
 
 		if(datasetJson.has("currency"))
@@ -702,7 +634,7 @@ public class Main
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
 			if(currency == null) {throw new NoCurrencyFoundForCodeException(datasetName,currencyCode);}
-			model.add(dsd, QB.component, Converter.LSO.CurrencyComponentSpecification);
+			model.add(dsd, DataModel.QB.getComponent(), Converter.LSO.CurrencyComponentSpecification);
 
 			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
 			//			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
@@ -726,30 +658,30 @@ public class Main
 			throw e;
 		}
 
-		model.add(dataSet, RDF.type, QB.DataSet);
-		model.add(dataSet, QB.structure, dsd);
+		model.add(dataSet, RDF.type, DataModel.QB.getDataSetResource());
+		model.add(dataSet, DataModel.QB.getStructure(), dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
 
 		List<String> territories = ArrayNodeToStringList((ArrayNode)datasetJson.get("territories"));
 		Set<Resource> countries = new HashSet<>();
-		@Nullable Literal yearLiteral = null; 
+		@Nullable Literal yearLiteral = null;
 		if(defaultYear!=null)
 		{
-			model.add(dsd, QB.component, Converter.LSO.YearComponentSpecification);
+			model.add(dsd, DataModel.QB.getComponent(), Converter.LSO.YearComponentSpecification);
 			yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
 			model.add(dataSet, Converter.LSO.refYear,yearLiteral);
 		}
 		if(!territories.isEmpty())
-		{			
-			model.add(dsd, QB.component, Converter.LSO.CountryComponent);
+		{
+			model.add(dsd, DataModel.QB.getComponent(), Converter.LSO.CountryComponent);
 			for(String territory: territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
 				countries.add(country);
-				model.add(dataSet,SDMXATTRIBUTE.refArea,country);
+				model.add(dataSet, DataModel.SDMXATTRIBUTE.getRefArea(),country);
 			}
-		}		
-		{			
+		}
+		{
 			//		JsonNode entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
 			//		log.fine("extracting results");
 			//		ArrayNode results = (ArrayNode)entries.get("results");
@@ -761,9 +693,9 @@ public class Main
 		createViews(datasetName,model,dataSet);
 		List<String> languages = ArrayNodeToStringList((ArrayNode)datasetJson.get("languages"));
 
-		//		 qb:component [qb:attribute sdmx-attribute:unitMeasure; 
+		//		 qb:component [qb:attribute sdmx-attribute:unitMeasure;
 		//         qb:componentRequired "true"^^xsd:boolean;
-		//         qb:componentAttachment qb:DataSet;] 
+		//         qb:componentAttachment qb:DataSet;]
 		String label = datasetJson.get("label").asText();
 		String description = datasetJson.get("description").asText();
 
@@ -785,15 +717,15 @@ public class Main
 
 	/** @param sourceUrl	 e.g. http://openspending.org/cameroon_visualisation/views (.json will be added internally)*/
 	public static void createViews(String datasetName,Model model, Resource dataSet) throws MalformedURLException, IOException
-	{	
+	{
 		ArrayNode views = readArrayNode(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/views.json"));
 		for(int i=0;i<views.size();i++)
 		{
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
 			Resource view = model.createResource(PROPERTIES.getProperty("urlInstance") + datasetName+"/views/"+name);
-			model.add(view,RDF.type,QB.Slice);
-			model.add(dataSet,QB.slice,view);
+			model.add(view,RDF.type, DataModel.QB.getSliceResource());
+			model.add(dataSet, DataModel.QB.getSlice(),view);
 			String label = jsonView.get("label").asText();
 			String description = jsonView.get("description").asText();
 			model.add(view, RDFS.label, label);
