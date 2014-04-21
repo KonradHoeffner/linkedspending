@@ -35,6 +35,7 @@ import com.hp.hpl.jena.vocabulary.XSD;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
+import org.aksw.linkedspending.tools.Exceptions.*;
 
 // bug? berlin_de doesnt have any measure (should at least have "amount") on sparql endpoint 
 
@@ -94,13 +95,6 @@ public class Main
         catch (Exception e) {throw new RuntimeException(e);}
     }
 
-    static public class NoCurrencyFoundForCodeException             extends Exception {public NoCurrencyFoundForCodeException(String datasetName, String code) {super("no currency found for code "+code+" in dataset "+datasetName);}}    
-    static public class DatasetHasNoCurrencyException             extends Exception {public DatasetHasNoCurrencyException(String datasetName) {super("dataset "+datasetName+" has no currency.");}}
-    static public class MissingDataException             extends Exception {public MissingDataException(String s)             {super(s);}}
-    static public class UnknownMappingTypeException     extends Exception {public UnknownMappingTypeException(String s)     {super(s);}}    
-    static public class TooManyMissingValuesException extends Exception
-    {public TooManyMissingValuesException(String datasetName, int i) {super(i+" missing values in dataset "+datasetName);}}
-
     @Nullable static String cleanString(@Nullable String s)
     {
         if(s==null||"null".equals(s)||s.trim().isEmpty()) return null;
@@ -109,7 +103,7 @@ public class Main
 
     /** Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
      * @throws UnknownMappingTypeException */
-    static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,String datasetName, Resource dataset, Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException 
+    static Set<ComponentProperty> createComponents(JsonNode mapping, Model model,String datasetName, Resource dataset, Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException, UnknownMappingTypeException
     {
         int attributeCount = 1; // currency is always there and dataset is not created if it is not found
         int dimensionCount = 0;
