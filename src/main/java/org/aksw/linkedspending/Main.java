@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
@@ -47,7 +46,7 @@ import de.konradhoeffner.commons.TSVReader;
 public class Main
 {
     /** properties */
-    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+    protected static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 
     enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
 	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
@@ -157,20 +156,7 @@ public class Main
 		static final Property gYear = ResourceFactory.createProperty(xmlSchema+"gYear");
 	}
 
-	static public class LSO
-	{
-		static final String URI = PROPERTIES.getProperty("urlOntology");
-		static final public Resource CountryComponent = ResourceFactory.createResource(URI+"CountryComponentSpecification");
-		static final public Resource DateComponentSpecification = ResourceFactory.createResource(URI+"DateComponentSpecification");
-		static final public Resource YearComponentSpecification = ResourceFactory.createResource(URI+"YearComponentSpecification");
-		static final public Resource CurrencyComponentSpecification = ResourceFactory.createResource(URI+"CurrencyComponentSpecification");
-
-		static final public Property refDate = ResourceFactory.createProperty(URI+"refDate");
-		static final public Property refYear = ResourceFactory.createProperty(URI+"refYear");
-		static final public Property completeness = ResourceFactory.createProperty(URI+"completeness");
-	}
-
-	static final public class DBO
+    static final public class DBO
 	{
 		static final String DBO = "http://dbpedia.org/ontology/";
 		static final public Property currency = ResourceFactory.createProperty(DBO,"currency");		
@@ -217,7 +203,7 @@ public class Main
 			String componentPropertyUrl;
 
 			String uri = datasetPropertyNameToUri.get(new Pair<String>(datasetName,name));
-			componentPropertyUrl=(uri!=null)?uri:LSO.URI+name;			
+			componentPropertyUrl=(uri!=null)?uri: Converter.LSO.URI+name;
 
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
 			componentPropertyByName.put(name, componentProperty);
@@ -246,8 +232,8 @@ public class Main
 				{
 					dateExists = true;
 					dimensionCount++;
-					componentSpecification = LSO.DateComponentSpecification;
-					componentProperties.add(new ComponentProperty(LSO.refDate,name,ComponentProperty.Type.DATE));
+					componentSpecification = Converter.LSO.DateComponentSpecification;
+					componentProperties.add(new ComponentProperty(Converter.LSO.refDate,name,ComponentProperty.Type.DATE));
 					// it's a dimension
 					//					model.add(componentSpecification, QB.dimension, componentProperty);
 					//					model.add(componentProperty, RDF.type, QB.DimensionProperty);
@@ -534,8 +520,8 @@ public class Main
 							int year = jsonDate.get("year").asInt();
 							int month = jsonDate.get("month").asInt();
 							int day = jsonDate.get("day").asInt();
-							model.addLiteral(observation,LSO.refDate,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));
-							model.addLiteral(observation,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
+							model.addLiteral(observation, Converter.LSO.refDate,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));
+							model.addLiteral(observation, Converter.LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 							years.add(year);
 						}
 					}
@@ -580,7 +566,7 @@ public class Main
 
 			if(yearLiteral!=null&&!dateExists) // fallback, in case entry doesnt have a date attached we use year of the whole dataset
 			{
-				model.addLiteral(observation,LSO.refYear,yearLiteral);
+				model.addLiteral(observation, Converter.LSO.refYear,yearLiteral);
 			}
 			for(Resource country: countries)
 			{
@@ -599,16 +585,16 @@ public class Main
 			log.warning("no observations for dataset "+datasetName+".");
 		} else
 		{
-			model.addLiteral(dataSet, LSO.completeness, 1-(double)(missingValues/expectedValues));
+			model.addLiteral(dataSet, Converter.LSO.completeness, 1-(double)(missingValues/expectedValues));
 			for(ComponentProperty d: componentProperties)
 			{
-				model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
+				model.addLiteral(d.property, Converter.LSO.completeness, 1-(double)(missingValues/expectedValues));
 			}
 
 			// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset
 			for(int year: years)
 			{
-				model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
+				model.addLiteral(dataSet, Converter.LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 			}
 			writeModel(model,out);
 			// write missing statistics
@@ -715,7 +701,7 @@ public class Main
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
 			if(currency == null) {throw new NoCurrencyFoundForCodeException(datasetName,currencyCode);}
-			model.add(dsd, QB.component, LSO.CurrencyComponentSpecification);			
+			model.add(dsd, QB.component, Converter.LSO.CurrencyComponentSpecification);
 
 			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
 			//			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
@@ -748,13 +734,13 @@ public class Main
 		@Nullable Literal yearLiteral = null; 
 		if(defaultYear!=null)
 		{
-			model.add(dsd, QB.component, LSO.YearComponentSpecification);
+			model.add(dsd, QB.component, Converter.LSO.YearComponentSpecification);
 			yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
-			model.add(dataSet,LSO.refYear,yearLiteral);
+			model.add(dataSet, Converter.LSO.refYear,yearLiteral);
 		}
 		if(!territories.isEmpty())
 		{			
-			model.add(dsd, QB.component, LSO.CountryComponent);
+			model.add(dsd, QB.component, Converter.LSO.CountryComponent);
 			for(String territory: territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
@@ -887,23 +873,7 @@ public class Main
 		return l;
 	}
 
-	static Model newModel()
-	{
-		Model model = ModelFactory.createMemModelMaker().createDefaultModel();
-		model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
-		model.setNsPrefix("ls", PROPERTIES.getProperty("urlInstance"));
-		model.setNsPrefix("lso", LSO.URI);
-		model.setNsPrefix("sdmx-subject",	"http://purl.org/linked-data/sdmx/2009/subject#");
-		model.setNsPrefix("sdmx-dimension",	"http://purl.org/linked-data/sdmx/2009/dimension#");
-		model.setNsPrefix("sdmx-attribute",	"http://purl.org/linked-data/sdmx/2009/attribute#");
-		model.setNsPrefix("sdmx-measure",	"http://purl.org/linked-data/sdmx/2009/measure#");
-		model.setNsPrefix("rdfs",RDFS.getURI());
-		model.setNsPrefix("rdf",RDF.getURI());
-		model.setNsPrefix("xsd",XSD.getURI());
-		return model;
-	}
-
-	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
+    public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
 		return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
 	}
@@ -939,7 +909,7 @@ public class Main
 				//				if(!datasetName.contains("2011saiki_budget")) continue;
 
 				i++;				
-				Model model = newModel();
+				Model model = Converter.newModel();
 				//				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
