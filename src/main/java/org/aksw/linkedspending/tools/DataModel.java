@@ -1,14 +1,40 @@
 package org.aksw.linkedspending.tools;
 
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.vocabulary.RDFS;
+import com.hp.hpl.jena.vocabulary.XSD;
 import lombok.Getter;
+
+import java.util.Properties;
 
 /**
  * Data Model
  */
 public class DataModel {
+
+    /** properties */
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+    /**
+     * Creates a new apache jena model
+     * @return the model
+     */
+    static public Model newModel()
+    {
+        Model model = ModelFactory.createMemModelMaker().createDefaultModel();
+        model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
+        model.setNsPrefix("ls", PROPERTIES.getProperty("urlInstance"));
+        model.setNsPrefix("lso", LSOntology.uri);
+        model.setNsPrefix("sdmx-subject", "http://purl.org/linked-data/sdmx/2009/subject#");
+        model.setNsPrefix("sdmx-dimension", "http://purl.org/linked-data/sdmx/2009/dimension#");
+        model.setNsPrefix("sdmx-attribute", "http://purl.org/linked-data/sdmx/2009/attribute#");
+        model.setNsPrefix("sdmx-measure", "http://purl.org/linked-data/sdmx/2009/measure#");
+        model.setNsPrefix("rdfs", RDFS.getURI());
+        model.setNsPrefix("rdf", RDF.getURI());
+        model.setNsPrefix("xsd", XSD.getURI());
+        return model;
+    }
 
     /** RDF Data Cube */
     static public class DataCube
@@ -23,7 +49,7 @@ public class DataModel {
         @Getter static final Resource attributeProperty = ResourceFactory.createResource(base +"AttributeProperty");
         @Getter static final Resource sliceKey = ResourceFactory.createResource(base +"SliceKey");
         @Getter static final Resource hierarchicalCodeList = ResourceFactory.createResource(base +"HierarchicalCodeList");
-        @Getter static final Resource componentSpecification    = ResourceFactory.createResource(base +"ComponentSpecification");
+        @Getter static final Resource componentSpecification = ResourceFactory.createResource(base +"ComponentSpecification");
 
         @Getter static final Property structure = ResourceFactory.createProperty(base +"structure");
         @Getter static final Property componentProperty = ResourceFactory.createProperty(base +"componentProperty");
@@ -69,8 +95,22 @@ public class DataModel {
         @Getter static final Property gYear = ResourceFactory.createProperty(base +"gYear");
     }
 
-    /** DBPedia Ontology */
-    static final public class DBPediaOntology
+    /** Linked Spending ontology */
+    static public class LSOntology
+    {
+        @Getter static final String uri = PROPERTIES.getProperty("urlOntology");
+        @Getter static final Resource countryComponent = ResourceFactory.createResource(uri + "CountryComponentSpecification");
+        @Getter static final Resource dateComponentSpecification = ResourceFactory.createResource(uri +"DateComponentSpecification");
+        @Getter static final Resource yearComponentSpecification = ResourceFactory.createResource(uri +"YearComponentSpecification");
+        @Getter static final Resource currencyComponentSpecification = ResourceFactory.createResource(uri +"CurrencyComponentSpecification");
+
+        @Getter static final Property refDate = ResourceFactory.createProperty(uri +"refDate");
+        @Getter static final Property refYear = ResourceFactory.createProperty(uri +"refYear");
+        @Getter static final Property completeness = ResourceFactory.createProperty(uri +"completeness");
+    }
+
+    /** DBPedia ontology */
+    static final public class DBPOntology
     {
         static final String base = "http://dbpedia.org/ontology/";
         @Getter static final public Property currency = ResourceFactory.createProperty(base, "currency");
@@ -79,7 +119,7 @@ public class DataModel {
     /** Dublin Core Metadata Initiative */
     static final public class DCMI
     {
-        static final String base = "http://dublincore.org/documents/2012/06/14/base-terms/";
+        static final String base = "http://dublincore.org/documents/2012/06/14/uri-terms/";
         @Getter static final public Property source = ResourceFactory.createProperty(base,"source");
         @Getter static final public Property created = ResourceFactory.createProperty(base,"created");
     }
