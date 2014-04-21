@@ -1,30 +1,16 @@
 package org.aksw.linkedspending;
+
 import java.io.BufferedWriter;
 import static org.aksw.linkedspending.Main.ConversionMode.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.NonNull;
@@ -32,6 +18,8 @@ import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
+import org.aksw.linkedspending.tools.DataModel;
+import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,10 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
@@ -60,27 +46,16 @@ import de.konradhoeffner.commons.TSVReader;
 @SuppressWarnings("serial")
 public class Main
 {
-	enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
+    /** properties */
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+    enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
 	static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
 
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-	static ObjectMapper m = new ObjectMapper();	
-	static final int MAX_MODEL_TRIPLES = 500_000;
-	static final boolean USE_CACHE = true;
-	public static final String DATASETS = "https://openspending.org/datasets.json";	
-	static final String LSBASE = "http://linkedspending.aksw.org/";
-	static final String LS = LSBASE+"instance/";
-	//	static final String LSO = LSBASE+"ontology/";
-	static final String OS = "https://openspending.org/";
+	static ObjectMapper m = new ObjectMapper();
+    static final boolean USE_CACHE = true;
 
-	private static final int	MAX_ENTRIES	= Integer.MAX_VALUE;
-	//	private static final int	MAX_ENTRIES	= 30;
-	private static final int	DATASET_MIN_VALUES_MISSING_FOR_STOP	= 1000;
-	private static final int	DATASET_MAX_VALUES_MISSING_LOGGED	= 2;
-	private static final float	DATASET_MISSING_STOP_RATIO = 1f;
-
-	private static final int	MIN_EXCEPTIONS_FOR_STOP	= 5;
-	private static final float	EXCEPTION_STOP_RATIO	= 0.3f;
 	static List<String> faultyDatasets = new LinkedList<>();
 
 	static File folder = new File("output20143");
@@ -127,88 +102,7 @@ public class Main
 	static public class TooManyMissingValuesException extends Exception
 	{public TooManyMissingValuesException(String datasetName, int i) {super(i+" missing values in dataset "+datasetName);}}
 
-	static public class QB
-	{
-		static final String qb = "http://purl.org/linked-data/cube#";
-		static final Resource DataStructureDefinition = ResourceFactory.createResource(qb+"DataStructureDefinition");
-		static final Resource DataSet = ResourceFactory.createResource(qb+"DataSet");
-		static final Property dataSet = ResourceFactory.createProperty(qb+"dataSet");
-		static final Property component = ResourceFactory.createProperty(qb+"component");
-		static final Resource DimensionProperty = ResourceFactory.createResource(qb+"DimensionProperty");
-		static final Resource MeasureProperty = ResourceFactory.createResource(qb+"MeasureProperty");
-		static final Resource AttributeProperty = ResourceFactory.createResource(qb+"AttributeProperty");
-		static final Resource SliceKey = ResourceFactory.createResource(qb+"SliceKey");
-		static final Resource HierarchicalCodeList = ResourceFactory.createResource(qb+"HierarchicalCodeList");
-		static final Resource ComponentSpecification	= ResourceFactory.createResource(qb+"ComponentSpecification");
-
-		static final Property structure = ResourceFactory.createProperty(qb+"structure");
-		static final Property componentProperty = ResourceFactory.createProperty(qb+"componentProperty");
-		static final Property dimension = ResourceFactory.createProperty(qb+"dimension");
-		static final Property measure = ResourceFactory.createProperty(qb+"measure");
-		static final Property attribute = ResourceFactory.createProperty(qb+"attribute");
-		static final Property concept = ResourceFactory.createProperty(qb+"concept");
-		static final Resource Observation	= ResourceFactory.createResource(qb+"Observation");
-		static final Resource Slice	= ResourceFactory.createResource(qb+"Slice");
-		static final Property slice	= ResourceFactory.createProperty(qb+"slice");;
-		static final Property sliceStructure	= ResourceFactory.createProperty(qb+"sliceStructure");;
-		static final Property parentChildProperty = ResourceFactory.createProperty(qb+"parentChildProperty");
-
-	}
-
-	static public class SDMXMEASURE
-	{
-		static final String sdmxMeasure = "http://purl.org/linked-data/sdmx/2009/measure#";
-		static final Property obsValue = ResourceFactory.createProperty(sdmxMeasure+"obsValue");		
-	}
-
-	static public class SDMXATTRIBUTE
-	{
-		static final String sdmxAttribute = "http://purl.org/linked-data/sdmx/2009/attribute#";
-		//		static final Property currency = ResourceFactory.createProperty(sdmxAttribute+"currency");
-		static final Property	refArea	= ResourceFactory.createProperty(sdmxAttribute+"refArea");
-	}
-
-	static public class SDMXCONCEPT
-	{
-		static final String sdmxConcept = "http://purl.org/linked-data/sdmx/2009/concept#";
-		static final Property obsValue = ResourceFactory.createProperty(sdmxConcept+"obsValue");		
-		//		static final Property refPeriod = ResourceFactory.createProperty(sdmxConcept+"refPeriod");
-		//		static final Property timePeriod = ResourceFactory.createProperty(sdmxConcept+"timePeriod");
-	}
-
-	static public class XmlSchema
-	{
-		static final String xmlSchema = "http://www.w3.org/2001/XMLSchema#";
-		static final Property gYear = ResourceFactory.createProperty(xmlSchema+"gYear");
-	}
-
-	static public class LSO
-	{
-		static final String URI = LSBASE+"ontology/";
-		static final public Resource CountryComponent = ResourceFactory.createResource(URI+"CountryComponentSpecification");
-		static final public Resource DateComponentSpecification = ResourceFactory.createResource(URI+"DateComponentSpecification");
-		static final public Resource YearComponentSpecification = ResourceFactory.createResource(URI+"YearComponentSpecification");
-		static final public Resource CurrencyComponentSpecification = ResourceFactory.createResource(URI+"CurrencyComponentSpecification");
-
-		static final public Property refDate = ResourceFactory.createProperty(URI+"refDate");
-		static final public Property refYear = ResourceFactory.createProperty(URI+"refYear");
-		static final public Property completeness = ResourceFactory.createProperty(URI+"completeness");
-	}
-
-	static final public class DBO
-	{
-		static final String DBO = "http://dbpedia.org/ontology/";
-		static final public Property currency = ResourceFactory.createProperty(DBO,"currency");		
-	}
-
-	static final public class DCMI
-	{
-		static final String DCMI = "http://dublincore.org/documents/2012/06/14/dcmi-terms/";
-		static final public Property source = ResourceFactory.createProperty(DCMI,"source");		
-		static final public Property created = ResourceFactory.createProperty(DCMI,"created");
-	}
-
-	@Nullable static String cleanString(@Nullable String s)
+    @Nullable static String cleanString(@Nullable String s)
 	{
 		if(s==null||"null".equals(s)||s.trim().isEmpty()) return null;
 		return s;
@@ -242,7 +136,7 @@ public class Main
 			String componentPropertyUrl;
 
 			String uri = datasetPropertyNameToUri.get(new Pair<String>(datasetName,name));
-			componentPropertyUrl=(uri!=null)?uri:LSO.URI+name;			
+			componentPropertyUrl=(uri!=null)?uri: Converter.LSO.URI+name;
 
 			Property componentProperty = model.createProperty(componentPropertyUrl);				
 			componentPropertyByName.put(name, componentProperty);
@@ -271,17 +165,17 @@ public class Main
 				{
 					dateExists = true;
 					dimensionCount++;
-					componentSpecification = LSO.DateComponentSpecification;
-					componentProperties.add(new ComponentProperty(LSO.refDate,name,ComponentProperty.Type.DATE));
+					componentSpecification = Converter.LSO.DateComponentSpecification;
+					componentProperties.add(new ComponentProperty(Converter.LSO.refDate,name,ComponentProperty.Type.DATE));
 					// it's a dimension
-					//					model.add(componentSpecification, QB.dimension, componentProperty);
-					//					model.add(componentProperty, RDF.type, QB.DimensionProperty);
+					//					model.add(componentSpecification, DataCube.dimension, componentProperty);
+					//					model.add(componentProperty, RDF.type, DataCube.DimensionProperty);
 
 					//					model.add(componentProperty, RDFS.subPropertyOf,SDMXDIMENSION.refPeriod);
 					//					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.DATE));
 
 					// concept
-					//					model.add(componentProperty, QB.concept,SDMXCONCEPT.timePeriod);  
+					//					model.add(componentProperty, DataCube.concept,SDMXCONCEPT.timePeriod);
 					//						if()
 					//						model.add(dim, RDFS.range,XmlSchema.gYear);
 					break;
@@ -290,45 +184,45 @@ public class Main
 				{
 					dimensionCount++;
 					// it's a dimension
-					model.add(componentSpecification, QB.dimension, componentProperty);
-					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
-					model.add(componentProperty, RDF.type, QB.DimensionProperty);
+					model.add(componentSpecification, DataModel.DataCube.getDimension(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.DataCube.getDimensionProperty());
 					//						assertTrue(); TODO: assert that the "attributes" of the json are always "name" and "label"
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.COMPOUND));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???); 
+					//TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				case "measure":
 				{
 					measureCount++;
-					model.add(componentSpecification, QB.measure, componentProperty);
-					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
-					model.add(componentProperty, RDF.type, QB.MeasureProperty);
+					model.add(componentSpecification, DataModel.DataCube.getMeasure(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.DataCube.getMeasureProperty());
 
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.MEASURE));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					//TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				case "attribute":
 				{
 					attributeCount++;
 					// TODO: attribute the same meaning as in DataCube?
-					model.add(componentSpecification, QB.attribute, componentProperty);
-					model.add(componentSpecification, RDF.type, QB.ComponentSpecification);
-					model.add(componentProperty, RDF.type, QB.AttributeProperty);
+					model.add(componentSpecification, DataModel.DataCube.getAttribute(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.DataCube.getAttributeProperty());
 
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.ATTRIBUTE));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					//TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				default: throw new UnknownMappingTypeException("unkown type: "+type+"of mapping element "+componentJson);
 			}
 			// backlink
-			model.add(dsd, QB.component, componentSpecification);
+			model.add(dsd, DataModel.DataCube.getComponent(), componentSpecification);
 		}
 		//		if(dateExists||datasetHasYear)
 		//		{
-		//			
+		//
 		//		}
 		//if(!dateExists) {throw new MissingDataException("No date for dataset "+dataset.getLocalName());}
 		if(attributeCount==0||measureCount==0||dimensionCount==0)
@@ -347,7 +241,7 @@ public class Main
 	//			String label = view.get("label");
 	//			String description = view.get("description");
 	//
-	//			JsonNode state = view.get("state");			
+	//			JsonNode state = view.get("state");
 	//			String year = state.get("year"); // TODO: what to do with the year?
 	//			Integer.valueOf(year); // throws an exception if its not an integer
 	//
@@ -356,22 +250,22 @@ public class Main
 	//
 	//			Resource slice = model.createResource(url+"/slice/"+name);
 	//			{
-	//				model.add(slice,RDF.type,QB.Slice);
-	//				//			model.add(slice,QB.sliceStructure,...); // TODO
-	//				//				model.add(slice,QB.sliceStructure,...);
+	//				model.add(slice,RDF.type,DataCube.Slice);
+	//				//			model.add(slice,DataCube.sliceStructure,...); // TODO
+	//				//				model.add(slice,DataCube.sliceStructure,...);
 	//				model.add(slice,RDFS.label,model.createLiteral(label));
 	//				model.add(slice,RDFS.comment,model.createLiteral(description));
 	//			}
 	//			{
 	//				Resource sliceKey = model.createResource(url+"/"+name);
-	//				model.add(sliceKey,RDF.type,QB.SliceKey);
+	//				model.add(sliceKey,RDF.type,DataCube.SliceKey);
 	//				model.add(sliceKey,RDFS.label,model.createLiteral(label));
 	//				model.add(sliceKey,RDFS.comment,model.createLiteral(description));
 	//				for(Iterator<String> it = cuts.keys(); it.hasNext();)
 	//				{
 	//					String dimensionName = it.next();
 	//					String dimensionValue = cuts.get(dimensionName);
-	//					model.add(sliceKey,QB.componentProperty,componentPropertyByName.get(dimensionName));
+	//					model.add(sliceKey,DataCube.componentProperty,componentPropertyByName.get(dimensionName));
 	//					model.add(slice,componentPropertyByName.get(dimensionName),dimensionValue);
 	//				}
 	//
@@ -389,11 +283,11 @@ public class Main
 	}
 
 	//	static void createViews(URL datasetUrl, ArrayNode views, Model model,Map<String,Property> componentPropertyByName) throws MalformedURLException, IOException
-	//	{		
+	//	{
 	//		for(int i=0;i<views.length();i++)
 	//		{
 	//			JsonNode view = views.get(i);
-	//			String entity = view.get("entity");			
+	//			String entity = view.get("entity");
 	//			String name = view.get("name");
 	//			String drilldownName = view.get("drilldown");
 	//			Property drilldownProperty = componentPropertyByName.get("drilldown");
@@ -407,21 +301,21 @@ public class Main
 	//				{
 	//					// create the code list
 	//					Resource codeList = model.createResource(datasetUrl+"/codelists/"+name);
-	//					model.add(codeList,RDF.type,QB.HierarchicalCodeList);
+	//					model.add(codeList,RDF.type,DataCube.HierarchicalCodeList);
 	//					model.add(codeList,RDFS.label,model.createLiteral("code list for property "+drilldownName,"en"));
-	//					codeListByName.put(drilldownName, codeList);					
+	//					codeListByName.put(drilldownName, codeList);
 	//					break;
 	//				}
 	//				case "dimension":
 	//				{
 	//					Property dimension = componentPropertyByName.get("dimension");
-	//					model.add(codeListByName.get(dimension),QB.parentChildProperty,drilldownProperty);
+	//					model.add(codeListByName.get(dimension),DataCube.parentChildProperty,drilldownProperty);
 	//					break;
 	//				}
 	//				default: throw new RuntimeException("unknown entity value: "+entity+" for view "+view);
 	//			}
 	//
-	//			JsonNode state = view.get("state");			
+	//			JsonNode state = view.get("state");
 	//			String year = state.get("year"); // TODO: what to do with the year?
 	//			Integer.valueOf(year); // throws an exception if its not an integer
 	//
@@ -430,22 +324,22 @@ public class Main
 	//
 	//			//			Resource slice = model.createResource(datasetUrl+"/slice/"+name);
 	//			//			{
-	//			//				model.add(slice,RDF.type,QB.Slice);
-	//			//				//			model.add(slice,QB.sliceStructure,...); // TODO
-	//			//				//				model.add(slice,QB.sliceStructure,...);
+	//			//				model.add(slice,RDF.type,DataCube.Slice);
+	//			//				//			model.add(slice,DataCube.sliceStructure,...); // TODO
+	//			//				//				model.add(slice,DataCube.sliceStructure,...);
 	//			//				model.add(slice,RDFS.label,model.createLiteral(label));
 	//			//				model.add(slice,RDFS.comment,model.createLiteral(description));
 	//			//			}
 	//			//			{
 	//			//				Resource sliceKey = model.createResource(datasetUrl+"/slicekey/"+name);
-	//			//				model.add(sliceKey,RDF.type,QB.SliceKey);
+	//			//				model.add(sliceKey,RDF.type,DataCube.SliceKey);
 	//			//				model.add(sliceKey,RDFS.label,model.createLiteral(label));
 	//			//				model.add(sliceKey,RDFS.comment,model.createLiteral(description));
 	//			//				for(Iterator<String> it = cuts.keys(); it.hasNext();)
 	//			//				{
 	//			//					String dimensionName = it.next();
 	//			//					String dimensionValue = cuts.get(dimensionName);
-	//			//					model.add(sliceKey,QB.componentProperty,componentPropertyByName.get(dimensionName));
+	//			//					model.add(sliceKey,DataCube.componentProperty,componentPropertyByName.get(dimensionName));
 	//			//					model.add(slice,componentPropertyByName.get(dimensionName),dimensionValue);
 	//			//				}
 	//			//
@@ -454,14 +348,18 @@ public class Main
 	//
 	//		}
 	//	}
-	/**deletes the model! @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?) 
-	 * @param componentProperties the dimensions which are expected to be values for in all entries. 
-	 * @param countries 
+	/**reads JSON-file from json folder and generates observations
+     * writes observations to output folder
+     * writes statistics
+     * deletes the model! @param url entries url, e.g. http://openspending.org/berlin_de/entries.json	 (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?)
+	 * @param componentProperties the dimensions which are expected to be values for in all entries.
+	 * @param countries
+     * @param datasetName the JSON-file to be read from
 	 * @param defaultYear default year in case no other date is given */
 
 	static void createObservations(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral)
 			throws MalformedURLException, IOException, TooManyMissingValuesException
-			{		
+			{
 		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
 		JsonNode result;
 		boolean dateExists = false;
@@ -470,17 +368,17 @@ public class Main
 		int expectedValues = 0;
 		Map<ComponentProperty,Integer> missingForProperty = new HashMap<>();
 		int observations;
-		for(observations=0;(result=in.read())!=null;observations++)		
-		{			
+		for(observations=0;(result=in.read())!=null;observations++)
+		{
 			String osUri = result.get("html_url").asText();
 			Resource osObservation = model.createResource();
 			String suffix = osUri.substring(osUri.lastIndexOf('/')+1);
-			String lsUri = LS+"observation-"+datasetName+"-"+suffix;
-			Resource observation = model.createResource(lsUri);		
+			String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-"+datasetName+"-"+suffix;
+			Resource observation = model.createResource(lsUri);
 			model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
-			model.add(observation, QB.dataSet, dataSet);			
-			model.add(observation, RDF.type, QB.Observation);
-			model.add(observation,DCMI.source,osObservation);
+			model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
+			model.add(observation, RDF.type, DataModel.DataCube.getObservation());
+			model.add(observation, DataModel.DCMI.source,osObservation);
 			//			boolean dateExists=false;
 			for(ComponentProperty d: componentProperties)
 			{
@@ -489,21 +387,24 @@ public class Main
 				if(!result.has(d.name))
 				{
 					Integer missing = missingForProperty.get(d);
-					missing = (missing==null)?1:missing+1;					
+					missing = (missing==null)?1:missing+1;
 					missingForProperty.put(d,missing);
 					missingValues++;
-					if(missingForProperty.get(d)<=DATASET_MAX_VALUES_MISSING_LOGGED) {log.warning("no entry for property "+d.name+" at entry "+result);}
-					if(missingForProperty.get(d)==DATASET_MAX_VALUES_MISSING_LOGGED) {log.warning("more missing entries for property "+d.name+".");}
-					if(missingValues>=DATASET_MIN_VALUES_MISSING_FOR_STOP&&((double)missingValues/expectedValues>=DATASET_MISSING_STOP_RATIO)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingValues);}
+                    int minMissing = Integer.parseInt(PROPERTIES.getProperty("minValuesMissingForStop"));
+                    int maxMissing = Integer.parseInt(PROPERTIES.getProperty("maxValuesMissingLogged"));
+					float missingStopRatio = Float.parseFloat(PROPERTIES.getProperty("datasetMissingStopRatio"));
+                    if(missingForProperty.get(d)<=maxMissing) {log.warning("no entry for property "+d.name+" at entry "+result);}
+					if(missingForProperty.get(d)==maxMissing) {log.warning("more missing entries for property "+d.name+".");}
+					if(missingValues>=minMissing&&((double)missingValues/expectedValues>=missingStopRatio)) {faultyDatasets.add(datasetName);throw new TooManyMissingValuesException(datasetName,missingValues);}
 					continue;
-				}				
+				}
 				try
 				{
 					switch(d.type)
 					{
 						case COMPOUND:
 						{
-							JsonNode jsonDim = result.get(d.name);							
+							JsonNode jsonDim = result.get(d.name);
 							//							if(jsonDim==null)
 							//							{
 							//								errors++;
@@ -531,7 +432,7 @@ public class Main
 						case ATTRIBUTE:
 						{
 							String s = result.get(d.name).asText();
-							model.addLiteral(observation,d.property,model.createLiteral(s));			
+							model.addLiteral(observation,d.property,model.createLiteral(s));
 							break;
 						}
 						case MEASURE:
@@ -551,20 +452,20 @@ public class Main
 							//							String week = date.get("week");
 							int year = jsonDate.get("year").asInt();
 							int month = jsonDate.get("month").asInt();
-							int day = jsonDate.get("day").asInt();							
-							model.addLiteral(observation,LSO.refDate,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));
-							model.addLiteral(observation,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
+							int day = jsonDate.get("day").asInt();
+							model.addLiteral(observation, Converter.LSO.refDate,model.createTypedLiteral(year+"-"+month+"-"+day, XSD.date.getURI()));
+							model.addLiteral(observation, Converter.LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 							years.add(year);
 						}
 					}
 
 				}
 				catch(Exception e)
-				{					
+				{
 					throw new RuntimeException("problem with componentproperty "+d.name+": "+observation,e);
 				}
 			}
-			//			
+			//
 			//			String label = result.get("label");
 			//
 			//			if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
@@ -574,7 +475,7 @@ public class Main
 			//				if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
 			//			}
 			//			String description = result.get("description");
-			//			if(description!=null&&!description.equals("null")) {model.add(observation,RDFS.comment,description);}				
+			//			if(description!=null&&!description.equals("null")) {model.add(observation,RDFS.comment,description);}
 			//
 			//			String type = result.get("type");
 			//			switch(type)
@@ -593,40 +494,40 @@ public class Main
 
 			if(currency!=null)
 			{
-				model.add(observation, DBO.currency, currency);				
+				model.add(observation, DataModel.DBPediaOntology.currency, currency);
 			}
 
 			if(yearLiteral!=null&&!dateExists) // fallback, in case entry doesnt have a date attached we use year of the whole dataset
-			{				
-				model.addLiteral(observation,LSO.refYear,yearLiteral);				
+			{
+				model.addLiteral(observation, Converter.LSO.refYear,yearLiteral);
 			}
 			for(Resource country: countries)
 			{
 				// add the countries to the observations as well (not just the dataset)
-				model.add(observation,SDMXATTRIBUTE.refArea,country);
+				model.add(observation, DataModel.SdmxAttribute.getRefArea(),country);
 			}
-			if(model.size()>MAX_MODEL_TRIPLES)
+			if(model.size()>Integer.parseInt(PROPERTIES.getProperty("maxModelTriples")))
 			{
 				log.fine("writing triples");
-				writeModel(model,out);				
+				writeModel(model,out);
 			}
 		}
 		// completeness statistics
 		if(expectedValues==0)
 		{
-			log.warning("no observations for dataset "+datasetName+".");			
+			log.warning("no observations for dataset "+datasetName+".");
 		} else
 		{
-			model.addLiteral(dataSet, LSO.completeness, 1-(double)(missingValues/expectedValues));
+			model.addLiteral(dataSet, Converter.LSO.completeness, 1-(double)(missingValues/expectedValues));
 			for(ComponentProperty d: componentProperties)
 			{
-				model.addLiteral(d.property, LSO.completeness, 1-(double)(missingValues/expectedValues));
+				model.addLiteral(d.property, Converter.LSO.completeness, 1-(double)(missingValues/expectedValues));
 			}
 
-			// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset  
+			// in case the dataset goes over several years or doesnt have a default time attached we want all the years of the observations on the dataset
 			for(int year: years)
 			{
-				model.addLiteral(dataSet,LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
+				model.addLiteral(dataSet, Converter.LSO.refYear,model.createTypedLiteral(year, XSD.gYear.getURI()));
 			}
 			writeModel(model,out);
 			// write missing statistics
@@ -640,7 +541,7 @@ public class Main
 			}
 
 	static void writeModel(Model model, OutputStream out)
-	{		
+	{
 		model.write(out,"N-TRIPLE");
 		//		model.write(out,"TURTLE");
 		// assuming that most memory is consumed before model cleaning
@@ -648,16 +549,16 @@ public class Main
 		model.removeAll();
 	}
 
-	/** Takes a json url of an openspending dataset model and extracts rdf into a jena model.  
+	/** Takes a json url of an openspending dataset model and extracts rdf into a jena model.
 	 * The DataStructureDefinition (DSD) specifies the structure of a dataset and contains a set of qb:ComponentSpecification resources.
-	 * @param url json url that contains an openspending dataset model, e.g. http://openspending.org/fukuoka_2013/model  
+	 * @param url json url that contains an openspending dataset model, e.g. http://openspending.org/fukuoka_2013/model
 	 * @param model initialized model that the triples will be added to
 	 */
 	static Resource createDataStructureDefinition(final URL url,Model model) throws MalformedURLException, IOException
-	{		
+	{
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
-		model.add(dsd, RDF.type, QB.DataStructureDefinition);
+		model.add(dsd, RDF.type, DataModel.DataCube.getDataStructureDefinition());
 		//		JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
 		//		JsonNode mapping = dsdJson.get("mapping");
@@ -676,7 +577,7 @@ public class Main
 
 		//			if(1==1)throw new RuntimeException(dimURL);
 		//			Resource dim = model.createResource(dimURL);
-		//			model.add(dim,RDF.type,QB.DimensionProperty);
+		//			model.add(dim,RDF.type,DataCube.DimensionProperty);
 
 		//			String label = dimJson.get("label");
 		//			if(label!=null&&!label.equals("null")) {model.add(dim,RDFS.label,label);}
@@ -689,7 +590,7 @@ public class Main
 
 		//		if(dsdJson.has("views"))
 		//		{
-		//			ArrayNode views = dsdJson.getArrayNode("views");	
+		//			ArrayNode views = dsdJson.getArrayNode("views");
 		//		}
 
 		//		System.out.println("Converting dataset "+url);
@@ -699,33 +600,33 @@ public class Main
 	static void deleteDataset(String datasetName)
 	{
 		System.out.println("******************************++deelte"+datasetName);
-		getDatasetFile(datasetName).delete();
+		Converter.getDatasetFile(datasetName).delete();
 	}
 
 	/** Takes the url of an openspending dataset and extracts rdf into a jena model.
 	 * Each dataset contains a model which gets translated to a datastructure definition and entries that contain the actual measurements and get translated to a
-	 * DataCube. 
+	 * DataCube.
 	 * @param url json url that contains an openspending dataset, e.g. http://openspending.org/fukuoka_2013
 	 * @param model initialized model that the triples will be added to
-	 * @throws IOException 
-	 * @throws NoCurrencyFoundForCodeException 
-	 * @throws DatasetHasNoCurrencyException 
-	 * @throws UnknownMappingTypeException 
-	 * @throws TooManyMissingValuesException 
-	 * @returns if it was successfully created 
+	 * @throws IOException
+	 * @throws NoCurrencyFoundForCodeException
+	 * @throws DatasetHasNoCurrencyException
+	 * @throws UnknownMappingTypeException
+	 * @throws TooManyMissingValuesException
+	 * @returns if it was successfully created
 	 */
 	static void createDataset(String datasetName,Model model,OutputStream out)
-			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException		
+			throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException
 			{
-		@NonNull URL url = new URL(LS+datasetName);
-		@NonNull URL sourceUrl = new URL(OS+datasetName+".json");		
-		@NonNull JsonNode datasetJson = readJSON(sourceUrl);		
-		@NonNull Resource dataSet = model.createResource(url.toString());		
-		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);		
-		model.add(dataSet,DCMI.source,model.createResource(OS+datasetName));
-		model.add(dataSet,DCMI.created,model.createTypedLiteral(GregorianCalendar.getInstance()));
+		@NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
+		@NonNull URL sourceUrl = new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+".json");
+		@NonNull JsonNode datasetJson = readJSON(sourceUrl);
+		@NonNull Resource dataSet = model.createResource(url.toString());
+		@NonNull Resource dsd = createDataStructureDefinition(new URL(url+"/model"), model);
+		model.add(dataSet, DataModel.DCMI.source,model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
+		model.add(dataSet, DataModel.DCMI.created,model.createTypedLiteral(GregorianCalendar.getInstance()));
 
-		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation 		
+		// currency is defined on the dataset level in openspending but in RDF datacube we decided to define it for each observation
 		Resource currency = null;
 
 		if(datasetJson.has("currency"))
@@ -733,14 +634,14 @@ public class Main
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
 			if(currency == null) {throw new NoCurrencyFoundForCodeException(datasetName,currencyCode);}
-			model.add(dsd, QB.component, LSO.CurrencyComponentSpecification);			
+			model.add(dsd, DataModel.DataCube.getComponent(), Converter.LSO.CurrencyComponentSpecification);
 
-			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
-			//			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
-			//			model.add(SDMXATTRIBUTE.currency, RDF.type, RDF.Property);
-			//			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
-			//			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
-			//			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
+			//			model.add(currencyComponent, DataCube.attribute, SdmxAttribute.currency);
+			//			model.addLiteral(SdmxAttribute.currency, RDFS.label,model.createLiteral("currency"));
+			//			model.add(SdmxAttribute.currency, RDF.type, RDF.Property);
+			//			model.add(SdmxAttribute.currency, RDF.type, DataCube.AttributeProperty);
+			//			//model.add(SdmxAttribute.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
+			//			model.add(SdmxAttribute.currency, RDFS.range,XSD.decimal);
 		} else {log.warning("no currency for dataset "+datasetName+", skipping");throw new DatasetHasNoCurrencyException(datasetName);}
 		final Integer defaultYear;
 		{
@@ -750,51 +651,51 @@ public class Main
 			defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
 		}
 		Set<ComponentProperty> componentProperties;
-		try {componentProperties = createComponents(readJSON(new URL(OS+datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,defaultYear!=null);	}
+		try {componentProperties = createComponents(readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/model")).get("mapping"), model,datasetName,dataSet, dsd,defaultYear!=null);	}
 		catch (MissingDataException | UnknownMappingTypeException e)
 		{
 			log.severe("Error creating components for dataset "+datasetName);
 			throw e;
 		}
 
-		model.add(dataSet, RDF.type, QB.DataSet);
-		model.add(dataSet, QB.structure, dsd);
+		model.add(dataSet, RDF.type, DataModel.DataCube.getDataSetResource());
+		model.add(dataSet, DataModel.DataCube.getStructure(), dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
 
 		List<String> territories = ArrayNodeToStringList((ArrayNode)datasetJson.get("territories"));
 		Set<Resource> countries = new HashSet<>();
-		@Nullable Literal yearLiteral = null; 
+		@Nullable Literal yearLiteral = null;
 		if(defaultYear!=null)
 		{
-			model.add(dsd, QB.component, LSO.YearComponentSpecification);
+			model.add(dsd, DataModel.DataCube.getComponent(), Converter.LSO.YearComponentSpecification);
 			yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
-			model.add(dataSet,LSO.refYear,yearLiteral);
+			model.add(dataSet, Converter.LSO.refYear,yearLiteral);
 		}
 		if(!territories.isEmpty())
-		{			
-			model.add(dsd, QB.component, LSO.CountryComponent);
+		{
+			model.add(dsd, DataModel.DataCube.getComponent(), Converter.LSO.CountryComponent);
 			for(String territory: territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
 				countries.add(country);
-				model.add(dataSet,SDMXATTRIBUTE.refArea,country);
+				model.add(dataSet, DataModel.SdmxAttribute.getRefArea(),country);
 			}
-		}		
-		{			
+		}
+		{
 			//		JsonNode entries = readJSON(new URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
 			//		log.fine("extracting results");
 			//		ArrayNode results = (ArrayNode)entries.get("results");
 			log.fine("creating entries");
 
-			if(conversionMode==SCHEMA_AND_OBSERVATIONS) createObservations(datasetName, model,out, dataSet,componentProperties,currency,countries,yearLiteral);
+			if(conversionMode==SCHEMA_AND_OBSERVATIONS) createObservations(datasetName, model, out, dataSet, componentProperties, currency, countries, yearLiteral);
 			log.fine("finished creating entries");
 		}
 		createViews(datasetName,model,dataSet);
 		List<String> languages = ArrayNodeToStringList((ArrayNode)datasetJson.get("languages"));
 
-		//		 qb:component [qb:attribute sdmx-attribute:unitMeasure; 
+		//		 qb:component [qb:attribute sdmx-attribute:unitMeasure;
 		//         qb:componentRequired "true"^^xsd:boolean;
-		//         qb:componentAttachment qb:DataSet;] 
+		//         qb:componentAttachment qb:DataSet;]
 		String label = datasetJson.get("label").asText();
 		String description = datasetJson.get("description").asText();
 
@@ -816,15 +717,15 @@ public class Main
 
 	/** @param sourceUrl	 e.g. http://openspending.org/cameroon_visualisation/views (.json will be added internally)*/
 	public static void createViews(String datasetName,Model model, Resource dataSet) throws MalformedURLException, IOException
-	{	
-		ArrayNode views = readArrayNode(new URL(OS+datasetName+"/views.json"));
+	{
+		ArrayNode views = readArrayNode(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/views.json"));
 		for(int i=0;i<views.size();i++)
 		{
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
-			Resource view = model.createResource(LS+datasetName+"/views/"+name);
-			model.add(view,RDF.type,QB.Slice);
-			model.add(dataSet,QB.slice,view);
+			Resource view = model.createResource(PROPERTIES.getProperty("urlInstance") + datasetName+"/views/"+name);
+			model.add(view,RDF.type, DataModel.DataCube.getSliceResource());
+			model.add(dataSet, DataModel.DataCube.getSlice(),view);
 			String label = jsonView.get("label").asText();
 			String description = jsonView.get("description").asText();
 			model.add(view, RDFS.label, label);
@@ -905,25 +806,9 @@ public class Main
 		return l;
 	}
 
-	static Model newModel()
+    public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
-		Model model = ModelFactory.createMemModelMaker().createDefaultModel();
-		model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
-		model.setNsPrefix("ls", LS);
-		model.setNsPrefix("lso", LSO.URI);
-		model.setNsPrefix("sdmx-subject",	"http://purl.org/linked-data/sdmx/2009/subject#");
-		model.setNsPrefix("sdmx-dimension",	"http://purl.org/linked-data/sdmx/2009/dimension#");
-		model.setNsPrefix("sdmx-attribute",	"http://purl.org/linked-data/sdmx/2009/attribute#");
-		model.setNsPrefix("sdmx-measure",	"http://purl.org/linked-data/sdmx/2009/measure#");
-		model.setNsPrefix("rdfs",RDFS.getURI());
-		model.setNsPrefix("rdf",RDF.getURI());
-		model.setNsPrefix("xsd",XSD.getURI());
-		return model;
-	}
-
-	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
-	{
-		return readJSON(new URL(OS+datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();		 
+		return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
 	}
 
 	public static void main(String[] args) throws MalformedURLException, IOException
@@ -933,7 +818,9 @@ public class Main
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.INFO);} catch ( RuntimeException e ) { e.printStackTrace();}
 		try
 		{			
-			folder.mkdir();
+			int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
+            float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
+            folder.mkdir();
 			// observations use saved datasets so we need the saved names, if we only create the schema we can use the newest dataset names
 			SortedSet<String> datasetNames = conversionMode==SCHEMA_AND_OBSERVATIONS?JsonDownloader.getSavedDatasetNames():JsonDownloader.getDatasetNames();
 			// TODO: parallelize
@@ -955,12 +842,12 @@ public class Main
 				//				if(!datasetName.contains("2011saiki_budget")) continue;
 
 				i++;				
-				Model model = newModel();
+				Model model = Converter.newModel();
 				//				Map<String,Property> componentPropertyByName = new HashMap<>();
 				//				Map<String,Resource> hierarchyRootByName = new HashMap<>();
 				//				Map<String,Resource> codeListByName = new HashMap<>();
 
-				File file = getDatasetFile(datasetName);					
+				File file = Converter.getDatasetFile(datasetName);
 				if(file.exists()&&file.length()>0)
 				{
 					log.finer("skipping already existing file nr "+i+": "+file);
@@ -970,7 +857,7 @@ public class Main
 				try(OutputStream out = new FileOutputStream(file, true))
 				{
 					//					JsonNode dataSetJson = datasetArray.get(i);
-					URL url = new URL(LS+datasetName);
+					URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
 					//					URL url = new URL(dataSetJson.get("html_url").asText());
 					//					String name = dataSetJson.get("name").asText();
 					//					int nrOfEntries = nrEntries(name);
@@ -997,7 +884,7 @@ public class Main
 						faultyDatasets.add(datasetName);
 						log.severe("Error creating dataset "+datasetName+". Skipping.");
 						e.printStackTrace();
-						if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
+						if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio	)
 						{									
 							log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
 							shutdown(1);
@@ -1013,7 +900,7 @@ public class Main
 			//					e.printStackTrace();
 			//					log.severe(e.getLocalizedMessage());
 			//					exceptions++;
-			if(exceptions>=MIN_EXCEPTIONS_FOR_STOP&&((double)exceptions/(i+1))>EXCEPTION_STOP_RATIO	)
+			if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio	)
 			{
 				if(USE_CACHE) {cache.getCacheManager().shutdown();}
 				log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
@@ -1038,11 +925,5 @@ public class Main
 		System.exit(status);
 	}
 
-	static Map<String,File> files = new ConcurrentHashMap<String,File>();
-	private static File getDatasetFile(String name)
-	{
-		File file = files.get(name);
-		if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
-		return file;
-	}
+
 }

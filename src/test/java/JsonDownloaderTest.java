@@ -1,11 +1,12 @@
-import static org.junit.Assert.*;
-
-import java.io.*;
-import java.util.Collection;
-import org.aksw.linkedspending.JsonDownloader;
-import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.aksw.linkedspending.JsonDownloader;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Collection;
+
+import static org.junit.Assert.assertTrue;
 
 public class JsonDownloaderTest
 {
@@ -67,6 +68,13 @@ public class JsonDownloaderTest
         public void callPuzzleTogether() throws IOException
         {
             puzzleTogether();
+        }
+        public void callDownloadAll()
+        {
+            try {
+                downloadAll();
+            } catch (Exception e)
+            {/*TODO: Exeption Handling */ }
         }
     }
 }

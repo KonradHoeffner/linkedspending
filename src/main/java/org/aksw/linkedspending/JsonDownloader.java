@@ -1,4 +1,5 @@
 package org.aksw.linkedspending;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,27 +16,17 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -49,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
+
 import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
 /** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java.
@@ -56,9 +48,16 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @NonNullByDefault
 @Log
 @SuppressWarnings("serial")
-public class JsonDownloader
+public class JsonDownloader implements Runnable
 {
-	static boolean TEST_MODE_ONLY_BERLIN = false;
+    /** properties */
+    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+    static boolean TEST_MODE_ONLY_BERLIN = false;
+
+    static boolean currentlyRunning = true;
+    static boolean completeRun = true;
+    static String toBeDownloaded;
 
 	static final int MAX_THREADS = 10;
 //	static boolean USE_PAGE_SIZE=false;
@@ -76,7 +75,15 @@ public class JsonDownloader
 	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 
+    public static boolean downloadStopped = false;             //testing purposes
+
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
+
+    public static void setToBeDownloaded(String setTo) {toBeDownloaded = setTo;}
+
+    public static void setCurrentlyRunning(boolean setTo) {currentlyRunning=setTo;}
+
+    public static void setCompleteRun(boolean setTo) {completeRun = setTo;}
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -102,7 +109,7 @@ public class JsonDownloader
 		else
 		{
 			//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
-			datasets = Main.m.readTree(new URL(Main.DATASETS));
+			datasets = Main.m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
 			Main.m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 		}
 		ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
@@ -283,8 +290,8 @@ public class JsonDownloader
 		}
 	}
 
-	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. */
-	static void downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
+	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. Returns true if stopped by Scheduler */
+	static boolean downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
 	{
 		int successCount = 0;
 		ThreadPoolExecutor service = (ThreadPoolExecutor)Executors.newFixedThreadPool(MAX_THREADS);
@@ -293,7 +300,16 @@ public class JsonDownloader
 		int i=0;
 		for(String dataset: datasets)
 		{
-			{futures.add(service.submit(new DownloadCallable(dataset,i++)));}
+			{
+                futures.add(service.submit(new DownloadCallable(dataset,i++)));
+                if(!currentlyRunning)             //added to make Downloader stoppable
+                {
+                    service.shutdown();
+                    service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
+                    downloadStopped = true;
+                    return true;
+                }
+            }
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);
 		monitor.start();
@@ -306,7 +322,7 @@ public class JsonDownloader
 		service.shutdown();
 		service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
 		monitor.stopMonitoring();
-
+        return false;
 	}
 
 	enum Position {TOP,MID,BOTTOM};
@@ -363,9 +379,20 @@ public class JsonDownloader
 		}
 	}
 
+    protected static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
+    {
+        datasetNames = new TreeSet<>(Collections.singleton(datasetName));
+        downloadIfNotExisting(datasetNames);
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
+        {
+            out.writeObject(emptyDatasets);
+        }
+    }
+
 	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
-	static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+	protected static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
+        downloadStopped = false;
 		if(TEST_MODE_ONLY_BERLIN) {datasetNames=new TreeSet<>(Collections.singleton("berlin_de"));}
 		else
 		{
@@ -393,16 +420,34 @@ public class JsonDownloader
 		}
 	}
 
+    @Override
+    public void run() /*throws JsonProcessingException, IOException, InterruptedException, ExecutionException*/
+    {
+        long startTime = System.currentTimeMillis();
+        System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+        try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
+        try
+        {
+            if(completeRun) {downloadAll();}
+            else {downloadSpecific(toBeDownloaded);}
+            puzzleTogether();
+        }
+        catch (Exception e){/*TODO: Exception Handling*/}
+        log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
+        System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
+    }
 	/** Download all new datasets as json. */
-	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+	/*public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
 		long startTime = System.currentTimeMillis();
 		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-		downloadAll();
-        puzzleTogether();
+		//downloadAll();
+        //puzzleTogether();
+        Scheduler.runDownloader();
+        Scheduler.stopDownloader();
 		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-	}
+	}*/
 
 }
