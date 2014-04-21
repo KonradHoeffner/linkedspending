@@ -1,4 +1,5 @@
 package org.aksw.linkedspending;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,8 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
@@ -51,8 +50,6 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader implements Runnable
 {
-    /** logger */
-    protected final static Logger LOG = LoggerFactory.getLogger(JsonDownloader.class);
     /** properties */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 

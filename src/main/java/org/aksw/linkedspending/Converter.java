@@ -10,7 +10,7 @@ public class Converter {
     /**
      * Map for all files to be loaded into the Converter
      */
-    static Map<String,File> files = new ConcurrentHashMap<String,File>();
+    static Map<String,File> files = new ConcurrentHashMap<>();
 
 
 

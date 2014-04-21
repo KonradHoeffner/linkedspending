@@ -36,8 +36,6 @@ import com.hp.hpl.jena.vocabulary.XSD;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 // bug? berlin_de doesnt have any measure (should at least have "amount") on sparql endpoint 
 
@@ -48,8 +46,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("serial")
 public class Main
 {
-    /** logger */
-    protected final static Logger LOG = LoggerFactory.getLogger(Main.class);
     /** properties */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 

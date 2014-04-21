@@ -1,7 +1,6 @@
 package org.aksw.linkedspending.tools;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.java.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,16 +9,13 @@ import java.util.Properties;
 
 /**
  * static helper class for loading properties
- *
- * @author tovo
  */
+@Log
 public final class PropertiesLoader {
-    /** logger */
-    protected final static Logger LOG = LoggerFactory.getLogger(PropertiesLoader.class);
     /** properties */
     private static HashMap<String, Properties> propertiesList = new HashMap<>();
 
-    /** suppression of default constructor*/
+    /** suppression of default constructor */
     private PropertiesLoader() {}
 
     /**
@@ -46,17 +42,17 @@ public final class PropertiesLoader {
         try {
             propertiesFile = PropertiesLoader.class.getClassLoader().getResourceAsStream(filename);
             if(propertiesFile == null) {
-                LOG.error("Could not open " + filename);
+                log.severe("Could not open " + filename);
             }
             properties.load(propertiesFile);
         } catch (IOException e) {
-            LOG.error("Could not load properties from file: " + e.getMessage());
+            log.severe("Could not load properties from file: " + e.getMessage());
         } finally {
             if(propertiesFile != null) {
                 try {
                     propertiesFile.close();
                 } catch (IOException e) {
-                    LOG.warn("Error closing properties file: " + e.getMessage());
+                    log.warning("Error closing properties file: " + e.getMessage());
                 }
             }
         }
