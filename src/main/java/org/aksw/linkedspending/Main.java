@@ -168,14 +168,14 @@ public class Main
 					componentSpecification = Converter.LSO.DateComponentSpecification;
 					componentProperties.add(new ComponentProperty(Converter.LSO.refDate,name,ComponentProperty.Type.DATE));
 					// it's a dimension
-					//					model.add(componentSpecification, QB.dimension, componentProperty);
-					//					model.add(componentProperty, RDF.type, QB.DimensionProperty);
+					//					model.add(componentSpecification, DataCube.dimension, componentProperty);
+					//					model.add(componentProperty, RDF.type, DataCube.DimensionProperty);
 
 					//					model.add(componentProperty, RDFS.subPropertyOf,SDMXDIMENSION.refPeriod);
 					//					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.DATE));
 
 					// concept
-					//					model.add(componentProperty, QB.concept,SDMXCONCEPT.timePeriod);  
+					//					model.add(componentProperty, DataCube.concept,SDMXCONCEPT.timePeriod);
 					//						if()
 					//						model.add(dim, RDFS.range,XmlSchema.gYear);
 					break;
@@ -184,41 +184,41 @@ public class Main
 				{
 					dimensionCount++;
 					// it's a dimension
-					model.add(componentSpecification, DataModel.QB.getDimension(), componentProperty);
-					model.add(componentSpecification, RDF.type, DataModel.QB.getComponentSpecification());
-					model.add(componentProperty, RDF.type, DataModel.QB.getDimensionProperty());
+					model.add(componentSpecification, DataModel.DataCube.getDimension(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.DataCube.getDimensionProperty());
 					//						assertTrue(); TODO: assert that the "attributes" of the json are always "name" and "label"
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.COMPOUND));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					//TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				case "measure":
 				{
 					measureCount++;
-					model.add(componentSpecification, DataModel.QB.getMeasure(), componentProperty);
-					model.add(componentSpecification, RDF.type, DataModel.QB.getComponentSpecification());
-					model.add(componentProperty, RDF.type, DataModel.QB.getMeasureProperty());
+					model.add(componentSpecification, DataModel.DataCube.getMeasure(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.DataCube.getMeasureProperty());
 
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.MEASURE));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					//TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				case "attribute":
 				{
 					attributeCount++;
 					// TODO: attribute the same meaning as in DataCube?
-					model.add(componentSpecification, DataModel.QB.getAttribute(), componentProperty);
-					model.add(componentSpecification, RDF.type, DataModel.QB.getComponentSpecification());
-					model.add(componentProperty, RDF.type, DataModel.QB.getAttributeProperty());
+					model.add(componentSpecification, DataModel.DataCube.getAttribute(), componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
+					model.add(componentProperty, RDF.type, DataModel.DataCube.getAttributeProperty());
 
 					componentProperties.add(new ComponentProperty(componentProperty,name,ComponentProperty.Type.ATTRIBUTE));
-					//TODO: model.add(componentProperty, QB.concept,SDMXCONCEPT. ???);
+					//TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
 				default: throw new UnknownMappingTypeException("unkown type: "+type+"of mapping element "+componentJson);
 			}
 			// backlink
-			model.add(dsd, DataModel.QB.getComponent(), componentSpecification);
+			model.add(dsd, DataModel.DataCube.getComponent(), componentSpecification);
 		}
 		//		if(dateExists||datasetHasYear)
 		//		{
@@ -250,22 +250,22 @@ public class Main
 	//
 	//			Resource slice = model.createResource(url+"/slice/"+name);
 	//			{
-	//				model.add(slice,RDF.type,QB.Slice);
-	//				//			model.add(slice,QB.sliceStructure,...); // TODO
-	//				//				model.add(slice,QB.sliceStructure,...);
+	//				model.add(slice,RDF.type,DataCube.Slice);
+	//				//			model.add(slice,DataCube.sliceStructure,...); // TODO
+	//				//				model.add(slice,DataCube.sliceStructure,...);
 	//				model.add(slice,RDFS.label,model.createLiteral(label));
 	//				model.add(slice,RDFS.comment,model.createLiteral(description));
 	//			}
 	//			{
 	//				Resource sliceKey = model.createResource(url+"/"+name);
-	//				model.add(sliceKey,RDF.type,QB.SliceKey);
+	//				model.add(sliceKey,RDF.type,DataCube.SliceKey);
 	//				model.add(sliceKey,RDFS.label,model.createLiteral(label));
 	//				model.add(sliceKey,RDFS.comment,model.createLiteral(description));
 	//				for(Iterator<String> it = cuts.keys(); it.hasNext();)
 	//				{
 	//					String dimensionName = it.next();
 	//					String dimensionValue = cuts.get(dimensionName);
-	//					model.add(sliceKey,QB.componentProperty,componentPropertyByName.get(dimensionName));
+	//					model.add(sliceKey,DataCube.componentProperty,componentPropertyByName.get(dimensionName));
 	//					model.add(slice,componentPropertyByName.get(dimensionName),dimensionValue);
 	//				}
 	//
@@ -301,7 +301,7 @@ public class Main
 	//				{
 	//					// create the code list
 	//					Resource codeList = model.createResource(datasetUrl+"/codelists/"+name);
-	//					model.add(codeList,RDF.type,QB.HierarchicalCodeList);
+	//					model.add(codeList,RDF.type,DataCube.HierarchicalCodeList);
 	//					model.add(codeList,RDFS.label,model.createLiteral("code list for property "+drilldownName,"en"));
 	//					codeListByName.put(drilldownName, codeList);
 	//					break;
@@ -309,7 +309,7 @@ public class Main
 	//				case "dimension":
 	//				{
 	//					Property dimension = componentPropertyByName.get("dimension");
-	//					model.add(codeListByName.get(dimension),QB.parentChildProperty,drilldownProperty);
+	//					model.add(codeListByName.get(dimension),DataCube.parentChildProperty,drilldownProperty);
 	//					break;
 	//				}
 	//				default: throw new RuntimeException("unknown entity value: "+entity+" for view "+view);
@@ -324,22 +324,22 @@ public class Main
 	//
 	//			//			Resource slice = model.createResource(datasetUrl+"/slice/"+name);
 	//			//			{
-	//			//				model.add(slice,RDF.type,QB.Slice);
-	//			//				//			model.add(slice,QB.sliceStructure,...); // TODO
-	//			//				//				model.add(slice,QB.sliceStructure,...);
+	//			//				model.add(slice,RDF.type,DataCube.Slice);
+	//			//				//			model.add(slice,DataCube.sliceStructure,...); // TODO
+	//			//				//				model.add(slice,DataCube.sliceStructure,...);
 	//			//				model.add(slice,RDFS.label,model.createLiteral(label));
 	//			//				model.add(slice,RDFS.comment,model.createLiteral(description));
 	//			//			}
 	//			//			{
 	//			//				Resource sliceKey = model.createResource(datasetUrl+"/slicekey/"+name);
-	//			//				model.add(sliceKey,RDF.type,QB.SliceKey);
+	//			//				model.add(sliceKey,RDF.type,DataCube.SliceKey);
 	//			//				model.add(sliceKey,RDFS.label,model.createLiteral(label));
 	//			//				model.add(sliceKey,RDFS.comment,model.createLiteral(description));
 	//			//				for(Iterator<String> it = cuts.keys(); it.hasNext();)
 	//			//				{
 	//			//					String dimensionName = it.next();
 	//			//					String dimensionValue = cuts.get(dimensionName);
-	//			//					model.add(sliceKey,QB.componentProperty,componentPropertyByName.get(dimensionName));
+	//			//					model.add(sliceKey,DataCube.componentProperty,componentPropertyByName.get(dimensionName));
 	//			//					model.add(slice,componentPropertyByName.get(dimensionName),dimensionValue);
 	//			//				}
 	//			//
@@ -376,8 +376,8 @@ public class Main
 			String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-"+datasetName+"-"+suffix;
 			Resource observation = model.createResource(lsUri);
 			model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
-			model.add(observation, DataModel.QB.getDataSet(), dataSet);
-			model.add(observation, RDF.type, DataModel.QB.getObservation());
+			model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
+			model.add(observation, RDF.type, DataModel.DataCube.getObservation());
 			model.add(observation, DataModel.DCMI.source,osObservation);
 			//			boolean dateExists=false;
 			for(ComponentProperty d: componentProperties)
@@ -494,7 +494,7 @@ public class Main
 
 			if(currency!=null)
 			{
-				model.add(observation, DataModel.DBO.currency, currency);
+				model.add(observation, DataModel.DBPediaOntology.currency, currency);
 			}
 
 			if(yearLiteral!=null&&!dateExists) // fallback, in case entry doesnt have a date attached we use year of the whole dataset
@@ -504,7 +504,7 @@ public class Main
 			for(Resource country: countries)
 			{
 				// add the countries to the observations as well (not just the dataset)
-				model.add(observation, DataModel.SDMXATTRIBUTE.getRefArea(),country);
+				model.add(observation, DataModel.SdmxAttribute.getRefArea(),country);
 			}
 			if(model.size()>Integer.parseInt(PROPERTIES.getProperty("maxModelTriples")))
 			{
@@ -558,7 +558,7 @@ public class Main
 	{
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
-		model.add(dsd, RDF.type, DataModel.QB.getDataStructureDefinition());
+		model.add(dsd, RDF.type, DataModel.DataCube.getDataStructureDefinition());
 		//		JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
 		//		JsonNode mapping = dsdJson.get("mapping");
@@ -577,7 +577,7 @@ public class Main
 
 		//			if(1==1)throw new RuntimeException(dimURL);
 		//			Resource dim = model.createResource(dimURL);
-		//			model.add(dim,RDF.type,QB.DimensionProperty);
+		//			model.add(dim,RDF.type,DataCube.DimensionProperty);
 
 		//			String label = dimJson.get("label");
 		//			if(label!=null&&!label.equals("null")) {model.add(dim,RDFS.label,label);}
@@ -634,14 +634,14 @@ public class Main
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
 			if(currency == null) {throw new NoCurrencyFoundForCodeException(datasetName,currencyCode);}
-			model.add(dsd, DataModel.QB.getComponent(), Converter.LSO.CurrencyComponentSpecification);
+			model.add(dsd, DataModel.DataCube.getComponent(), Converter.LSO.CurrencyComponentSpecification);
 
-			//			model.add(currencyComponent, QB.attribute, SDMXATTRIBUTE.currency);
-			//			model.addLiteral(SDMXATTRIBUTE.currency, RDFS.label,model.createLiteral("currency"));
-			//			model.add(SDMXATTRIBUTE.currency, RDF.type, RDF.Property);
-			//			model.add(SDMXATTRIBUTE.currency, RDF.type, QB.AttributeProperty);
-			//			//model.add(SDMXATTRIBUTE.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
-			//			model.add(SDMXATTRIBUTE.currency, RDFS.range,XSD.decimal);
+			//			model.add(currencyComponent, DataCube.attribute, SdmxAttribute.currency);
+			//			model.addLiteral(SdmxAttribute.currency, RDFS.label,model.createLiteral("currency"));
+			//			model.add(SdmxAttribute.currency, RDF.type, RDF.Property);
+			//			model.add(SdmxAttribute.currency, RDF.type, DataCube.AttributeProperty);
+			//			//model.add(SdmxAttribute.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
+			//			model.add(SdmxAttribute.currency, RDFS.range,XSD.decimal);
 		} else {log.warning("no currency for dataset "+datasetName+", skipping");throw new DatasetHasNoCurrencyException(datasetName);}
 		final Integer defaultYear;
 		{
@@ -658,8 +658,8 @@ public class Main
 			throw e;
 		}
 
-		model.add(dataSet, RDF.type, DataModel.QB.getDataSetResource());
-		model.add(dataSet, DataModel.QB.getStructure(), dsd);
+		model.add(dataSet, RDF.type, DataModel.DataCube.getDataSetResource());
+		model.add(dataSet, DataModel.DataCube.getStructure(), dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/')+1);
 
 		List<String> territories = ArrayNodeToStringList((ArrayNode)datasetJson.get("territories"));
@@ -667,18 +667,18 @@ public class Main
 		@Nullable Literal yearLiteral = null;
 		if(defaultYear!=null)
 		{
-			model.add(dsd, DataModel.QB.getComponent(), Converter.LSO.YearComponentSpecification);
+			model.add(dsd, DataModel.DataCube.getComponent(), Converter.LSO.YearComponentSpecification);
 			yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
 			model.add(dataSet, Converter.LSO.refYear,yearLiteral);
 		}
 		if(!territories.isEmpty())
 		{
-			model.add(dsd, DataModel.QB.getComponent(), Converter.LSO.CountryComponent);
+			model.add(dsd, DataModel.DataCube.getComponent(), Converter.LSO.CountryComponent);
 			for(String territory: territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
 				countries.add(country);
-				model.add(dataSet, DataModel.SDMXATTRIBUTE.getRefArea(),country);
+				model.add(dataSet, DataModel.SdmxAttribute.getRefArea(),country);
 			}
 		}
 		{
@@ -724,8 +724,8 @@ public class Main
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
 			Resource view = model.createResource(PROPERTIES.getProperty("urlInstance") + datasetName+"/views/"+name);
-			model.add(view,RDF.type, DataModel.QB.getSliceResource());
-			model.add(dataSet, DataModel.QB.getSlice(),view);
+			model.add(view,RDF.type, DataModel.DataCube.getSliceResource());
+			model.add(dataSet, DataModel.DataCube.getSlice(),view);
 			String label = jsonView.get("label").asText();
 			String description = jsonView.get("description").asText();
 			model.add(view, RDFS.label, label);
