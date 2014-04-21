@@ -1,19 +1,19 @@
 package org.aksw.linkedspending.tools;
 
 /**
- * Custom exceptions
+ * custom exceptions
  */
 public class Exceptions {
 
     static public class NoCurrencyFoundForCodeException extends Exception {
         public NoCurrencyFoundForCodeException(String datasetName, String code) {
-            super("no currency found for code "+code+" in dataset "+datasetName);
+            super("no currency found for code " + code + " in dataset " + datasetName);
         }
     }
 
     static public class DatasetHasNoCurrencyException extends Exception {
         public DatasetHasNoCurrencyException(String datasetName) {
-            super("dataset "+datasetName+" has no currency.");
+            super("dataset " + datasetName + " has no currency.");
         }
     }
 
@@ -31,7 +31,7 @@ public class Exceptions {
 
     static public class TooManyMissingValuesException extends Exception {
         public TooManyMissingValuesException(String datasetName, int i) {
-            super(i+" missing values in dataset "+datasetName);
+            super(i + " missing values in dataset " + datasetName);
         }
     }
 }
