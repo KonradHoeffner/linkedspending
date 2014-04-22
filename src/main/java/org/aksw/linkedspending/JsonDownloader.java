@@ -395,59 +395,79 @@ public class JsonDownloader implements Runnable
         return false;
 	}
 
-	enum Position {TOP,MID,BOTTOM}; 
+	enum Position {TOP,MID,BOTTOM};
+    /**
+     * Collects all departed Datasets from a specific File
+     * @param foldername gives the Place departed Files are found
+     * @return returns a Hashmap with all Files found in the given Folder.
+     */
+    protected static Map<String, File> getDataFiles(File foldername)
+    {
+        Map<String,File> datasetToFolder = new HashMap<>();
+        for(File pageSizeFolder : foldername.listFiles())
+        {
+            for(File folder : pageSizeFolder.listFiles())
+            {
+                datasetToFolder.put(folder.getName(),folder);
+            }
+        }
+        return datasetToFolder;
+    }
 
-	/** reconstructs full dataset files out of parts. if you find a better name feel free to change it :-) */
-	protected static void puzzleTogether() throws IOException
-	{
-		Set<String> inParts = new HashSet<>();
-		Map<String,File> datasetToFolder = new HashMap<>();
-		for(File pageSizeFolder : rootPartsFolder.listFiles())
-		{			
-			for(File folder : pageSizeFolder.listFiles())
-			{				
-				datasetToFolder.put(folder.getName(),folder);
-			}
-		}
-		//		Set<String> unpuzzled = datasetToFolder.keySet();		
-		//		unpuzzled.removeAll(getSavedDatasetNames());
-		for(String dataset:datasetToFolder.keySet())
-		{			
-			File targetFile = new File(folder.getPath()+"/"+dataset);
-			if(targetFile.exists())
-			{
-				if(targetFile.length()==0) {throw new RuntimeException(targetFile+" is existing but empty.");}	
-				log.finer(targetFile+" already exists. Skipping.");
-				continue;
-			}
-			try(PrintWriter out = new PrintWriter(targetFile))
-			{
-				int partNr=0;
-				File[] parts = datasetToFolder.get(dataset).listFiles();				
-				for(File f: parts)
-				{
-					if(f.length()==0) {throw new RuntimeException(f+" is existing but empty.");}
+    /** merges all files collected in partData
+     *
+     * @param partData A Hashmap with all Datasets that need to be merged
+     */
 
-					Position pos = Position.TOP;
-					try(BufferedReader in = new BufferedReader(new FileReader(f)))
-					{
-						String line;
-						while((line= in.readLine())!=null)
-						{
-							switch(pos)
-							{	
-								case TOP:		if(partNr==0) out.println(line);if(line.contains("\"results\": [")) pos=Position.MID;break;
-								case MID:		out.println(line);if(line.equals("}")) pos=Position.BOTTOM;break;							
-								case BOTTOM:	if(partNr==parts.length-1) out.println(line);break;
-							}
-						}					
-					}
-					if(partNr!=parts.length-1) out.print(",");
-					partNr++;					
-				}
-			}
-		}		
-	}
+    protected static void mergeJson(Map<String, File> partData)
+    {
+        for (String dataset : partData.keySet()) {
+            File targetFile = new File(folder.getPath() + "/" + dataset);
+            if (targetFile.exists()) {
+                if (targetFile.length() == 0) {
+                    throw new RuntimeException(targetFile + " is existing but empty.");
+                }
+                log.finer(targetFile + " already exists. Skipping.");
+                continue;
+            }
+            try (PrintWriter out = new PrintWriter(targetFile)) {
+                int partNr = 0;
+                File[] parts = partData.get(dataset).listFiles();
+                for (File f : parts) {
+                    if (f.length() == 0) {
+                        throw new RuntimeException(f + " is existing but empty.");
+                    }
+                    Position pos = Position.TOP;
+                    try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            switch (pos) {
+                                case TOP:
+                                    if (partNr == 0) out.println(line);
+                                    if (line.contains("\"results\": [")) pos = Position.MID;
+                                    break;
+                                case MID:
+                                    out.println(line);
+                                    if (line.equals("    }")) pos = Position.BOTTOM;
+                                    break;
+                                case BOTTOM:
+                                    if (partNr == parts.length - 1) out.println(line);
+                                    break;
+                            }
+                        }
+                    } catch (IOException io) {}
+                    if (partNr != parts.length - 1) out.print(",");
+                    partNr++;
+                }
+            } catch (IOException io) {}
+
+        }
+    }
+
+    protected static void puzzleTogether()
+    {
+        mergeJson(getDataFiles(rootPartsFolder));
+    }
 
     protected static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
     {
