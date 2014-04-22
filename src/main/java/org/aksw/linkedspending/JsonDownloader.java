@@ -300,15 +300,13 @@ public class JsonDownloader implements Runnable
 		int i=0;
 		for(String dataset: datasets)
 		{
-			{
-                futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(!currentlyRunning)             //added to make Downloader stoppable
-                {
-                    service.shutdown();
-                    service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
-                    downloadStopped = true;
-                    return true;
-                }
+            futures.add(service.submit(new DownloadCallable(dataset,i++)));
+            if(!currentlyRunning)             //added to make Downloader stoppable
+            {
+                service.shutdown();
+                service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
+                downloadStopped = true;
+                return true;
             }
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);

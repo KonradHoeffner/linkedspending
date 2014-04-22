@@ -24,7 +24,7 @@ public class JsonDownloaderTest
 		assertTrue(names.size()>300);
 		assertTrue(names.contains("berlin_de"));
 	}
-    //TODO
+    //TODO adjust and uncomment after puzzleTogether is fixed - try to avoid messing with datasets
     /**@Test public void testPuzzleTogether() throws FileNotFoundException,IOException
     {
         File testfile1 = new File("json/parts/testfile1");
