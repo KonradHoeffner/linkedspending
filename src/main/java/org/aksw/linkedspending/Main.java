@@ -793,11 +793,6 @@ public class Main
         return l;
     }
 
-    public static int nrEntries(String datasetName) throws MalformedURLException, IOException
-    {
-        return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+"/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
-    }
-
     static void shutdown(int status)
     {
         if(USE_CACHE) {CacheManager.getInstance().shutdown();}

@@ -130,7 +130,12 @@ public class JsonDownloader implements Runnable
 		return (ArrayNode)Main.m.readTree(getFile(datasetName)).get("results");		
 	}
 
-	public static class ResultsReader
+    public static int nrEntries(String datasetName) throws MalformedURLException, IOException
+    {
+        return Main.readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
+    }
+
+    public static class ResultsReader
 	{
 		final protected JsonParser jp;
 
