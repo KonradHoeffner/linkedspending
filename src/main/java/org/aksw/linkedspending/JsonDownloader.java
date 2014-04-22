@@ -64,6 +64,7 @@ public class JsonDownloader implements Runnable
     static boolean completeRun = true;
     static String toBeDownloaded;
 
+
     static ObjectMapper m = new ObjectMapper();
     static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
     static {
