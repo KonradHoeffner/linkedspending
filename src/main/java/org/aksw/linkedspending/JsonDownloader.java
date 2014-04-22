@@ -1,4 +1,5 @@
 package org.aksw.linkedspending;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,8 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
@@ -51,8 +50,6 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader implements Runnable
 {
-    /** logger */
-    protected final static Logger LOG = LoggerFactory.getLogger(JsonDownloader.class);
     /** properties */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 
@@ -133,7 +130,12 @@ public class JsonDownloader implements Runnable
 		return (ArrayNode)Main.m.readTree(getFile(datasetName)).get("results");		
 	}
 
-	public static class ResultsReader
+    public static int nrEntries(String datasetName) throws MalformedURLException, IOException
+    {
+        return Main.readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
+    }
+
+    public static class ResultsReader
 	{
 		final protected JsonParser jp;
 
@@ -237,7 +239,7 @@ public class JsonDownloader implements Runnable
 				log.fine(nr+" dataset exists in parts but is incomplete, continuing...");
 			}
 			log.fine(nr+" Fetching number of entries for dataset "+datasetName);		
-			int nrEntries = Main.nrEntries(datasetName);
+			int nrEntries = nrEntries(datasetName);
 			if(nrEntries==0)
 			{
 				log.fine(nr+" No entries for dataset "+datasetName+" skipping download.");
