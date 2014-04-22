@@ -12,12 +12,12 @@ public class Scheduler
     }
 
     /** Stops JsonDownloader. Already started downloads of datasets will be finished, but no new downloads will be started. */
-    protected static void stopDownloader() {JsonDownloader.setCurrentlyRunning(false);}
+    protected static void stopDownloader() {JsonDownloader.setStopRequested(false);}
 
     /** Resumes downloading process */
     protected static void resumeDownload()
     {
-        JsonDownloader.setCurrentlyRunning(true);
+        JsonDownloader.setStopRequested(true);
         runDownloader();        //improve performance: does everything up to point from where to resume as well
     }
 
@@ -29,6 +29,18 @@ public class Scheduler
         j.setToBeDownloaded(datasetName);
         Thread jThr = new Thread(j);
         jThr.start();
+    }
+
+    /** Starts converting of all new Datasets */
+    protected static void runConverter()
+    {
+
+    }
+
+    /** Stops the converting process */
+    protected static void stopConverter()
+    {
+
     }
 
     public static void main(String[] args)
