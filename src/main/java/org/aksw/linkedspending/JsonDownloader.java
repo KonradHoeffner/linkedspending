@@ -60,7 +60,7 @@ public class JsonDownloader implements Runnable
 
     static boolean TEST_MODE_ONLY_BERLIN = false;
 
-    static boolean currentlyRunning = true;
+    static boolean stopRequested = false;
     static boolean completeRun = true;
     static String toBeDownloaded;
 
@@ -90,7 +90,7 @@ public class JsonDownloader implements Runnable
 
     public static void setToBeDownloaded(String setTo) {toBeDownloaded = setTo;}
 
-    public static void setCurrentlyRunning(boolean setTo) {currentlyRunning=setTo;}
+    public static void setStopRequested(boolean setTo) {stopRequested=setTo;}
 
     public static void setCompleteRun(boolean setTo) {completeRun = setTo;}
 
@@ -372,7 +372,7 @@ public class JsonDownloader implements Runnable
 		{
 			{
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(!currentlyRunning)             //added to make Downloader stoppable
+                if(!stopRequested)             //added to make Downloader stoppable
                 {
                     service.shutdown();
                     service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
