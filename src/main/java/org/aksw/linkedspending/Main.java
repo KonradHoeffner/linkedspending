@@ -49,9 +49,6 @@ public class Main
     /** properties */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 
-    enum ConversionMode {SCHEMA_ONLY,SCHEMA_AND_OBSERVATIONS};
-    static final ConversionMode conversionMode = ConversionMode.SCHEMA_AND_OBSERVATIONS;
-
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
     static ObjectMapper m = new ObjectMapper();
     static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
@@ -678,7 +675,7 @@ public class Main
             //        ArrayNode results = (ArrayNode)entries.get("results");
             log.fine("creating entries");
 
-            if(conversionMode==ConversionMode.SCHEMA_AND_OBSERVATIONS) createObservations(datasetName, model, out, dataSet, componentProperties, currency, countries, yearLiteral);
+            createObservations(datasetName, model, out, dataSet, componentProperties, currency, countries, yearLiteral);
             log.fine("finished creating entries");
         }
         createViews(datasetName,model,dataSet);
