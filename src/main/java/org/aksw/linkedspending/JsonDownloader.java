@@ -25,7 +25,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.java.Log;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -75,6 +80,10 @@ public class JsonDownloader implements Runnable
 	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 
+    static ObjectMapper m = new ObjectMapper();
+    static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
+    static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null;
+
     public static boolean downloadStopped = false;             //testing purposes
 
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
@@ -97,6 +106,62 @@ public class JsonDownloader implements Runnable
 
 	static protected SortedSet<String> datasetNames = new TreeSet<>();
 
+    public static String readJSONString(URL url) throws IOException {return readJSONString(url,false,USE_CACHE);}
+    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url,false,USE_CACHE);}
+    public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
+    {
+        //        System.out.println(cache.getKeys());
+        if(USE_CACHE)
+        {
+            Element e = cache.get(url.toString());
+            if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
+        }
+        if(detailedLogging) {log.fine("cache miss for "+url.toString());}
+
+        // SWP 14 team: here is a start for the response code handling which you should get to work, I discontinued it because the connection
+        // may be a non-httpurlconnection (if the url relates to a file) so maybe there should be two readJsonString methods, one for a file and one for an http url
+        // or maybe it should be split into two methods where this one only gets a string as an input and the error handling for connections should be somewhere else
+        // of course there shouldn't be System.out.println() statements, they are just placeholders.
+        // error handling isnt even that critical here but needs to be in any case in the JSON downloader for the big parts
+        //        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        //        connection.connect();
+        //        int response = connection.getResponseCode();
+        //        switch(response)
+        //        {
+        //            case HttpURLConnection.HTTP_OK: System.out.println("OK"); // fine, continue
+        //            case HttpURLConnection.HTTP_GATEWAY_TIMEOUT: System.out.println("gateway timeout"); // retry
+        //            case HttpURLConnection.HTTP_UNAVAILABLE: System.out.println("unavailable"); // abort
+        //            default: log.error("unhandled http response code "+response+". Aborting download of dataset."); // abort
+        //        }
+        //        try(Scanner undelimited = new Scanner(connection.getInputStream(), "UTF-8"))
+        try(Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
+        {
+            try(Scanner scanner = undelimited.useDelimiter("\\A"))
+            {
+                String datasetsJsonString = scanner.next();
+                char firstChar = datasetsJsonString.charAt(0);
+                if(!(firstChar=='{'||firstChar=='[')) {throw new IOException("JSON String for URL "+url+" seems to be invalid.");}
+                if(USE_CACHE) {cache.put(new Element(url.toString(), datasetsJsonString));}
+                //IfAbsent
+                return datasetsJsonString;
+            }
+        }
+    }
+
+    public static JsonNode readJSON(URL url,boolean detailedLogging) throws JsonProcessingException, IOException
+    {
+        String content = readJSONString(url,detailedLogging);
+        if(detailedLogging) {log.fine("finished loading text, creating json object from text");}
+        return m.readTree(content);
+        //        try {return new JsonNode(readJSONString(url));}
+        //        catch(JSONException e) {throw new IOException("Could not create a JSON object from string "+readJSONString(url),e);}
+    }
+
+    public static JsonNode readJSON(URL url) throws IOException
+    {
+        return readJSON(url,false);
+    }
+
 	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
 		if(!datasetNames.isEmpty()) return datasetNames;
@@ -104,13 +169,13 @@ public class JsonDownloader implements Runnable
 		JsonNode datasets;
 		if(DATASETS_CACHED.exists())
 		{
-			datasets = Main.m.readTree(DATASETS_CACHED);
+			datasets = m.readTree(DATASETS_CACHED);
 		}
 		else
 		{
 			//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
-			datasets = Main.m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
-			Main.m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
+			datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
+			m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 		}
 		ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
 		log.info(datasetArray.size()+" datasets available. "+emptyDatasets.size()+" marked as empty, "+(datasetArray.size()-emptyDatasets.size())+" remaining.");
@@ -127,12 +192,12 @@ public class JsonDownloader implements Runnable
 
 	public static @NonNull ArrayNode getResults(String datasetName) throws JsonProcessingException, IOException
 	{
-		return (ArrayNode)Main.m.readTree(getFile(datasetName)).get("results");		
+		return (ArrayNode)m.readTree(getFile(datasetName)).get("results");
 	}
 
     public static int nrEntries(String datasetName) throws MalformedURLException, IOException
     {
-        return Main.readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
+        return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
     }
 
     public static class ResultsReader
