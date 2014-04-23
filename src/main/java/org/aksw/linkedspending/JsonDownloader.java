@@ -61,6 +61,7 @@ public class JsonDownloader implements Runnable
     static boolean TEST_MODE_ONLY_BERLIN = false;
 
     static boolean stopRequested = false;
+    static boolean pauseRequested =false;
     static boolean completeRun = true;
     static String toBeDownloaded;
 
@@ -81,8 +82,8 @@ public class JsonDownloader implements Runnable
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 
     static ObjectMapper m = new ObjectMapper();
-    static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
-    static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null;
+    static final boolean USE_CACHE = false;// Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
+    static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null; //TODO: accessing cache causes NullPointerException (in readJSONString())
 
     public static boolean downloadStopped = false;             //testing purposes
 
@@ -93,6 +94,8 @@ public class JsonDownloader implements Runnable
     public static void setStopRequested(boolean setTo) {stopRequested=setTo;}
 
     public static void setCompleteRun(boolean setTo) {completeRun = setTo;}
+
+    public static void setPauseRequested(boolean setTo) {pauseRequested = setTo;}
 
 	public static SortedSet<String> getSavedDatasetNames()
 	{
@@ -371,8 +374,9 @@ public class JsonDownloader implements Runnable
 		for(String dataset: datasets)
 		{
 			{
+                if(pauseRequested) {while(pauseRequested) {}}
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(!stopRequested)             //added to make Downloader stoppable
+                if(stopRequested)             //added to make Downloader stoppable
                 {
                     service.shutdown();
                     service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
