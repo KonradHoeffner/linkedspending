@@ -55,48 +55,107 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader implements Runnable
 {
-    /** properties */
+    /** external properties to be used in Project */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
-
+    /**testmode that makes Downloader only download one file from openspending:"berlin_de"*/
     static boolean TEST_MODE_ONLY_BERLIN = false;
-
+    /**sets downloader stopable*/
     static boolean stopRequested = false;
+    /**pauses downloader until set to false again*/
     static boolean pauseRequested =false;
+    /**makes downloader load all files from openspending; opposite concrete file in field toBeDownloaded*/
     static boolean completeRun = true;
+    /**field with one(not shure if several possible too) specific file to be downloaded from openspending; used, when completeRun=false*/
     static String toBeDownloaded;
-
+    /**maximum number of threads used by downloader*/
 	static final int MAX_THREADS = 10;
-//	static boolean USE_PAGE_SIZE=false;
-	// at the moment the pagesize is constant but a possible improvement is dynamic one, starting out high and turning it down when there are errors
+
+    //todo form KHoeffner:"at the moment the pagesize is constant but a possible improvement is dynamic one, starting out high and turning it down when there are errors"
+
+    /**???not used anyway*/
+    static boolean USE_PAGE_SIZE=false;
+    /**the initial page size
+     * @see #pageSize*/
 	static final int INITIAL_PAGE_SIZE = 100;
+    /**???not used anyway*/
 	static final int MIN_PAGE_SIZE = 100;
+    /**the maximum number of JSON-objects in the JSON-array of a downloaded file in the parts folder<p>
+     * explanation: The downloader loads JSON-files from openspending. The JSON-files are stored in .../json.
+     * If the number of entries is bigger than pagesize, the file is split into several parts and stored in the .../json/parts/"pagesize"/"datasetname" folder.
+     * Else the file is stored completely in the .../json/"datasetname" file.*/
 	static final int pageSize = INITIAL_PAGE_SIZE;
+    /**the name of the folder, where the downloaded JSON-files are stored*/
 	static File folder = new File("json");
+    /**name of the root-folder, where the downloaded and splitted JSON-files are stored
+     * @see #pageSize "pageSize" for more details*/
 	static File rootPartsFolder = new File("json/parts");
+    /**???not used anyway*/
 	static File modelFolder = new File("json/model");
+    /**path for file that gives metainformation about already downloaded(or downloadable) JSON-files available at openspending e.g. number of datasets in german <p>
+     * and also metainformation about concrete donwloaded JSON-files e.g.the url of the file or last_modified */
 	static final File DATASETS_CACHED = new File("cache/datasets.json");
+    /**file that stores reference to all empty datasets*/
 	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
+
 	static {if(!folder.exists()) {folder.mkdir();}}
 	static {if(!rootPartsFolder.exists()) {rootPartsFolder.mkdir();}}
+
+    /**represents all the empty JSON-files in a set; highly interacts with: emptyDatasetFile<p>
+     * is used for example to remove empty datasets from downloading-process
+     * @see #emptyDatasetFile */
 	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
+    /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/
 	static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-
+    /**used to convert from JSON-file to Java-object and vice versa*/
     static ObjectMapper m = new ObjectMapper();
+    /**whether the cache is used or not*/
     static final boolean USE_CACHE = false;// Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
-    static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null; //TODO: accessing cache causes NullPointerException (in readJSONString())
 
-    public static boolean downloadStopped = false;             //testing purposes
+    //todo following comment
 
+    /**???is a cache if USE_CACHE=true, otherwise null*/
+    static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null;
+
+    //todo accessing cache causes NullPointerException (in readJSONString())
+
+    /**testing purposes, to be deleted!?*/
+    public static boolean downloadStopped = false;
+    /**The maximum days the downloader is waiting until shutdown.
+     * Once a stopRequested=true signal is send to downloader it blocks and tries to finish its last tasks before shutting down.*/
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
 
+    /**
+     * sets a JSON-file to be downloaded from openspending
+     * @param setTo the filename of the JSON-file
+     * @see #toBeDownloaded
+     */
     public static void setToBeDownloaded(String setTo) {toBeDownloaded = setTo;}
 
+    /**sets the property stopRequested wich makes Downloader stopable,
+     * used by scheduler to stop JsonDownloader
+     * @param setTo true makes downloader stopable*/
     public static void setStopRequested(boolean setTo) {stopRequested=setTo;}
 
+    /**
+     * sets whether all files are to be downloaded from openspending
+     * @param setTo true if all files are to be downloaded
+     * @see #completeRun
+     */
     public static void setCompleteRun(boolean setTo) {completeRun = setTo;}
 
+    /**
+     * sets whether the downloader should stop, even before having finished
+     * @param setTo true if downloader shall stop
+     * @see #pauseRequested
+     */
     public static void setPauseRequested(boolean setTo) {pauseRequested = setTo;}
 
+    //todo??? just returns the filesnames from .../json what about the parts?
+    //todo good candidate for moving
+    /**
+     * gets the names of all files in .../json and returns them
+     * @return a sorted set of all filenames
+     */
 	public static SortedSet<String> getSavedDatasetNames()
 	{
 		SortedSet<String> names = new TreeSet<>();
@@ -531,17 +590,19 @@ public class JsonDownloader implements Runnable
         System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
     }
 	/** Download all new datasets as json. */
-	/*public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
-		long startTime = System.currentTimeMillis();
-		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
-		//downloadAll();
-        //puzzleTogether();
-        Scheduler.runDownloader();
-        Scheduler.stopDownloader();
-		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
-		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-	}*/
+//		long startTime = System.currentTimeMillis();
+//		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+//		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
+//		//downloadAll();
+//        //puzzleTogether();
+//        Scheduler.runDownloader();
+//        Scheduler.stopDownloader();
+//		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
+//		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
+        JsonDownloader jdl=new JsonDownloader();
+        jdl.run();
+	}
 
 }
