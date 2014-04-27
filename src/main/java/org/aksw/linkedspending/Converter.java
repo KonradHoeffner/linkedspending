@@ -244,7 +244,7 @@ public class Converter implements Runnable {
 
     static void deleteDataset(String datasetName)
     {
-        System.out.println("******************************++deelte"+datasetName);
+        System.out.println("******************************++delete"+datasetName);
         Converter.getDatasetFile(datasetName).delete();
     }
 
