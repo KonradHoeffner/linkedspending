@@ -74,8 +74,17 @@ public class Converter implements Runnable {
             int i=0;
             int fileexists=0;
             for(final String datasetName : datasetNames) {
-                if(stopRequested) { break; }
-                else if(pauseRequested) { while(pauseRequested){} }
+                if(stopRequested)
+                {
+                    eventContainer.getEventNotifications().add(new eventNotification(0,16));
+                    break;
+                }
+                else if(pauseRequested)
+                {
+                    eventContainer.getEventNotifications().add(new eventNotification(0,17));
+                    while(pauseRequested){}
+                    eventContainer.getEventNotifications().add(new eventNotification(0,18));
+                }
                 i++;
                 Model model = DataModel.newModel();
                 File file = getDatasetFile(datasetName);
@@ -100,6 +109,7 @@ public class Converter implements Runnable {
                         e.printStackTrace();
                         if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio) {
                             log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
+                            eventContainer.getEventNotifications().add(new eventNotification(0,14));
                             eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
                             Main.shutdown(1);
                         }
@@ -114,6 +124,7 @@ public class Converter implements Runnable {
                     Main.cache.getCacheManager().shutdown();
                 }
                 log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
+                eventContainer.getEventNotifications().add(new eventNotification(0,14));
                 eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
                 Main.shutdown(1);
             }
@@ -127,6 +138,7 @@ public class Converter implements Runnable {
         // we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster
         catch(RuntimeException e) {
             log.log(Level.SEVERE,e.getLocalizedMessage(),e);
+            eventContainer.getEventNotifications().add(new eventNotification(0,15));
             eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
             Main.shutdown(1);
         }
@@ -216,7 +228,7 @@ public class Converter implements Runnable {
     /**
      * Gets a file that is already provided by JSON-Downloader to be converted into rdf. Uses ConcurrentHashMap to track all files in Converter.
      * @param name the name of the JSON-file(LS JSON Diff)
-     * @return the file to be converted into the tripple-store
+     * @return the file to be converted into the triple-store
      */
 	static File getDatasetFile(String name)
 	{
