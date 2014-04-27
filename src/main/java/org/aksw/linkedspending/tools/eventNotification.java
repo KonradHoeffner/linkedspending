@@ -9,21 +9,20 @@ public class eventNotification
 {
     /* Feel free to add more constants if needed */
     /* Type constants */
-    //Todo: add notifications for unmarked (//) constants
-    public static final byte finishedDownloadingSingle = 0;     //
-    public static final byte finishedDownloadingComplete = 1;   //
+    public static final byte finishedDownloadingSingle = 0;
+    public static final byte finishedDownloadingComplete = 1;
     public static final byte finishedConvertingSingle = 2;
     public static final byte finishedConvertingComplete = 3;
     public static final byte fileNotFound = 4;
     public static final byte unsupportedFileType = 5;
     public static final byte outOfMemory = 6;
-    public static final byte startedDownloadingSingle = 7;      //
-    public static final byte startedDownloadingComplete = 8;    //
+    public static final byte startedDownloadingSingle = 7;
+    public static final byte startedDownloadingComplete = 8;
     public static final byte startedConvertingSingle = 9;
     public static final byte startedConvertingComplete = 10;
-    public static final byte downloadStopped = 11;              //
-    public static final byte downloadPaused = 12;               //
-    public static final byte downloadResumed = 13;              //
+    public static final byte downloadStopped = 11;
+    public static final byte downloadPaused = 12;
+    public static final byte downloadResumed = 13;
 
     /* causedBy constants */
     public static final byte causedByConverter = 0;

@@ -7,6 +7,7 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.aksw.linkedspending.tools.eventNotification;
 import org.aksw.linkedspending.tools.eventNotificationContainer;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class Converter implements Runnable {
         //stopRequested = false;
         //pauseRequested = false;
 
+        eventContainer.getEventNotifications().add(new eventNotification(0,10));
         long startTime = System.currentTimeMillis();
         try {
             System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
@@ -98,6 +100,7 @@ public class Converter implements Runnable {
                         e.printStackTrace();
                         if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio) {
                             log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
+                            eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
                             Main.shutdown(1);
                         }
 
@@ -111,6 +114,7 @@ public class Converter implements Runnable {
                     Main.cache.getCacheManager().shutdown();
                 }
                 log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
+                eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
                 Main.shutdown(1);
             }
             if(stopRequested) log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
@@ -123,8 +127,10 @@ public class Converter implements Runnable {
         // we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster
         catch(RuntimeException e) {
             log.log(Level.SEVERE,e.getLocalizedMessage(),e);
+            eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
             Main.shutdown(1);
         }
+        eventContainer.getEventNotifications().add(new eventNotification(0,3,true));
         Main.shutdown(0);
     }
     /*
