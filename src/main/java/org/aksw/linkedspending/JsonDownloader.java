@@ -1,14 +1,23 @@
 package org.aksw.linkedspending;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import de.konradhoeffner.commons.MemoryBenchmark;
+import lombok.extern.java.Log;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
+import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.aksw.linkedspending.tools.eventNotification;
+import org.aksw.linkedspending.tools.eventNotificationContainer;
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,34 +26,9 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.java.Log;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
-import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MappingJsonFactory;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import de.konradhoeffner.commons.MemoryBenchmark;
 
 import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
@@ -55,20 +39,24 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader implements Runnable
 {
+   // public static boolean finished = false;
+
     /** external properties to be used in Project */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     /**testmode that makes Downloader only download one file from openspending:"berlin_de"*/
     static boolean TEST_MODE_ONLY_BERLIN = false;
     /**sets downloader stopable*/
-    static boolean stopRequested = false;
+    private static boolean stopRequested = false;
     /**pauses downloader until set to false again*/
-    static boolean pauseRequested =false;
+    private static boolean pauseRequested =false;
     /**makes downloader load all files from openspending; opposite concrete file in field toBeDownloaded*/
-    static boolean completeRun = true;
+    private static boolean completeRun = true;
     /**field with one(not shure if several possible too) specific file to be downloaded from openspending; used, when completeRun=false*/
-    static String toBeDownloaded;
+    private static String toBeDownloaded;
     /**maximum number of threads used by downloader*/
 	static final int MAX_THREADS = 10;
+
+    private static eventNotificationContainer eventContainer = new eventNotificationContainer();
 
     //todo form KHoeffner:"at the moment the pagesize is constant but a possible improvement is dynamic one, starting out high and turning it down when there are errors"
 
@@ -118,11 +106,13 @@ public class JsonDownloader implements Runnable
 
     //todo accessing cache causes NullPointerException (in readJSONString())
 
-    /**testing purposes, to be deleted!?*/
+    /**testing purposes*/
     public static boolean downloadStopped = false;
     /**The maximum days the downloader is waiting until shutdown.
      * Once a stopRequested=true signal is send to downloader it blocks and tries to finish its last tasks before shutting down.*/
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
+
+    public static eventNotificationContainer getEventContainer() {return eventContainer;}
 
     /**
      * sets a JSON-file to be downloaded from openspending
@@ -168,7 +158,7 @@ public class JsonDownloader implements Runnable
 
 	static protected SortedSet<String> datasetNames = new TreeSet<>();
 
-    public static String readJSONString(URL url) throws IOException {return readJSONString(url,false,USE_CACHE);}
+    public static String readJSONString(URL url) throws IOException {return readJSONString(url, false, USE_CACHE);}
     public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url,false,USE_CACHE);}
     public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
     {
@@ -433,10 +423,16 @@ public class JsonDownloader implements Runnable
 		for(String dataset: datasets)
 		{
 			{
-                if(pauseRequested) {while(pauseRequested) {}}
+                if(pauseRequested)
+                {
+                    eventContainer.getEventNotifications().add(new eventNotification(12,1));
+                    while(pauseRequested) {}
+                    eventContainer.getEventNotifications().add(new eventNotification(13,1));
+                }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
                 if(stopRequested)             //added to make Downloader stoppable
                 {
+                    eventContainer.getEventNotifications().add(new eventNotification(11,1));
                     service.shutdown();
                     service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
                     downloadStopped = true;
@@ -570,28 +566,41 @@ public class JsonDownloader implements Runnable
 		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
 		{
 			out.writeObject(emptyDatasets);
-		}	
+		}
 	}
 
     @Override
     public void run() /*throws JsonProcessingException, IOException, InterruptedException, ExecutionException*/
     {
+        //finished = false;
         long startTime = System.currentTimeMillis();
         System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
         try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
         try
         {
-            if(completeRun) {downloadAll();}
-            else {downloadSpecific(toBeDownloaded);}
+            if(completeRun)
+            {
+                eventContainer.getEventNotifications().add(new eventNotification(8,1));
+                downloadAll();
+                eventContainer.getEventNotifications().add(new eventNotification(1,1,true));
+            }
+            else
+            {
+                eventContainer.getEventNotifications().add(new eventNotification(7,1));
+                downloadSpecific(toBeDownloaded);
+                eventContainer.getEventNotifications().add(new eventNotification(0,1,true));
+            }
             puzzleTogether();
         }
-        catch (Exception e){/*TODO: Exception Handling*/}
+        catch (Exception e){e.printStackTrace();}
+        //finished = true;
         log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
         System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
     }
+
 	/** Download all new datasets as json. */
-	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
-	{
+//	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+//	{
 //		long startTime = System.currentTimeMillis();
 //		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 //		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
@@ -601,8 +610,8 @@ public class JsonDownloader implements Runnable
 //        Scheduler.stopDownloader();
 //		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 //		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-        JsonDownloader jdl=new JsonDownloader();
-        jdl.run();
-	}
+//        JsonDownloader jdl=new JsonDownloader();
+//        jdl.run();
+//	}
 
 }

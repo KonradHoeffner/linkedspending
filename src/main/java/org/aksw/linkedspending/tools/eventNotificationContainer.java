@@ -7,6 +7,8 @@ public class eventNotificationContainer
 {
     private Vector<eventNotification> notifications;
 
+    public eventNotificationContainer() {notifications = new Vector<>();}
+
     public Vector<eventNotification> getEventNotifications() {return notifications;}
 
     /** Returns number of notifications of specified type caused by a certain module.

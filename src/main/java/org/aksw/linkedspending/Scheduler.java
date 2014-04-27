@@ -59,10 +59,16 @@ public class Scheduler
     public static void main(String[] args)
     {
         //downloadDataset("berlin_de");
-        //runDownloader();
+        runDownloader();
         //pauseDownloader();
         //resumeDownload();
+        //stopDownloader();
 
+        /*while(!JsonDownloader.finished) {}
+        for(eventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
+        {
+            System.out.println(eN.getEventCode(true));
+        }*/
 
         //runConverter();
         //pauseConverter();

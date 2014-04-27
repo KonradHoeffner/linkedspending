@@ -1,28 +1,18 @@
 package org.aksw.linkedspending;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.vocabulary.RDFS;
-import com.hp.hpl.jena.vocabulary.XSD;
 import de.konradhoeffner.commons.MemoryBenchmark;
-import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import org.aksw.linkedspending.tools.DataModel;
-import org.aksw.linkedspending.tools.Exceptions;
 import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.eclipse.jdt.annotation.Nullable;
+import org.aksw.linkedspending.tools.eventNotificationContainer;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +26,8 @@ public class Converter implements Runnable {
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     private static boolean stopRequested = false;
     private static boolean pauseRequested = false;
+
+    private static eventNotificationContainer eventContainer = new eventNotificationContainer();
 
     public static void setStopRequested(boolean setTo) { stopRequested = setTo; }
     public static void setPauseRequested(boolean setTo) { pauseRequested = setTo; }
@@ -55,6 +47,7 @@ public class Converter implements Runnable {
     {
         //stopRequested = false;
         //pauseRequested = false;
+
         long startTime = System.currentTimeMillis();
         try {
             System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
