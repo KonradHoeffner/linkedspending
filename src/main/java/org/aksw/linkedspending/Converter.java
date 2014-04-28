@@ -36,12 +36,29 @@ public class Converter implements Runnable {
     static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
     static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-    static File folder = new File("output20143");
+    static File folder = new File(PROPERTIES.getProperty("pathRdf"));
     static List<String> faultyDatasets = new LinkedList<>();
     /**
      * Map for all files to be loaded into the Converter
      */
     static Map<String,File> files = new ConcurrentHashMap<>();
+
+    /**
+     * gets the names of all files in .../json and returns them
+     * @return a sorted set of all filenames
+     */
+	public static SortedSet<String> getSavedDatasetNames()
+	{
+        File path = new File(PROPERTIES.getProperty("pathJson"));
+		SortedSet<String> names = new TreeSet<>();
+		for(File f: path.listFiles())
+		{
+			if(f.isFile()) {
+                names.add(f.getName());
+            }
+		}
+		return names;
+	}
 
     @Override
     public void run()
@@ -63,7 +80,7 @@ public class Converter implements Runnable {
             float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
             Main.folder.mkdir();
             // observations use saved datasets so we need the saved names, if we only create the schema we can use the newest dataset names
-            SortedSet<String> datasetNames =  JsonDownloader.getSavedDatasetNames();
+            SortedSet<String> datasetNames =  getSavedDatasetNames();
             // TODO: parallelize
             //        DetectorFactory.loadProfile("languageprofiles");
 
@@ -88,8 +105,9 @@ public class Converter implements Runnable {
                 i++;
                 Model model = DataModel.newModel();
                 File file = getDatasetFile(datasetName);
-                if(file.exists() && file.length() > 0) {
-                    log.finer("skipping already existing file nr " + i + ": " + file);
+                File json = new File(PROPERTIES.getProperty("pathJson") + datasetName);
+                if(file.exists() && file.length() > 0 && file.lastModified() >= json.lastModified()) {
+                    log.finer("skipping already existing and up to date file nr " + i + ": " + file);
                     fileexists++;
                     continue;
                 }

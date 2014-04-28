@@ -73,10 +73,10 @@ public class JsonDownloader implements Runnable
      * Else the file is stored completely in the .../json/"datasetname" file.*/
 	static final int pageSize = INITIAL_PAGE_SIZE;
     /**the name of the folder, where the downloaded JSON-files are stored*/
-	static File folder = new File("json");
+	static File folder = new File(PROPERTIES.getProperty("pathJson"));
     /**name of the root-folder, where the downloaded and splitted JSON-files are stored
      * @see #pageSize "pageSize" for more details*/
-	static File rootPartsFolder = new File("json/parts");
+	static File rootPartsFolder = new File(PROPERTIES.getProperty("pathParts"));
     /**???not used anyway*/
 	static File modelFolder = new File("json/model");
     /**path for file that gives metainformation about already downloaded(or downloadable) JSON-files available at openspending e.g. number of datasets in german <p>
@@ -140,26 +140,14 @@ public class JsonDownloader implements Runnable
      */
     public static void setPauseRequested(boolean setTo) {pauseRequested = setTo;}
 
-    //todo??? just returns the filesnames from .../json what about the parts?
-    //todo good candidate for moving
-    /**
-     * gets the names of all files in .../json and returns them
-     * @return a sorted set of all filenames
-     */
-	public static SortedSet<String> getSavedDatasetNames()
-	{
-		SortedSet<String> names = new TreeSet<>();
-		for(File f: folder.listFiles())
-		{
-			if(f.isFile()) {names.add(f.getName());}
-		}
-		return names;
-	}
+    static protected SortedSet<String> datasetNames = new TreeSet<>();
 
-	static protected SortedSet<String> datasetNames = new TreeSet<>();
-
-    public static String readJSONString(URL url) throws IOException {return readJSONString(url, false, USE_CACHE);}
-    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url,false,USE_CACHE);}
+    public static String readJSONString(URL url) throws IOException {
+        return readJSONString(url, false, USE_CACHE);
+    }
+    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {
+        return readJSONString(url, detailedLogging, USE_CACHE);
+    }
     public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
     {
         //        System.out.println(cache.getKeys());

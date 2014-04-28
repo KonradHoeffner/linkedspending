@@ -2,7 +2,6 @@ package org.aksw.linkedspending;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,8 +9,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
@@ -55,7 +52,7 @@ public class Main
 
     static List<String> faultyDatasets = new LinkedList<>();
 
-    static File folder = new File("output20143");
+    static File folder = new File(PROPERTIES.getProperty("pathRdf"));
     static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
 
     //    static final boolean CACHING = true;
@@ -721,7 +718,7 @@ public class Main
     }
 
     public static String readJSONString(URL url) throws IOException {return readJSONString(url,false,USE_CACHE);}
-    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url,false,USE_CACHE);}
+    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url,detailedLogging,USE_CACHE);}
     public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException    
     {
         //        System.out.println(cache.getKeys());
