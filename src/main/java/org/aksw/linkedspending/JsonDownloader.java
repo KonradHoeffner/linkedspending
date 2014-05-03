@@ -39,8 +39,13 @@ import static org.aksw.linkedspending.HttpConnectionUtil.*;
 @SuppressWarnings("serial")
 public class JsonDownloader implements Runnable
 {
-   // public static boolean finished = false;
 
+    //todo differentiated exception handling needed in hole class
+
+    // public static boolean finished = false;
+
+    /** helps to merge JSON-parts by representing a relative position in a given parts-file*/
+    enum Position {TOP,MID,BOTTOM};
     /** external properties to be used in Project */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     /**testmode that makes Downloader only download one file from openspending:"berlin_de"*/
@@ -67,7 +72,7 @@ public class JsonDownloader implements Runnable
 	static final int INITIAL_PAGE_SIZE = 100;
     /**???not used anyway*/
 	static final int MIN_PAGE_SIZE = 100;
-    /**the maximum number of JSON-objects in the JSON-array of a downloaded file in the parts folder<p>
+    /**the maximum number of JSON-objects in the JSON-array of a downloaded file in the parts folder<br>
      * explanation: The downloader loads JSON-files from openspending. The JSON-files are stored in .../json.
      * If the number of entries is bigger than pagesize, the file is split into several parts and stored in the .../json/parts/"pagesize"/"datasetname" folder.
      * Else the file is stored completely in the .../json/"datasetname" file.*/
@@ -79,16 +84,18 @@ public class JsonDownloader implements Runnable
 	static File rootPartsFolder = new File(PROPERTIES.getProperty("pathParts"));
     /**???not used anyway*/
 	static File modelFolder = new File("json/model");
-    /**path for file that gives metainformation about already downloaded(or downloadable) JSON-files available at openspending e.g. number of datasets in german <p>
+    /**path for file that gives metainformation about already downloaded(or downloadable) JSON-files available at openspending e.g. number of datasets in german <br>
      * and also metainformation about concrete donwloaded JSON-files e.g.the url of the file or last_modified */
 	static final File DATASETS_CACHED = new File("cache/datasets.json");
     /**file that stores reference to all empty datasets*/
 	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
+    /**set for the names of already locally saved JSON-files known to the downloader*/
+    static protected SortedSet<String> datasetNames = new TreeSet<>();
 
 	static {if(!folder.exists()) {folder.mkdir();}}
 	static {if(!rootPartsFolder.exists()) {rootPartsFolder.mkdir();}}
 
-    /**represents all the empty JSON-files in a set; highly interacts with: emptyDatasetFile<p>
+    /**represents all the empty JSON-files in a set; highly interacts with: emptyDatasetFile<br>
      * is used for example to remove empty datasets from downloading-process
      * @see #emptyDatasetFile */
 	@SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
@@ -100,7 +107,6 @@ public class JsonDownloader implements Runnable
     static final boolean USE_CACHE = false;// Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
 
     //todo following comment
-
     /**???is a cache if USE_CACHE=true, otherwise null*/
     static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null;
 
@@ -112,6 +118,10 @@ public class JsonDownloader implements Runnable
      * Once a stopRequested=true signal is send to downloader it blocks and tries to finish its last tasks before shutting down.*/
 	private static final long	TERMINATION_WAIT_DAYS	= 2;
 
+    /**
+     * gets event container to deal with events
+     * @return the event container
+     */
     public static eventNotificationContainer getEventContainer() {return eventContainer;}
 
     /**
@@ -140,14 +150,35 @@ public class JsonDownloader implements Runnable
      */
     public static void setPauseRequested(boolean setTo) {pauseRequested = setTo;}
 
-    static protected SortedSet<String> datasetNames = new TreeSet<>();
-
+    /**
+     * returns a JSON-string from the given url
+     * @param url the url where the JSON-string is located
+     * @return a string containing a JSON-object
+     * @throws IOException
+     */
     public static String readJSONString(URL url) throws IOException {
         return readJSONString(url, false, USE_CACHE);
     }
+
+    /**
+     * returns a JSON-string from the given url
+     * @param url the url where the JSON-string is located
+     * @param detailedLogging true for better logging
+     * @return a string containing a JSON-object
+     * @throws IOException
+     */
     public static String readJSONString(URL url,boolean detailedLogging) throws IOException {
         return readJSONString(url, detailedLogging, USE_CACHE);
     }
+
+    /**
+     * reads a JSON-string from openspending and returns it
+     * @param url the url for the string
+     * @param detailedLogging true for better logging
+     * @param USE_CACHE
+     * @return a JSON-string
+     * @throws IOException
+     */
     public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
     {
         //        System.out.println(cache.getKeys());
@@ -188,6 +219,14 @@ public class JsonDownloader implements Runnable
         }
     }
 
+    /**
+     * reads a JSON-string from an url and converts it into a JSON-object
+     * @param url the url where the JSON-string is located
+     * @param detailedLogging true for better logging
+     * @return a JSON-object
+     * @throws JsonProcessingException
+     * @throws IOException
+     */
     public static JsonNode readJSON(URL url,boolean detailedLogging) throws JsonProcessingException, IOException
     {
         String content = readJSONString(url,detailedLogging);
@@ -197,21 +236,39 @@ public class JsonDownloader implements Runnable
         //        catch(JSONException e) {throw new IOException("Could not create a JSON object from string "+readJSONString(url),e);}
     }
 
+    /**
+     * reads a JSON-string from an url and converts it into a JSON-object
+     * @param url the url where the JSON-string is located
+     * @return a JSON-object
+     * @throws IOException
+     */
     public static JsonNode readJSON(URL url) throws IOException
     {
         return readJSON(url,false);
     }
 
+    //todo does the cache file get updated once in a while? if not functionality is needed
+    /**
+     * loads the names of datasets(JSON-files) <br>
+     * if #datasetNames already exists, return them<br>
+     * if cache-file exists, load datasets from cache-file<br>
+     * if cache-file does not exist, load from openspending and write cache-file
+     * @return a set containing the names of all JSON-files
+     * @throws IOException - if one of many files can't be read from or written to
+     */
 	public static synchronized SortedSet<String> getDatasetNames() throws IOException
 	{
 		if(!datasetNames.isEmpty()) return datasetNames;
 
 		JsonNode datasets;
-		if(DATASETS_CACHED.exists())
+
+        //load from cache
+        if(DATASETS_CACHED.exists())
 		{
 			datasets = m.readTree(DATASETS_CACHED);
 		}
-		else
+        //load from openspending and write cache
+        else
 		{
 			//			System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
 			datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
@@ -227,46 +284,37 @@ public class JsonDownloader implements Runnable
 		return datasetNames;
 	}
 
-
+    /**
+     * returns a file from the already downloaded datasets
+     * @param datasetName the name of the file
+     * @return the file to the given dataset
+     */
 	static File getFile(String datasetName) {return Paths.get(folder.getPath(),datasetName).toFile();}
 
+    //todo what is this method for?
 	public static @NonNull ArrayNode getResults(String datasetName) throws JsonProcessingException, IOException
 	{
 		return (ArrayNode)m.readTree(getFile(datasetName)).get("results");
 	}
 
+    //todo All 5 readJSON... methods exist only to retrieve one integer-value from an url???(some side effects are error handling)
+    /**
+     * Reads a JSON-string from an url of openspending. Converts it into a JSON-object
+     * Retrieves only one Integer-value from the field:"results_count_query".
+     * @param datasetName the name of a dataset on openspending
+     * @return the number of results, that the dataset contains
+     * @throws MalformedURLException
+     * @throws IOException
+     */
     public static int nrEntries(String datasetName) throws MalformedURLException, IOException
     {
         return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
     }
 
-    public static class ResultsReader
-	{
-		final protected JsonParser jp;
-
-		public ResultsReader(String datasetName) throws JsonParseException, IOException
-		{
-			JsonFactory f = new MappingJsonFactory();
-			jp = f.createParser(getFile(datasetName));
-			JsonToken current = jp.nextToken();
-			if (current != JsonToken.START_OBJECT) {
-				System.out.println();
-				throw new IOException("Error with dataset "+datasetName+": root should be object: quiting.");
-			}		
-			while (!"results".equals(jp.getCurrentName())) {jp.nextToken();}
-			if (jp.nextToken() != JsonToken.START_ARRAY)
-			{throw new IOException("Error with dataset "+datasetName+": array expected.");}
-		}
-
-		@Nullable public JsonNode read() throws JsonParseException, IOException
-		{			
-			if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}			  
-			JsonNode node = jp.readValueAsTree();
-			return node;
-		}
-	}
-
-	static class ThreadMonitor extends Thread
+    /**
+     * Class to create a thread. The threads purpose is to monitor the threadpool, which does the downloading of all JSON-files from openspending.
+     */
+    static class ThreadMonitor extends Thread
 	{
 		//		final Collection<DownloadCallable> callables;		
 		//		public ThreadMonitor(Collection<DownloadCallable> callables)	{this.callables=callables;}
@@ -297,15 +345,24 @@ public class JsonDownloader implements Runnable
 	}
 
 
-	/** If the dataset has no more than PAGE_SIZE results, it gets saved to json/datasetName, else it gets split into parts
+	/**Implements the logic for downloading a JSON-file within a thread. Is similar to the use of the Runnable Interface, but its call method can give a return value.<p>
+     * If the dataset has no more than PAGE_SIZE results, it gets saved to json/datasetName, else it gets split into parts
 	 * in the folder json/parts/pagesize/datasetname with filenames datasetname.0, datasetname.1, ... , datasetname.final **/
 	static class DownloadCallable implements Callable<Boolean>
 	{
+        /**name of the dataset to be downloaded*/
 		final String datasetName;
 		//		final URL entries;
+        /**id for the Instance*/
 		final int nr;
 		//		int pageSize;
 
+        /**
+         * normal constructor
+         * @param datasetName the name of the dataset to be downloaded
+         * @param nr the id for this instance
+         * @throws MalformedURLException
+         */
 		DownloadCallable(String datasetName,int nr) throws MalformedURLException
 		{
 			this.datasetName = datasetName;
@@ -314,6 +371,12 @@ public class JsonDownloader implements Runnable
 			//			entries = new URL("http://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE);
 		}
 
+        /**
+         * implements the real logic for downloading a file from openspending
+         * @return true if dataset was completely downloaded, false otherwise
+         * @throws IOException
+         * @throws InterruptedException
+         */
 		@Override public @Nullable Boolean call() throws IOException, InterruptedException
 		{
 			Path path = Paths.get(folder.getPath(),datasetName);
@@ -343,7 +406,9 @@ public class JsonDownloader implements Runnable
 				}
 				log.fine(nr+" dataset exists in parts but is incomplete, continuing...");
 			}
-			log.fine(nr+" Fetching number of entries for dataset "+datasetName);		
+			log.fine(nr + " Fetching number of entries for dataset " + datasetName);
+
+            //here is where all the readJSON... stuff is exclusively used
 			int nrEntries = nrEntries(datasetName);
 			if(nrEntries==0)
 			{
@@ -400,14 +465,22 @@ public class JsonDownloader implements Runnable
 		}		
 	}
 
-	/** downloads a set of datasets. datasets over a certain size are downloaded in parts. Returns true if stopped by Scheduler */
+    /**
+     * downloads a set of datasets. datasets over a certain size are downloaded in parts.
+     * @param datasets a Collection of all filenames to be downloaded from openspending
+     * @return returns true if stopped by Scheduler, false otherwise
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
 	static boolean downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException, ExecutionException
 	{
 		int successCount = 0;
 		ThreadPoolExecutor service = (ThreadPoolExecutor)Executors.newFixedThreadPool(MAX_THREADS);
 
 		List<Future<Boolean>> futures = new LinkedList<>();
-		int i=0;		
+		int i=0;
+        //creates a Future for each file that is to be downloaded
 		for(String dataset: datasets)
 		{
 			{
@@ -430,11 +503,13 @@ public class JsonDownloader implements Runnable
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);
 		monitor.start();
-		for(Future<Boolean> future : futures)
+        //here starts the real downloading of all JSON-files(takes a long while)
+        for(Future<Boolean> future : futures)
 		{
 			try{if(future.get()) {successCount++;}}
 			catch(ExecutionException e) {e.printStackTrace();}
 		}
+        //cleaning up
 		log.info(successCount+" datasets newly created.");
 		service.shutdown();
 		service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
@@ -442,10 +517,10 @@ public class JsonDownloader implements Runnable
         return false;
 	}
 
-	enum Position {TOP,MID,BOTTOM};
+
     /**
-     * Collects all departed Datasets from a specific File
-     * @param foldername gives the Place departed Files are found
+     * Collects all parted Datasets from a specific File
+     * @param foldername the Place where the parted Files are found
      * @return returns a Hashmap with all Files found in the given Folder.
      */
     protected static Map<String, File> getDataFiles(File foldername)
@@ -461,15 +536,18 @@ public class JsonDownloader implements Runnable
         return datasetToFolder;
     }
 
-    /** merges all files collected in partData
+    /** merges all files collected in partData and writes the targetfile to the other already complete ones
      *
      * @param partData A Hashmap with all Datasets that need to be merged
      */
 
-    protected static void mergeJson(Map<String, File> partData)
+    protected static void mergeJsonParts(Map<String, File> partData)
     {
+        //for each folder containing parts
         for (String dataset : partData.keySet()) {
             File targetFile = new File(folder.getPath() + "/" + dataset);
+
+            //targetfile exists log it
             if (targetFile.exists()) {
                 if (targetFile.length() == 0) {
                     throw new RuntimeException(targetFile + " is existing but empty.");
@@ -477,9 +555,11 @@ public class JsonDownloader implements Runnable
                 log.finer(targetFile + " already exists. Skipping.");
                 continue;
             }
+
             try (PrintWriter out = new PrintWriter(targetFile)) {
                 int partNr = 0;
                 File[] parts = partData.get(dataset).listFiles();
+                //for each file in the parts folder
                 for (File f : parts) {
                     if (f.length() == 0) {
                         throw new RuntimeException(f + " is existing but empty.");
@@ -487,6 +567,7 @@ public class JsonDownloader implements Runnable
                     Position pos = Position.TOP;
                     try (BufferedReader in = new BufferedReader(new FileReader(f))) {
                         String line;
+                        //each line in a parts-file
                         while ((line = in.readLine()) != null) {
                             switch (pos) {
                                 case TOP:
@@ -511,22 +592,42 @@ public class JsonDownloader implements Runnable
         }
     }
 
+    /**
+     * merges part-files
+     * @see #mergeJsonParts(java.util.Map)
+     */
     protected static void puzzleTogether()
     {
-        mergeJson(getDataFiles(rootPartsFolder));
+        mergeJsonParts(getDataFiles(rootPartsFolder));
     }
 
+    /**
+     * Downloads one specific dataset-file from openspending.
+     * Writes the emptyDatasetFile.
+     * @param datasetName the name of the dataset to be downloaded
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     protected static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
     {
         datasetNames = new TreeSet<>(Collections.singleton(datasetName));
         downloadIfNotExisting(datasetNames);
+        //try-with-resources(since java 7)
+        //todo why is this here?
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
         {
             out.writeObject(emptyDatasets);
         }
     }
 
-	/** downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts. */
+    /**
+     * downloads all new datasets which are not marked as empty from a run before. datasets over a certain size are downloaded in parts.
+     * @throws JsonProcessingException
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
 	protected static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
         downloadStopped = false;
@@ -558,6 +659,9 @@ public class JsonDownloader implements Runnable
 	}
 
     @Override
+    /**
+     * The main method for the Downloader. Starts Downloader.
+     */
     public void run() /*throws JsonProcessingException, IOException, InterruptedException, ExecutionException*/
     {
         //finished = false;
@@ -586,9 +690,9 @@ public class JsonDownloader implements Runnable
         System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
     }
 
-	/** Download all new datasets as json. */
-//	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
-//	{
+	/** Main method for testing and developing purposes only */
+	public static void main(String[] args) throws JsonProcessingException, IOException, InterruptedException, ExecutionException
+	{
 //		long startTime = System.currentTimeMillis();
 //		System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
 //		try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
@@ -598,8 +702,8 @@ public class JsonDownloader implements Runnable
 //        Scheduler.stopDownloader();
 //		log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 //		System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-//        JsonDownloader jdl=new JsonDownloader();
-//        jdl.run();
-//	}
+        JsonDownloader jdl=new JsonDownloader();
+        jdl.run();
+	}
 
 }

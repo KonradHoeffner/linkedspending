@@ -1,6 +1,7 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.aksw.linkedspending.JsonDownloader;
+import org.aksw.linkedspending.Main;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ public class JsonDownloaderTest
 {
 	@Test public void testGetPartialResults() throws JsonProcessingException, IOException
 	{
-		JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader("2013");
+		Main.ResultsReader in = new Main.ResultsReader("2013");
 		JsonNode node;
 		while((node=in.read())!=null ){}
 		//fail("not yet finished writing this test");

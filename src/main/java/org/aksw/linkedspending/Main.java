@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
@@ -18,7 +21,6 @@ import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -346,7 +348,7 @@ public class Main
     static void createObservations(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral)
             throws MalformedURLException, IOException, TooManyMissingValuesException
             {
-        JsonDownloader.ResultsReader in = new JsonDownloader.ResultsReader(datasetName);
+        ResultsReader in = new ResultsReader(datasetName);
         JsonNode result;
         boolean dateExists = false;
         Set<Integer> years = new HashSet<Integer>();
@@ -797,4 +799,29 @@ public class Main
     }
 
 
+    public static class ResultsReader
+	{
+		final protected JsonParser jp;
+
+		public ResultsReader(String datasetName) throws JsonParseException, IOException
+		{
+			JsonFactory f = new MappingJsonFactory();
+			jp = f.createParser(JsonDownloader.getFile(datasetName));
+			JsonToken current = jp.nextToken();
+			if (current != JsonToken.START_OBJECT) {
+				System.out.println();
+				throw new IOException("Error with dataset "+datasetName+": root should be object: quiting.");
+			}
+			while (!"results".equals(jp.getCurrentName())) {jp.nextToken();}
+			if (jp.nextToken() != JsonToken.START_ARRAY)
+			{throw new IOException("Error with dataset "+datasetName+": array expected.");}
+		}
+
+		@Nullable public JsonNode read() throws JsonParseException, IOException
+		{
+			if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}
+			JsonNode node = jp.readValueAsTree();
+			return node;
+		}
+	}
 }
