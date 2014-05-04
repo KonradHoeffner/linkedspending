@@ -70,7 +70,7 @@ public class Scheduler
             System.out.println(eN.getEventCode(true));
         }*/
 
-        //runConverter();
+        runConverter();
         //pauseConverter();
         //resumeConverter();
         //stopConverter();
