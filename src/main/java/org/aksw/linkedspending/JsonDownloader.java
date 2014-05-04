@@ -60,7 +60,7 @@ public class JsonDownloader implements Runnable
     private static String toBeDownloaded;
     /**maximum number of threads used by downloader*/
 	static final int MAX_THREADS = 10;
-
+    /**object to handle event notifications in hole linkedspending system*/
     private static eventNotificationContainer eventContainer = new eventNotificationContainer();
 
     //todo form KHoeffner:"at the moment the pagesize is constant but a possible improvement is dynamic one, starting out high and turning it down when there are errors"

@@ -25,18 +25,33 @@ public class Converter implements Runnable {
 
     /** properties */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+    /**sets downloader stopable*/
     private static boolean stopRequested = false;
+    /**pauses downloader until set to false again*/
     private static boolean pauseRequested = false;
-
+    /**handles event notifications in hole linkedspending system*/
     private static eventNotificationContainer eventContainer = new eventNotificationContainer();
 
+    /**sets the property stopRequested wich makes Downloader stopable,
+     * used by scheduler to stop JsonDownloader
+     * @param setTo true makes downloader stopable*/
     public static void setStopRequested(boolean setTo) { stopRequested = setTo; }
-    public static void setPauseRequested(boolean setTo) { pauseRequested = setTo; }
 
+    /**
+     * sets whether the downloader should stop, even before having finished
+     * @param setTo true if downloader shall stop
+     * @see #pauseRequested
+     */
+    public static void setPauseRequested(boolean setTo) { pauseRequested = setTo; }
+    /**whether the cache is used or not*/
     static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
+    /**???is a cache if USE_CACHE=true, otherwise null*/
     static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
+    /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
+    /**the name of the folder, where the downloaded JSON-files are stored*/
     static File folder = new File(PROPERTIES.getProperty("pathRdf"));
+    //todo what's this for?
     static List<String> faultyDatasets = new LinkedList<>();
     /**
      * Map for all files to be loaded into the Converter
@@ -106,6 +121,7 @@ public class Converter implements Runnable {
                 Model model = DataModel.newModel();
                 File file = getDatasetFile(datasetName);
                 File json = new File(PROPERTIES.getProperty("pathJson") + datasetName);
+                //skip some files
                 if(file.exists() && file.length() > 0 && file.lastModified() >= json.lastModified()) {
                     log.finer("skipping already existing and up to date file nr " + i + ": " + file);
                     fileexists++;

@@ -605,7 +605,7 @@ public class Main
     static void createDataset(String datasetName,Model model,OutputStream out)
             throws IOException, NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException, MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException
             {
-        @NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
+        @NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName); //linkedspending
         @NonNull URL sourceUrl = new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+".json");
         @NonNull JsonNode datasetJson = readJSON(sourceUrl);
         @NonNull Resource dataSet = model.createResource(url.toString());
