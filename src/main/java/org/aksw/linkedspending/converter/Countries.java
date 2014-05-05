@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.converter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.downloader;
 
 import lombok.extern.java.Log;
 
