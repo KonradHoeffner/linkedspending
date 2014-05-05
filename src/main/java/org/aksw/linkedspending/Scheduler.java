@@ -1,14 +1,46 @@
 package org.aksw.linkedspending;
 
 
+import javax.servlet.http.HttpServlet;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+
 /** Pre-version of planned scheduler, which can (directly) control the JsonDownloader (start/stop/pause, all/specified datasets).*/
-public class Scheduler
+@Path("control")
+public class Scheduler extends HttpServlet
 {
     //private static Thread dlThread;
     //private static Thread convThread;
+    //todo: delete those three methods later
+    /*@GET
+    @Path("{param}")
+    public Response getMsg(@PathParam("param") String msg) {
+        String output = "Jersey say : " + msg;
+
+        return Response.status(200).entity(output).build();
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String sayHelloInPlainText() {
+        return "Hello world!";
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    public String sayHelloInHtml() {
+        return "<html> " + "<title>" + "Hello world!" + "</title>"
+                + "<body><h1>" + "Hello world!" + "</body></h1>" + "</html> ";
+    }
+    */
 
     /** Starts complete download */
-    protected static void runDownloader()
+    @GET
+    @Path("downloadcomplete")
+    public static String runDownloader()
     {
         JsonDownloader j = new JsonDownloader();
         j.setStopRequested(false);
@@ -17,16 +49,35 @@ public class Scheduler
         //Thread jDl = new Thread(new JsonDownloader());
         Thread jDl = new Thread(j);
         jDl.start();
+        return "Started complete download";
     }
 
     /** Stops JsonDownloader. Already started downloads of datasets will be finished, but no new downloads will be started. */
-    protected static void stopDownloader() {JsonDownloader.setStopRequested(true);}
+    @GET
+    @Path("stopdownload")
+    public static String stopDownloader()
+    {
+        JsonDownloader.setStopRequested(true);
+        return "Stopped downloading";
+    }
 
     /** Pauses JsonDownloader */
-    protected static void pauseDownloader() {JsonDownloader.setPauseRequested(true);}
+    @GET
+    @Path("pausedownload")
+    public static String pauseDownloader()
+    {
+        JsonDownloader.setPauseRequested(true);
+        return "Paused Downloader";
+    }
 
     /** Resumes downloading process */
-    protected static void resumeDownload() { JsonDownloader.setPauseRequested(false); }
+    @GET
+    @Path("resumedownload")
+    public static String resumeDownload()
+    {
+        JsonDownloader.setPauseRequested(false);
+        return "Resumed Downloader";
+    }
 
     /** Starts downloading a specified dataset */
     protected static void downloadDataset(String datasetName)
@@ -39,30 +90,52 @@ public class Scheduler
     }
 
     /** Starts converting of all new Datasets */
-    protected static void runConverter()
+    @GET @Produces(MediaType.TEXT_PLAIN)
+    @Path("convertcomplete")
+    public static String runConverter()
     {
         Thread convThr = new Thread(new Converter());
         Converter.setPauseRequested(false);
         Converter.setStopRequested(false);
         convThr.start();
+        return "Started Converter.";
     }
 
     /** Stops the converting process */
-    protected static void stopConverter() { Converter.setStopRequested(true); }
+    @GET
+    @Path("stopconvert")
+    public static String stopConverter()
+    {
+        Converter.setStopRequested(true);
+        return "Stopped Converter.";
+    }
 
     /** Pauses converting process */
-    protected static void pauseConverter() { Converter.setPauseRequested(true); }
+    @GET
+    @Path("pauseconvert")
+    public static String pauseConverter() {
+        Converter.setPauseRequested(true);
+        return "Paused Converter.";
+    }
+
 
     /** Resumes converting process */
-    protected static void resumeConverter() { Converter.setPauseRequested(false); }
+    @GET
+    @Path("resumeconvert")
+    public static String resumeConverter() {
+        Converter.setPauseRequested(false);
+        return "Resumed Converter";
+    }
 
     public static void main(String[] args)
     {
         //downloadDataset("berlin_de");
-        runDownloader();
+        //runDownloader();
         //pauseDownloader();
         //resumeDownload();
         //stopDownloader();
+
+        while(true) {}
 
         /*while(!JsonDownloader.finished) {}
         for(eventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())

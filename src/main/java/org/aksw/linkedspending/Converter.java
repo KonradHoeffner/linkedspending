@@ -124,8 +124,8 @@ public class Converter implements Runnable {
                     Main.cache.getCacheManager().shutdown();
                 }
                 log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
-                eventContainer.getEventNotifications().add(new eventNotification(0,14));
-                eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
+                eventContainer.getEventNotifications().add(new eventNotification(14,0));
+                eventContainer.getEventNotifications().add(new eventNotification(3,0,false));
                 Main.shutdown(1);
             }
             if(stopRequested) log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
