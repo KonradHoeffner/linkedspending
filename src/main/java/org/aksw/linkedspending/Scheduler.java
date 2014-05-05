@@ -59,7 +59,7 @@ public class Scheduler
     public static void main(String[] args)
     {
         //downloadDataset("berlin_de");
-        runDownloader();
+        //runDownloader();
         //pauseDownloader();
         //resumeDownload();
         //stopDownloader();

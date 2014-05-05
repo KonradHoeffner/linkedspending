@@ -31,7 +31,7 @@ import java.util.logging.LogManager;
 
 import static org.aksw.linkedspending.HttpConnectionUtil.*;
 
-/** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Main.java.
+/** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Converter.
  * Datasets are processed in paralllel. Each dataset with more than {@value #pageSize} entries is split into parts with that many entries. **/
 @NonNullByDefault
 @Log
@@ -271,7 +271,6 @@ public class JsonDownloader implements Runnable
         //load from openspending and write cache
         else
         {
-            //            System.out.println(new BufferedReader(new InputStreamReader(new URL(Main.DATASETS).openStream())).readLine()); // for manual error detection
             datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
             m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
         }

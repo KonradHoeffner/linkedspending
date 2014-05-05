@@ -37,7 +37,7 @@ public class ConverterTest {
 
         Model model = DataModel.newModel();
         try {
-            Main.createDataset("muenster", model, datasetOut);
+            Converter.createDataset("muenster", model, datasetOut);
         } catch (Exception e) {
             fail("Exception: " + e);
         }
