@@ -1,16 +1,8 @@
 package org.aksw.linkedspending;
 
-
-import javax.servlet.http.HttpServlet;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
-
 /** Pre-version of planned scheduler, which can (directly) control the JsonDownloader (start/stop/pause, all/specified datasets).*/
-@Path("control")
-public class Scheduler extends HttpServlet
+//@Path("control")
+public class Scheduler
 {
     //private static Thread dlThread;
     //private static Thread convThread;
@@ -38,8 +30,8 @@ public class Scheduler extends HttpServlet
     */
 
     /** Starts complete download */
-    @GET
-    @Path("downloadcomplete")
+    //@GET
+    //@Path("downloadcomplete")
     public static String runDownloader()
     {
         JsonDownloader j = new JsonDownloader();
@@ -53,8 +45,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Stops JsonDownloader. Already started downloads of datasets will be finished, but no new downloads will be started. */
-    @GET
-    @Path("stopdownload")
+    //@GET
+    //@Path("stopdownload")
     public static String stopDownloader()
     {
         JsonDownloader.setStopRequested(true);
@@ -62,8 +54,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Pauses JsonDownloader */
-    @GET
-    @Path("pausedownload")
+    //@GET
+    //@Path("pausedownload")
     public static String pauseDownloader()
     {
         JsonDownloader.setPauseRequested(true);
@@ -71,8 +63,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Resumes downloading process */
-    @GET
-    @Path("resumedownload")
+    //@GET
+    //@Path("resumedownload")
     public static String resumeDownload()
     {
         JsonDownloader.setPauseRequested(false);
@@ -80,7 +72,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Starts downloading a specified dataset */
-    protected static void downloadDataset(String datasetName)
+    //@Path("downlaodspecific/{param}")
+    protected static void downloadDataset(String datasetName/*, @PathParam("param") String datasetName */)
     {
         JsonDownloader j = new JsonDownloader();
         j.setCompleteRun(false);
@@ -90,8 +83,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Starts converting of all new Datasets */
-    @GET @Produces(MediaType.TEXT_PLAIN)
-    @Path("convertcomplete")
+    //@GET @Produces(MediaType.TEXT_PLAIN)
+    //@Path("convertcomplete")
     public static String runConverter()
     {
         Thread convThr = new Thread(new Converter());
@@ -102,8 +95,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Stops the converting process */
-    @GET
-    @Path("stopconvert")
+    //@GET
+    //@Path("stopconvert")
     public static String stopConverter()
     {
         Converter.setStopRequested(true);
@@ -111,8 +104,8 @@ public class Scheduler extends HttpServlet
     }
 
     /** Pauses converting process */
-    @GET
-    @Path("pauseconvert")
+    //@GET
+    //@Path("pauseconvert")
     public static String pauseConverter() {
         Converter.setPauseRequested(true);
         return "Paused Converter.";
@@ -120,8 +113,8 @@ public class Scheduler extends HttpServlet
 
 
     /** Resumes converting process */
-    @GET
-    @Path("resumeconvert")
+    //@GET
+    //@Path("resumeconvert")
     public static String resumeConverter() {
         Converter.setPauseRequested(false);
         return "Resumed Converter";
@@ -134,8 +127,6 @@ public class Scheduler extends HttpServlet
         //pauseDownloader();
         //resumeDownload();
         //stopDownloader();
-
-        while(true) {}
 
         /*while(!JsonDownloader.finished) {}
         for(EventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
