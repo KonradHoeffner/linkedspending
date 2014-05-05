@@ -10,34 +10,37 @@ public class EventNotification
     /* Feel free to add more constants if needed */
     /* Type constants */
 
-    //Todo: rework
-    public static final byte finishedDownloadingSingle = 0;
-    public static final byte finishedDownloadingComplete = 1;
-    public static final byte finishedConvertingSingle = 2;
-    public static final byte finishedConvertingComplete = 3;
-    public static final byte fileNotFound = 4;
-    public static final byte unsupportedFileType = 5;
-    public static final byte outOfMemory = 6;
-    public static final byte startedDownloadingSingle = 7;
-    public static final byte startedDownloadingComplete = 8;
-    public static final byte startedConvertingSingle = 9;
-    public static final byte startedConvertingComplete = 10;
-    public static final byte downloadStopped = 11;
-    public static final byte downloadPaused = 12;
-    public static final byte downloadResumed = 13;
-    public static final byte tooManyErrors = 14;
-    public static final byte runTimeError = 15;
-    public static final byte stoppedConverter = 16;
-    public static final byte pausedConverter = 17;
-    public static final byte resumedConverter = 18;
+    public enum EventType {
+        finishedDownloadingSingle,
+        finishedDownloadingComplete,
+        finishedConvertingSingle,
+        finishedConvertingComplete,
+        fileNotFound,
+        unsupportedFileType,
+        outOfMemory,
+        startedDownloadingSingle,
+        startedDownloadingComplete,
+        startedConvertingSingle,
+        startedConvertingComplete,
+        downloadStopped,
+        downloadPaused,
+        downloadResumed,
+        tooManyErrors,
+        runTimeError,
+        stoppedConverter,
+        pausedConverter,
+        resumedConverter
+    }
 
-    /* causedBy constants */
-    public static final byte causedByConverter = 0;
-    public static final byte causedByDownloader = 1;
+    /* source constants */
+    public enum EventSource {
+        Converter,
+        Downloader
+    }
 
     private long time;
-    private byte type;
-    private byte causedBy;
+    private EventType type;
+    private EventSource source;
 
     //todo please write what this is for
     /** Not to be used for all events (only makes sense with types 0, 1, 2, 3 */
@@ -48,13 +51,13 @@ public class EventNotification
      *           unsupportedFileType = 5<br>outOfMemory = 6<br>startedDownloadingSingle = 7<br>startedDownloadingComplete = 8<br>
      *           startedConvertingSingle = 9<br>startedConvertingComplete = 10<br>downloadStopped = 11<br>downloadPaused = 12<br>
      *           downloadResumed = 13<p>
-     * @param causedBy by what softwaremodul the event is caused<br>Converter = 0<br>Downloader = 1
+     * @param source by what softwaremodul the event is caused<br>Converter = 0<br>Downloader = 1
      */
-    public EventNotification(int type, int causedBy)
+    public EventNotification(EventType type, EventSource source)
     {
         time = System.currentTimeMillis();
-        type = (byte) type;
-        causedBy = (byte) causedBy;
+        this.type = type;
+        this.source = source;
     }
 
     /** Creates new EventNotification.
@@ -62,59 +65,30 @@ public class EventNotification
      *           unsupportedFileType = 5<br>outOfMemory = 6<br>startedDownloadingSingle = 7<br>startedDownloadingComplete = 8<br>
      *           startedConvertingSingle = 9<br>startedConvertingComplete = 10<br>downloadStopped = 11<br>downloadPaused = 12<br>
      *           downloadResumed = 13<p>
-     * @param causedBy by what softwaremodul the event is caused<br>Converter = 0<br>Downloader = 1
+     * @param source by what softwaremodul the event is caused<br>Converter = 0<br>Downloader = 1
      */
-    public EventNotification(int type, int causedBy, boolean success)
+    public EventNotification(EventType type, EventSource source, boolean success)
     {
         time = System.currentTimeMillis();
-        type = (byte) type;
-        causedBy = (byte) causedBy;
+        this.type = type;
+        this.source = source;
         this.success = success;
     }
 
     public long getTime() {return time;}
 
-    public int getType() {return (int)type;}
+    public EventType getType() {return type;}
 
-    public int getCausedBy() {return (int)causedBy;}
+    public EventSource getSource() {return source;}
 
-    /** Returns a String of following format: "time causedBy type" (for withTime = true) or "causedBy type" (withTime = false) */
+    /** Returns a String of following format: "time source type" (for withTime = true) or "source type" (withTime = false) */
     public String getEventCode(boolean withTime)
     {
         String s, t;
         DateFormat dF = new SimpleDateFormat("HH:mm.ss");
         t = dF.format(time);
-        if (withTime) s = t + " " + causedBy + " " + type;
-        else s = causedBy + " " + type;
-        return s;
-    }
-
-    /** Returns event as string. */
-    public String getEvent()
-    {
-        String s = new String();
-        switch (type)
-        {
-            case 0 : s = "finishedDownloadingSingle";
-            case 1 : s = "finishedDownloadingComplete";
-            case 2 : s = "finishedConvertingSingle";
-            case 3 : s = "finishedConvertingComplete";
-            case 4 : s = "fileNotFound";
-            case 5 : s = "unsupportedFileType";
-            case 6 : s = "outOfMemory";
-            case 7 : s = "startedDownloadingSingle";
-            case 8 : s = "startedDownloadingComplete";
-            case 9 : s = "startedConvertingSingle";
-            case 10 : s = "startedConvertingComplete";
-            case 11 : s = "downloadStopped";
-            case 12 : s = "downloadPaused";
-            case 13 : s = "downloadResumed";
-            case 14 : s = "tooManyErrors";
-            case 15 : s = "runTimeError";
-            case 16 : s = "stoppedConverter";
-            case 17 : s = "pausedConverter";
-            case 18 : s = "resumedConverter";
-        }
+        if (withTime) s = t + " " + source + " " + type;
+        else s = source + " " + type;
         return s;
     }
 }
