@@ -1,8 +1,6 @@
 package org.aksw.linkedspending;
 
-import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hp.hpl.jena.rdf.model.Literal;
@@ -852,29 +850,4 @@ public class Converter implements Runnable {
         return file;
     }
 
-    public static class ResultsReader
-    {
-        final protected JsonParser jp;
-
-        public ResultsReader(String datasetName) throws IOException
-        {
-            JsonFactory f = new MappingJsonFactory();
-            jp = f.createParser(JsonDownloader.getFile(datasetName));
-            JsonToken current = jp.nextToken();
-            if (current != JsonToken.START_OBJECT) {
-                System.out.println();
-                throw new IOException("Error with dataset "+datasetName+": root should be object: quiting.");
-            }
-            while (!"results".equals(jp.getCurrentName())) {jp.nextToken();}
-            if (jp.nextToken() != JsonToken.START_ARRAY)
-            {throw new IOException("Error with dataset "+datasetName+": array expected.");}
-        }
-
-        @Nullable public JsonNode read() throws IOException
-        {
-            if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}
-            JsonNode node = jp.readValueAsTree();
-            return node;
-        }
-    }
 }
