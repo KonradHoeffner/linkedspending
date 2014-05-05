@@ -6,13 +6,13 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /**RDF Data Cube Component Property.**/
-@AllArgsConstructor	
+@AllArgsConstructor
 @EqualsAndHashCode
 @ToString
 public class ComponentProperty
 {
-	@NonNull public final Property property;
-	@NonNull public final String name;	
-	public static enum Type {ATTRIBUTE,MEASURE,DATE, COMPOUND};
-	@NonNull public final Type type;
+    @NonNull public final Property property;
+    @NonNull public final String name;
+    public static enum Type {ATTRIBUTE,MEASURE,DATE, COMPOUND};
+    @NonNull public final Type type;
 }

@@ -3,13 +3,13 @@ package org.aksw.linkedspending.tools;
 import java.util.Vector;
 
 /** Holds eventNotifications and can create statistical information */
-public class eventNotificationContainer
+public class EventNotificationContainer
 {
-    private Vector<eventNotification> notifications;
+    private Vector<EventNotification> notifications;
 
-    public eventNotificationContainer() {notifications = new Vector<>();}
+    public EventNotificationContainer() {notifications = new Vector<>();}
 
-    public Vector<eventNotification> getEventNotifications() {return notifications;}
+    public Vector<EventNotification> getEventNotifications() {return notifications;}
 
     /** Returns number of notifications of specified type caused by a certain module.
      * Returns -1 if specified type or module is not valid. */
@@ -17,7 +17,7 @@ public class eventNotificationContainer
     {
         //if(causedBy >= 2 || type >= 11) return -1;
         int count = 0;
-        for(eventNotification n : notifications) { if(n.getType() == type && n.getCausedBy() == causedBy) count++;}
+        for(EventNotification n : notifications) { if(n.getType() == type && n.getCausedBy() == causedBy) count++;}
         return count;
     }
 
@@ -29,7 +29,7 @@ public class eventNotificationContainer
      */
     public boolean checkForEvent(int ty, int cB)
     {
-        for(eventNotification n : notifications)
+        for(EventNotification n : notifications)
         {
             if(n.getCausedBy() == cB && n.getType() == ty) return true;
         }

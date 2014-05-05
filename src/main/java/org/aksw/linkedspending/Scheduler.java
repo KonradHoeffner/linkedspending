@@ -65,7 +65,7 @@ public class Scheduler
         //stopDownloader();
 
         /*while(!JsonDownloader.finished) {}
-        for(eventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
+        for(EventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
         {
             System.out.println(eN.getEventCode(true));
         }*/

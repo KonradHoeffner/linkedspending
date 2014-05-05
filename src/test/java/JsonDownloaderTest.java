@@ -11,31 +11,31 @@ import static org.junit.Assert.assertTrue;
 
 public class JsonDownloaderTest
 {
-	@Test public void testGetPartialResults() throws JsonProcessingException, IOException
-	{
-		Main.ResultsReader in = new Main.ResultsReader("2013");
-		JsonNode node;
-		while((node=in.read())!=null ){}
-		//fail("not yet finished writing this test");
-	}
+    @Test public void testGetPartialResults() throws JsonProcessingException, IOException
+    {
+        Main.ResultsReader in = new Main.ResultsReader("2013");
+        JsonNode node;
+        while((node=in.read())!=null ){}
+        //fail("not yet finished writing this test");
+    }
 
-	@Test public void testGetDatasetNames() throws IOException
-	{
-		Collection<String> names = JsonDownloader.getDatasetNames();
-		assertTrue(names.size()>300);
-		assertTrue(names.contains("berlin_de"));
-	}
+    @Test public void testGetDatasetNames() throws IOException
+    {
+        Collection<String> names = JsonDownloader.getDatasetNames();
+        assertTrue(names.size()>300);
+        assertTrue(names.contains("berlin_de"));
+    }
     //TODO adjust and uncomment after puzzleTogether is fixed - try to avoid messing with datasets
     /**@Test public void testPuzzleTogether() throws FileNotFoundException,IOException
     {
-        File testfile1 = new File("json/parts/testfile1");
+        File testfile1 = new File("src/test/resources/testfile1");
         try (PrintWriter out = new PrintWriter(testfile1))
         {
             out.println("\"results\": [");
             out.print("{\nhallo\n}");
         }
 
-        File testfile2 = new File("json/parts/testfile2");
+        File testfile2 = new File("src/test/resources/testfile2");
         try (PrintWriter out = new PrintWriter(testfile2))
         {
             out.println("\"results\": [");

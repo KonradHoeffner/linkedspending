@@ -587,7 +587,7 @@ public class Main
 
     static void deleteDataset(String datasetName)
     {
-        System.out.println("******************************++deelte"+datasetName);
+        log.info("delete "+datasetName);
         Converter.getDatasetFile(datasetName).delete();
     }
 
@@ -800,28 +800,28 @@ public class Main
 
 
     public static class ResultsReader
-	{
-		final protected JsonParser jp;
+    {
+        final protected JsonParser jp;
 
-		public ResultsReader(String datasetName) throws JsonParseException, IOException
-		{
-			JsonFactory f = new MappingJsonFactory();
-			jp = f.createParser(JsonDownloader.getFile(datasetName));
-			JsonToken current = jp.nextToken();
-			if (current != JsonToken.START_OBJECT) {
-				System.out.println();
-				throw new IOException("Error with dataset "+datasetName+": root should be object: quiting.");
-			}
-			while (!"results".equals(jp.getCurrentName())) {jp.nextToken();}
-			if (jp.nextToken() != JsonToken.START_ARRAY)
-			{throw new IOException("Error with dataset "+datasetName+": array expected.");}
-		}
+        public ResultsReader(String datasetName) throws JsonParseException, IOException
+        {
+            JsonFactory f = new MappingJsonFactory();
+            jp = f.createParser(JsonDownloader.getFile(datasetName));
+            JsonToken current = jp.nextToken();
+            if (current != JsonToken.START_OBJECT) {
+                System.out.println();
+                throw new IOException("Error with dataset "+datasetName+": root should be object: quiting.");
+            }
+            while (!"results".equals(jp.getCurrentName())) {jp.nextToken();}
+            if (jp.nextToken() != JsonToken.START_ARRAY)
+            {throw new IOException("Error with dataset "+datasetName+": array expected.");}
+        }
 
-		@Nullable public JsonNode read() throws JsonParseException, IOException
-		{
-			if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}
-			JsonNode node = jp.readValueAsTree();
-			return node;
-		}
-	}
+        @Nullable public JsonNode read() throws JsonParseException, IOException
+        {
+            if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}
+            JsonNode node = jp.readValueAsTree();
+            return node;
+        }
+    }
 }

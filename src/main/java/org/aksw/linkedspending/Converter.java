@@ -6,9 +6,9 @@ import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import org.aksw.linkedspending.tools.DataModel;
+import org.aksw.linkedspending.tools.EventNotification;
+import org.aksw.linkedspending.tools.EventNotificationContainer;
 import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.aksw.linkedspending.tools.eventNotification;
-import org.aksw.linkedspending.tools.eventNotificationContainer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,7 +30,7 @@ public class Converter implements Runnable {
     /**pauses downloader until set to false again*/
     private static boolean pauseRequested = false;
     /**handles event notifications in hole linkedspending system*/
-    private static eventNotificationContainer eventContainer = new eventNotificationContainer();
+    private static EventNotificationContainer eventContainer = new EventNotificationContainer();
 
     /**sets the property stopRequested wich makes Downloader stopable,
      * used by scheduler to stop JsonDownloader
@@ -62,18 +62,18 @@ public class Converter implements Runnable {
      * gets the names of all files in .../json and returns them
      * @return a sorted set of all filenames
      */
-	public static SortedSet<String> getSavedDatasetNames()
-	{
+    public static SortedSet<String> getSavedDatasetNames()
+    {
         File path = new File(PROPERTIES.getProperty("pathJson"));
-		SortedSet<String> names = new TreeSet<>();
-		for(File f: path.listFiles())
-		{
-			if(f.isFile()) {
+        SortedSet<String> names = new TreeSet<>();
+        for(File f: path.listFiles())
+        {
+            if(f.isFile()) {
                 names.add(f.getName());
             }
-		}
-		return names;
-	}
+        }
+        return names;
+    }
 
     @Override
     public void run()
@@ -81,7 +81,7 @@ public class Converter implements Runnable {
         //stopRequested = false;
         //pauseRequested = false;
 
-        eventContainer.getEventNotifications().add(new eventNotification(0,10));
+        eventContainer.getEventNotifications().add(new EventNotification(0,10));
         long startTime = System.currentTimeMillis();
         try {
             System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
@@ -108,14 +108,14 @@ public class Converter implements Runnable {
             for(final String datasetName : datasetNames) {
                 if(stopRequested)
                 {
-                    eventContainer.getEventNotifications().add(new eventNotification(0,16));
+                    eventContainer.getEventNotifications().add(new EventNotification(0,16));
                     break;
                 }
                 else if(pauseRequested)
                 {
-                    eventContainer.getEventNotifications().add(new eventNotification(0,17));
+                    eventContainer.getEventNotifications().add(new EventNotification(0,17));
                     while(pauseRequested){}
-                    eventContainer.getEventNotifications().add(new eventNotification(0,18));
+                    eventContainer.getEventNotifications().add(new EventNotification(0,18));
                 }
                 i++;
                 Model model = DataModel.newModel();
@@ -143,8 +143,8 @@ public class Converter implements Runnable {
                         e.printStackTrace();
                         if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio) {
                             log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
-                            eventContainer.getEventNotifications().add(new eventNotification(0,14));
-                            eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
+                            eventContainer.getEventNotifications().add(new EventNotification(0,14));
+                            eventContainer.getEventNotifications().add(new EventNotification(0,3,false));
                             Main.shutdown(1);
                         }
 
@@ -158,8 +158,8 @@ public class Converter implements Runnable {
                     Main.cache.getCacheManager().shutdown();
                 }
                 log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
-                eventContainer.getEventNotifications().add(new eventNotification(0,14));
-                eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
+                eventContainer.getEventNotifications().add(new EventNotification(0,14));
+                eventContainer.getEventNotifications().add(new EventNotification(0,3,false));
                 Main.shutdown(1);
             }
             if(stopRequested) log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
@@ -172,11 +172,11 @@ public class Converter implements Runnable {
         // we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster
         catch(RuntimeException e) {
             log.log(Level.SEVERE,e.getLocalizedMessage(),e);
-            eventContainer.getEventNotifications().add(new eventNotification(0,15));
-            eventContainer.getEventNotifications().add(new eventNotification(0,3,false));
+            eventContainer.getEventNotifications().add(new EventNotification(0,15));
+            eventContainer.getEventNotifications().add(new EventNotification(0,3,false));
             Main.shutdown(1);
         }
-        eventContainer.getEventNotifications().add(new eventNotification(0,3,true));
+        eventContainer.getEventNotifications().add(new EventNotification(0,3,true));
         Main.shutdown(0);
     }
     /*
@@ -264,12 +264,12 @@ public class Converter implements Runnable {
      * @param name the name of the JSON-file(LS JSON Diff)
      * @return the file to be converted into the triple-store
      */
-	static File getDatasetFile(String name)
-	{
-		File file = files.get(name);
-		if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
-		return file;
-	}
+    static File getDatasetFile(String name)
+    {
+        File file = files.get(name);
+        if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
+        return file;
+    }
 
     static void shutdown(int status)
     {
