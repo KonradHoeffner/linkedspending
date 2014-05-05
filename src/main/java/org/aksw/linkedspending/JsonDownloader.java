@@ -538,7 +538,7 @@ public class JsonDownloader implements Runnable
                 //for each file in the parts folder
                 for (File f : parts) {
                     if (f.length() == 0) {
-                        throw new RuntimeException(f + " is existing but empty.");
+                        log.severe(f + " is existing but empty.");
                     }
                     Position pos = Position.TOP;
                     try (BufferedReader in = new BufferedReader(new FileReader(f))) {
@@ -559,12 +559,14 @@ public class JsonDownloader implements Runnable
                                     break;
                             }
                         }
-                    } catch (IOException io) {
+                    } catch (IOException e) {
+                        log.severe("could not write read parts file for " + dataset + ": " + e.getMessage());
                     }
                     if (partNr != parts.length - 1) out.print(",");
                     partNr++;
                 }
-            } catch (IOException io) {
+            } catch (IOException e) {
+                log.severe("could not create merge file for " + dataset + ": "+ e.getMessage());
             }
 
             if (targetFile.exists()) {
@@ -575,7 +577,7 @@ public class JsonDownloader implements Runnable
                     JsonNode merge = mapper.readTree(new FileInputStream(mergeFile));
                     equals = target.equals(merge);
                 } catch (Exception e) {
-                    log.severe("could not compare files: " + e.getMessage());
+                    log.severe("could not compare files for " + dataset + ": " + e.getMessage());
                     equals = false;
                 }
                 if (equals) {

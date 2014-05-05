@@ -589,6 +589,7 @@ public class Main
     {
         log.info("delete "+datasetName);
         Converter.getDatasetFile(datasetName).delete();
+        JsonDownloader.getFile(datasetName).delete();
     }
 
     /** Takes the url of an openspending dataset and extracts rdf into a jena model.
