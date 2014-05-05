@@ -1,4 +1,5 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
+package org.aksw.linkedspending;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import org.aksw.linkedspending.JsonDownloader;
 import org.aksw.linkedspending.ResultsReader;
@@ -11,7 +12,8 @@ import static org.junit.Assert.assertTrue;
 
 public class JsonDownloaderTest
 {
-    @Test public void testGetPartialResults() throws JsonProcessingException, IOException
+    //@Test
+    public void testGetPartialResults() throws IOException
     {
         ResultsReader in = new ResultsReader("2013");
         JsonNode node;
@@ -19,7 +21,8 @@ public class JsonDownloaderTest
         //fail("not yet finished writing this test");
     }
 
-    @Test public void testGetDatasetNames() throws IOException
+    @Test
+    public void testGetDatasetNames() throws IOException
     {
         Collection<String> names = JsonDownloader.getDatasetNames();
         assertTrue(names.size()>300);

@@ -15,14 +15,15 @@ public class ConverterTest {
     /**
      * Copy muenster into the /json folder and muenster.dataset next to the .class file of this file to run the test
      */
-    @Test
+    //@Test
     public void testCreateDataset() {
         Set<String> datasetSet = new TreeSet<>();
 
-        BufferedReader datasetReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("muenster.dataset")));
+        BufferedReader datasetReader = new BufferedReader(new InputStreamReader(
+                ConverterTest.class.getClassLoader().getResourceAsStream("muenster")));
 
         try {
-            String line = null;
+            String line;
             while ((line = datasetReader.readLine()) != null) {
                 datasetSet.add(line);
             }
@@ -32,16 +33,14 @@ public class ConverterTest {
             fail("Could not load example converted data: " + e);
         }
 
-        ByteArrayOutputStream datasetOut =new ByteArrayOutputStream();
-        ByteArrayOutputStream modelOut =new ByteArrayOutputStream();
+        ByteArrayOutputStream datasetOut = new ByteArrayOutputStream();
 
         Model model = DataModel.newModel();
         try {
             Converter.createDataset("muenster", model, datasetOut);
         } catch (Exception e) {
-            fail("Exception: " + e);
+            fail("Exception: " + e.getMessage());
         }
-        //model.write(modelOut);
 
         BufferedReader datasetIn = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(datasetOut.toByteArray())));
         try {
