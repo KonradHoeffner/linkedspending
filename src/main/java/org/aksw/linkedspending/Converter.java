@@ -141,7 +141,7 @@ public class Converter implements Runnable {
      */
     static void createDataset(String datasetName,Model model,OutputStream out)
             throws IOException, Exceptions.NoCurrencyFoundForCodeException, Exceptions.DatasetHasNoCurrencyException, Exceptions.MissingDataException, Exceptions.UnknownMappingTypeException, Exceptions.TooManyMissingValuesException
-            {
+    {
         @NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName); //linkedspending
         @NonNull URL sourceUrl = new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName+".json");
         @NonNull JsonNode datasetJson = readJSON(sourceUrl);
@@ -238,7 +238,7 @@ public class Converter implements Runnable {
         // todo: find out the language
         //        model.createStatement(arg0, arg1, arg2)
         //        System.out.println("Converting dataset "+url);
-            }
+    }
 
     public static JsonNode readJSON(URL url) throws IOException
     {
@@ -437,11 +437,11 @@ public class Converter implements Runnable {
      * writes statistics
      * deletes the model! @param url entries url, e.g. http://openspending.org/berlin_de/entries.json     (TODO: or http://openspending.org/api/2/search?dataset=berlin_de&format=json ?)
      * @param componentProperties the dimensions which are expected to be values for in all entries.
-    * @param datasetName the JSON-file to be read from */
+     * @param datasetName the JSON-file to be read from */
 
     static void createObservations(String datasetName,Model model,OutputStream out, Resource dataSet, Set<ComponentProperty> componentProperties,@Nullable Resource currency, Set<Resource> countries,@Nullable Literal yearLiteral)
             throws IOException, Exceptions.TooManyMissingValuesException
-            {
+    {
         ResultsReader in = new ResultsReader(datasetName);
         JsonNode result;
         boolean dateExists = false;
@@ -624,7 +624,7 @@ public class Converter implements Runnable {
             }
         }
         log.info(observations+" observations created.");
-            }
+    }
 
     public static void createViews(String datasetName,Model model, Resource dataSet) throws IOException
     {
@@ -655,7 +655,7 @@ public class Converter implements Runnable {
 
     public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url, detailedLogging, USE_CACHE);}
 
-    public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException    
+    public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
     {
         //        System.out.println(cache.getKeys());
         if(USE_CACHE)
@@ -664,19 +664,19 @@ public class Converter implements Runnable {
             if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
         }
         if(detailedLogging) {
-            log.fine("cache miss for "+url.toString());}        
+            log.fine("cache miss for "+url.toString());}
 
         // SWP 14 team: here is a start for the response code handling which you should get to work, I discontinued it because the connection
         // may be a non-httpurlconnection (if the url relates to a file) so maybe there should be two readJsonString methods, one for a file and one for an http url
         // or maybe it should be split into two methods where this one only gets a string as an input and the error handling for connections should be somewhere else
         // of course there shouldn't be System.out.println() statements, they are just placeholders.
-        // error handling isnt even that critical here but needs to be in any case in the JSON downloader for the big parts 
+        // error handling isnt even that critical here but needs to be in any case in the JSON downloader for the big parts
         //        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         //        connection.connect();
-        //        int response = connection.getResponseCode(); 
+        //        int response = connection.getResponseCode();
         //        switch(response)
         //        {
-        //            case HttpURLConnection.HTTP_OK: System.out.println("OK"); // fine, continue            
+        //            case HttpURLConnection.HTTP_OK: System.out.println("OK"); // fine, continue
         //            case HttpURLConnection.HTTP_GATEWAY_TIMEOUT: System.out.println("gateway timeout"); // retry
         //            case HttpURLConnection.HTTP_UNAVAILABLE: System.out.println("unavailable"); // abort
         //            default: log.error("unhandled http response code "+response+". Aborting download of dataset."); // abort
@@ -691,8 +691,8 @@ public class Converter implements Runnable {
                 if(!(firstChar=='{'||firstChar=='[')) {throw new IOException("JSON String for URL "+url+" seems to be invalid.");}
                 if(USE_CACHE) {
                     cache.put(new Element(url.toString(), datasetsJsonString));}
-                //IfAbsent            
-                return datasetsJsonString;            
+                //IfAbsent
+                return datasetsJsonString;
             }
         }
     }
@@ -870,7 +870,7 @@ public class Converter implements Runnable {
             {throw new IOException("Error with dataset "+datasetName+": array expected.");}
         }
 
-        @Nullable public JsonNode read() throws JsonParseException, IOException
+        @Nullable public JsonNode read() throws IOException
         {
             if(jp.nextToken() == JsonToken.END_ARRAY) {jp.close();return null;}
             JsonNode node = jp.readValueAsTree();

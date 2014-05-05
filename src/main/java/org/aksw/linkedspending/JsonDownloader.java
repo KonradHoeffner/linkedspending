@@ -61,11 +61,6 @@ public class JsonDownloader implements Runnable
     static final int MAX_THREADS = 10;
     /**object to handle event notifications in hole linkedspending system*/
     private static EventNotificationContainer eventContainer = new EventNotificationContainer();
-
-    //todo form KHoeffner:"at the moment the pagesize is constant but a possible improvement is dynamic one, starting out high and turning it down when there are errors"
-
-    /**???not used anyway*/
-    static boolean USE_PAGE_SIZE=false;
     /**the initial page size
      * @see #pageSize*/
     static final int INITIAL_PAGE_SIZE = 100;
