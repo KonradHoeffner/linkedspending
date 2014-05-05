@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.aksw</groupId>
 	<artifactId>openspending2rdf</artifactId>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>openspending2rdf</name>
 	<description>transformation of the openspending budget data from online json and csv to rdf for a dataset description publication</description>

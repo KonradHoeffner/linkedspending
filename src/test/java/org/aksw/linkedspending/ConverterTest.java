@@ -1,8 +1,8 @@
 package org.aksw.linkedspending;
 
 import com.hp.hpl.jena.rdf.model.Model;
+import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.tools.DataModel;
-import org.junit.Test;
 
 import java.io.*;
 import java.util.Set;
@@ -20,7 +20,7 @@ public class ConverterTest {
         Set<String> datasetSet = new TreeSet<>();
 
         BufferedReader datasetReader = new BufferedReader(new InputStreamReader(
-                ConverterTest.class.getClassLoader().getResourceAsStream("muenster")));
+                ConverterTest.class.getClassLoader().getResourceAsStream("muenster.dataset")));
 
         try {
             String line;

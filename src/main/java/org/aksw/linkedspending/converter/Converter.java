@@ -138,7 +138,7 @@ public class Converter implements Runnable {
      * @throws org.aksw.linkedspending.tools.Exceptions.UnknownMappingTypeException
      * @throws org.aksw.linkedspending.tools.Exceptions.TooManyMissingValuesException
      */
-    static void createDataset(String datasetName,Model model,OutputStream out)
+    static public void createDataset(String datasetName,Model model,OutputStream out)
             throws IOException, Exceptions.NoCurrencyFoundForCodeException, Exceptions.DatasetHasNoCurrencyException, Exceptions.MissingDataException, Exceptions.UnknownMappingTypeException, Exceptions.TooManyMissingValuesException
     {
         @NonNull URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName); //linkedspending

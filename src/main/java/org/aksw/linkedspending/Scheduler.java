@@ -1,5 +1,8 @@
 package org.aksw.linkedspending;
 
+import org.aksw.linkedspending.converter.Converter;
+import org.aksw.linkedspending.downloader.JsonDownloader;
+
 /** Pre-version of planned scheduler, which can (directly) control the JsonDownloader (start/stop/pause, all/specified datasets).*/
 //@Path("control")
 public class Scheduler
