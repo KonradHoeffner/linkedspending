@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.downloader;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -277,7 +277,7 @@ public class JsonDownloader implements Runnable
      * @param datasetName the name of the file
      * @return the file to the given dataset
      */
-    static File getFile(String datasetName) {return Paths.get(folder.getPath(),datasetName).toFile();}
+    static public File getFile(String datasetName) {return Paths.get(folder.getPath(),datasetName).toFile();}
 
     //todo what is this method for?
     public static @NonNull ArrayNode getResults(String datasetName) throws JsonProcessingException, IOException

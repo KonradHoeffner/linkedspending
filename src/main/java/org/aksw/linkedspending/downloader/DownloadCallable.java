@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.downloader;
 
 import lombok.extern.java.Log;
 import org.eclipse.jdt.annotation.Nullable;
@@ -16,7 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 
-import static org.aksw.linkedspending.HttpConnectionUtil.getConnection;
+import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
 
 /**Implements the logic for downloading a JSON-file within a thread. Is similar to the use of the Runnable Interface, but its call method can give a return value.<p>
  * If the dataset has no more than PAGE_SIZE results, it gets saved to json/datasetName, else it gets split into parts

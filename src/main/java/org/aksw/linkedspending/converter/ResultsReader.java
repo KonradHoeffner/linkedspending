@@ -1,10 +1,11 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.converter;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.io.IOException;
