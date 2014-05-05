@@ -3,9 +3,9 @@ package org.aksw.linkedspending.tools;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-/** Class to support a common format of eventNotification usable by both Downloader and Converter
+/** Class to support a common format of EventNotification usable by both Downloader and Converter
  * (and other modules as well) which can also be used to create some statistical information. */
-public class eventNotification
+public class EventNotification
 {
     /* Feel free to add more constants if needed */
     /* Type constants */
@@ -38,35 +38,37 @@ public class eventNotification
     private long time;
     private byte type;
     private byte causedBy;
+
+    //todo please write what this is for
     /** Not to be used for all events (only makes sense with types 0, 1, 2, 3 */
     private boolean success;
 
-    /** Creates new eventNotification.
-     * @param ty finishedDownloadingSingle = 0, finishedDownloadingComplete = 1, finishedConvertingSingle = 2, fileNotFound = 4,
-     *           unsupportedFileType = 5, outOfMemory = 6, startedDownloadingSingle = 7, startedDownloadingComplete = 8,
-     *           startedConvertingSingle = 9, startedConvertingComplete = 10, downloadStopped = 11, downloadPaused = 12,
-     *           downloadResumed = 13
-     * @param cB Converter = 0, Downloader = 1
+    /** Creates new EventNotification.
+     * @param type the type of Event to be created<br>finishedDownloadingSingle = 0<br>finishedDownloadingComplete = 1<br>finishedConvertingSingle = 2<br>fileNotFound = 4<br>
+     *           unsupportedFileType = 5<br>outOfMemory = 6<br>startedDownloadingSingle = 7<br>startedDownloadingComplete = 8<br>
+     *           startedConvertingSingle = 9<br>startedConvertingComplete = 10<br>downloadStopped = 11<br>downloadPaused = 12<br>
+     *           downloadResumed = 13<p>
+     * @param causedBy by what softwaremodul the event is caused<br>Converter = 0<br>Downloader = 1
      */
-    public eventNotification(int ty, int cB)
+    public EventNotification(int type, int causedBy)
     {
         time = System.currentTimeMillis();
-        type = (byte) ty;
-        causedBy = (byte) cB;
+        type = (byte) type;
+        causedBy = (byte) causedBy;
     }
 
-    /** Creates new eventNotification.
-     * @param ty finishedDownloadingSingle = 0, finishedDownloadingComplete = 1, finishedConvertingSingle = 2, fileNotFound = 4,
-     *           unsupportedFileType = 5, outOfMemory = 6, startedDownloadingSingle = 7, startedDownloadingComplete = 8,
-     *           startedConvertingSingle = 9, startedConvertingComplete = 10, downloadStopped = 11, downloadPaused = 12,
-     *           downloadResumed = 13
-     * @param cB Converter = 0, Downloader = 1
+    /** Creates new EventNotification.
+     * @param type the type of Event to be created<br>finishedDownloadingSingle = 0<br>finishedDownloadingComplete = 1<br>finishedConvertingSingle = 2<br>fileNotFound = 4<br>
+     *           unsupportedFileType = 5<br>outOfMemory = 6<br>startedDownloadingSingle = 7<br>startedDownloadingComplete = 8<br>
+     *           startedConvertingSingle = 9<br>startedConvertingComplete = 10<br>downloadStopped = 11<br>downloadPaused = 12<br>
+     *           downloadResumed = 13<p>
+     * @param causedBy by what softwaremodul the event is caused<br>Converter = 0<br>Downloader = 1
      */
-    public eventNotification(int ty, int cB, boolean success)
+    public EventNotification(int type, int causedBy, boolean success)
     {
         time = System.currentTimeMillis();
-        type = (byte) ty;
-        causedBy = (byte) cB;
+        type = (byte) type;
+        causedBy = (byte) causedBy;
         this.success = success;
     }
 

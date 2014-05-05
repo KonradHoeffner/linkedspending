@@ -1,10 +1,10 @@
-import org.junit.Test;
+package org.aksw.linkedspending;
 
+import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class CodeToCurrencyTest
 {
