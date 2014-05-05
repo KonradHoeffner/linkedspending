@@ -320,14 +320,14 @@ public class JsonDownloader implements Runnable
             {
                 if(pauseRequested)
                 {
-                    eventContainer.getEventNotifications().add(new EventNotification(12,1));
+                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
                     while(pauseRequested) {}
-                    eventContainer.getEventNotifications().add(new EventNotification(13,1));
+                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
                 if(stopRequested)             //added to make Downloader stoppable
                 {
-                    eventContainer.getEventNotifications().add(new EventNotification(11,1));
+                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
                     service.shutdown();
                     service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
                     downloadStopped = true;
@@ -519,15 +519,15 @@ public class JsonDownloader implements Runnable
         {
             if(completeRun)
             {
-                eventContainer.getEventNotifications().add(new EventNotification(8,1));
+                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader));
                 downloadAll();
-                eventContainer.getEventNotifications().add(new EventNotification(1,1,true));
+                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader, true));
             }
             else
             {
-                eventContainer.getEventNotifications().add(new EventNotification(7,1));
+                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader));
                 downloadSpecific(toBeDownloaded);
-                eventContainer.getEventNotifications().add(new EventNotification(0,1,true));
+                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedDownloadingSingle, EventNotification.EventSource.Downloader, true));
             }
             puzzleTogether();
         }

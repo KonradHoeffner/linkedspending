@@ -1,8 +1,8 @@
 package org.aksw.linkedspending;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.aksw.linkedspending.JsonDownloader;
-import org.aksw.linkedspending.ResultsReader;
+import org.aksw.linkedspending.converter.ResultsReader;
+import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.junit.Test;
 
 import java.io.IOException;
