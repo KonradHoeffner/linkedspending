@@ -62,7 +62,7 @@ public class Converter implements Runnable {
      */
     public static void setPauseRequested(boolean setTo) { pauseRequested = setTo; }
     /**whether the cache is used or not*/
-    static final boolean USE_CACHE = Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
+    static final boolean USE_CACHE = false;//Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
     /**???is a cache if USE_CACHE=true, otherwise null*/
     static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
     /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/

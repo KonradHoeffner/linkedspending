@@ -17,35 +17,47 @@ import java.net.URI;
 public class Scheduler
 {
     //public static final String BASE_URI = "http://localhost:8080/myapp/";
-    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
+    private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
     //private static final HttpServer server;
 
-    public static Thread downloaderThread;
-    public static Thread converterThread;
+    private static Thread downloaderThread;
+    private static Thread converterThread;
+    private static JsonDownloader downloader = new JsonDownloader();
+    private static Converter converter = new Converter();
 
     /** Starts complete download */
     @GET
     @Path("downloadcomplete")
     public static String runDownloader()
     {
-        JsonDownloader j = new JsonDownloader();
-        j.setStopRequested(false);
-        j.setPauseRequested(false);
-        j.setCompleteRun(true);
+        //JsonDownloader j = new JsonDownloader();
+        //j.setStopRequested(false);
+        //j.setPauseRequested(false);
+        //j.setCompleteRun(true);
+
+        downloader.setStopRequested(false);
+        downloader.setPauseRequested(false);
+        downloader.setCompleteRun(true);
         //Thread jDl = new Thread(new JsonDownloader());
         /*Thread jDl = new Thread(j);
         jDl.start();*/
-        downloaderThread = new Thread(j);
+        downloaderThread = new Thread(downloader);
         downloaderThread.start();
         return "Started complete download";
     }
 
-    /** Stops JsonDownloader. Already started downloads of datasets will be finished, but no new downloads will be started. */
+    /** Stops JsonDownloader. Already started downloads won't be finished, use it carefully! */
     @GET
     @Path("stopdownload")
     public static String stopDownloader()
     {
-        JsonDownloader.setStopRequested(true);
+
+        /*downloader.setStopRequested(true);
+        while(!downloader.getDownloadStopped())
+        {
+            try{ Thread.sleep(200); }
+            catch(InterruptedException e) { }
+        }*/
         downloaderThread.interrupt();
         return "Stopped downloading";
     }
@@ -55,7 +67,7 @@ public class Scheduler
     @Path("pausedownload")
     public static String pauseDownloader()
     {
-        JsonDownloader.setPauseRequested(true);
+        downloader.setPauseRequested(true);
         return "Paused Downloader";
     }
 
@@ -64,7 +76,7 @@ public class Scheduler
     @Path("resumedownload")
     public static String resumeDownload()
     {
-        JsonDownloader.setPauseRequested(false);
+        downloader.setPauseRequested(false);
         return "Resumed Downloader";
     }
 
@@ -72,11 +84,15 @@ public class Scheduler
     @Path("downlaodspecific/{param}")
     public static String downloadDataset(/*String datasetName,*/ @PathParam("param") String datasetName )
     {
-        JsonDownloader j = new JsonDownloader();
+        /*JsonDownloader j = new JsonDownloader();
         j.setCompleteRun(false);
         j.setToBeDownloaded(datasetName);
         Thread jThr = new Thread(j);
-        jThr.start();
+        jThr.start();*/
+        downloader.setCompleteRun(false);
+        downloader.setToBeDownloaded(datasetName);
+        downloaderThread = new Thread(downloader);
+        downloaderThread.start();
         return "Started downloading dataset " + datasetName;
     }
 
@@ -85,10 +101,15 @@ public class Scheduler
     @Path("convertcomplete")      //localhost:8080/openspending2rdfbla.war/control/convertcomplete
     public static String runConverter()
     {
-        Thread convThr = new Thread(new Converter());
+        /*Thread convThr = new Thread(new Converter());
         Converter.setPauseRequested(false);
         Converter.setStopRequested(false);
-        convThr.start();
+        convThr.start();*/
+
+        converter.setPauseRequested(false);
+        converter.setStopRequested(false);
+        converterThread = new Thread(converter);
+        converterThread.start();
         return "Started Converter.";
     }
 
@@ -97,7 +118,8 @@ public class Scheduler
     @Path("stopconvert")
     public static String stopConverter()
     {
-        Converter.setStopRequested(true);
+        //Converter.setStopRequested(true);
+        converterThread.interrupt();
         return "Stopped Converter.";
     }
 
@@ -109,7 +131,6 @@ public class Scheduler
         return "Paused Converter.";
     }
 
-
     /** Resumes converting process */
     @GET
     @Path("resumeconvert")
@@ -118,59 +139,14 @@ public class Scheduler
         return "Resumed Converter";
     }
 
-   /* private static void startGrizzly()  throws Exception
-    {
-
-        final String baseUri = "http://localhost:9998/";
-        final Map<String, String> initParams =
-                new HashMap<String, String>();
-
-        initParams.put("com.sun.jersey.config.property.packages",
-                "com.sun.jersey.samples.helloworld.resources");
-
-        System.out.println("Starting grizzly...");
-        SelectorThread threadSelector =
-                GrizzlyWebContainerFactory.create(baseUri, initParams);
-        System.out.println(String.format(
-                "Jersey app started with WADL available at %sapplication.wadl\n” +
-                “Try out %shelloworld\nHit enter to stop it...", baseUri, baseUri));
-        System.in.read();
-        threadSelector.stopEndpoint();
-        System.exit(0);
-    }*/
-    /*
-    public static HttpServer startServer() {
-        // create a resource config that scans for JAX-RS resources and providers
-        // in com.example package
-        //final ResourceConfig rc = new ResourceConfig().packages("org.aksw.linkedspending");
-        ResourceConfig resCon = new ResourceConfig(Scheduler.class);
-
-        //todo: fix error -> NoClassDefFoundError: javax/ws/rs/core/Configurable
-        System.out.println("ResourceConfig fine...");
-        // create and start a new instance of grizzly http server
-        // exposing the Jersey application at BASE_URI
-        //return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI));
-        return GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
-    }
-
-    public static void startGrizzly() throws IOException {
-        final HttpServer server = startServer();
-        System.out.println("startServer fine...");
-        System.out.println(String.format("Jersey app started with WADL available at "
-                + "%sapplication.wadl\nHit enter to stop it...", baseURI));
-
-        System.in.read();
-        server.stop();
-    }*/
-
     @GET
     @Path("shutdown")
     public static String shutdown()
     {
-        stopDownloader();
-        stopConverter();
+        if(downloaderThread != null) stopDownloader();
+        if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
-        return "Shutting down service.";
+        return "Service shutted down.";
     }
 
     public static void main(String[] args)

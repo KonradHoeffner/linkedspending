@@ -101,8 +101,9 @@ public class JsonDownloader implements Runnable
 
     //todo accessing cache causes NullPointerException (in readJSONString())
 
-    /**testing purposes*/
-    public static boolean downloadStopped = false;
+    private static boolean downloadStopped = false;
+    public boolean getDownloadStopped() {return downloadStopped;}
+
     /**The maximum days the downloader is waiting until shutdown.
      * Once a stopRequested=true signal is send to downloader it blocks and tries to finish its last tasks before shutting down.*/
     private static final long    TERMINATION_WAIT_DAYS    = 2;
@@ -315,6 +316,7 @@ public class JsonDownloader implements Runnable
         List<Future<Boolean>> futures = new LinkedList<>();
         int i=0;
         //creates a Future for each file that is to be downloaded
+
         for(String dataset: datasets)
         {
             {
@@ -323,7 +325,7 @@ public class JsonDownloader implements Runnable
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
                     while(pauseRequested)
                     {
-
+                        //todo fix this
                     }
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
@@ -354,6 +356,10 @@ public class JsonDownloader implements Runnable
         return false;
     }
 
+    static void downloadIfNotExisting()
+    {
+
+    }
 
     /**
      * Collects all parted Datasets from a specific File
