@@ -120,7 +120,7 @@ public class JsonDownloader implements Runnable
      */
     public static void setToBeDownloaded(String setTo) {toBeDownloaded = setTo;}
 
-    /**sets the property stopRequested wich makes Downloader stopable,
+    /**sets the property stopRequested which makes Downloader stoppable,
      * used by scheduler to stop JsonDownloader
      * @param setTo true makes downloader stopable*/
     public static void setStopRequested(boolean setTo) {stopRequested=setTo;}
@@ -321,7 +321,10 @@ public class JsonDownloader implements Runnable
                 if(pauseRequested)
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
-                    while(pauseRequested) {}
+                    while(pauseRequested)
+                    {
+
+                    }
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));

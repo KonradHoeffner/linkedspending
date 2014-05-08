@@ -20,6 +20,9 @@ public class Scheduler
     public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
     //private static final HttpServer server;
 
+    public static Thread downloaderThread;
+    public static Thread converterThread;
+
     /** Starts complete download */
     @GET
     @Path("downloadcomplete")
@@ -30,8 +33,10 @@ public class Scheduler
         j.setPauseRequested(false);
         j.setCompleteRun(true);
         //Thread jDl = new Thread(new JsonDownloader());
-        Thread jDl = new Thread(j);
-        jDl.start();
+        /*Thread jDl = new Thread(j);
+        jDl.start();*/
+        downloaderThread = new Thread(j);
+        downloaderThread.start();
         return "Started complete download";
     }
 
@@ -41,6 +46,7 @@ public class Scheduler
     public static String stopDownloader()
     {
         JsonDownloader.setStopRequested(true);
+        downloaderThread.interrupt();
         return "Stopped downloading";
     }
 
@@ -170,7 +176,9 @@ public class Scheduler
     public static void main(String[] args)
     {
         try{ GrizzlyHttpUtil.startServer(); }
-        catch (Exception e) {}
+        catch (Exception e) {e.printStackTrace();}
+        try { Thread.sleep(60000); }    //Puts Thread asleep for one minute to wait for commands via REST-interface
+        catch(InterruptedException e) {e.printStackTrace();}
 
         //downloadDataset("berlin_de");
         //runDownloader();
