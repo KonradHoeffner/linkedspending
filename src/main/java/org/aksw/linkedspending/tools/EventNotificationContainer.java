@@ -5,10 +5,12 @@ import java.util.Vector;
 /** Holds eventNotifications and can create statistical information */
 public class EventNotificationContainer
 {
+    /** A vector containing eventNotifications */
     private Vector<EventNotification> notifications;
 
     public EventNotificationContainer() {notifications = new Vector<>();}
 
+    /** @return Vector<EventNotification> notifications */
     public Vector<EventNotification> getEventNotifications() {return notifications;}
 
     /** Returns number of notifications of specified type caused by a certain module.

@@ -45,7 +45,19 @@
         </plugins>
     </build>
 
-	<dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>2.8</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
@@ -87,59 +99,31 @@
 			<type>pom</type>
 			<version>2.10.0</version>
 		</dependency>
+        <!--
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-grizzly2-http</artifactId>
+                <version>2.8</version>
+        </dependency>
+        -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-grizzly2-http</artifactId>
+            <version>2.8</version>
+        </dependency>
+        <!--		<dependency>
+                        <groupId>javax.ws.rs</groupId>
+                        <artifactId>javax.ws.rs-api</artifactId>
+                        <version>2.0</version>
+                        <scope>provided</scope>
+                </dependency>
 
-<!--		<dependency>
-    			<groupId>javax.ws.rs</groupId>
-    			<artifactId>javax.ws.rs-api</artifactId>
-    			<version>2.0</version>
-    			<scope>provided</scope>
-		</dependency>
-		<dependency>
-    			<groupId>org.glassfish.jersey.containers					</groupId>
-    			<artifactId>jersey-container-servlet						</artifactId>
-    			<version>2.8</version>
-    			<scope>provided</scope>
-		</dependency>
                 <dependency>
-    			<groupId>commons-digester</groupId>
-    			<artifactId>commons-digester</artifactId>
-    			<version>2.1</version>
-		</dependency>
-		
-		
-        <dependency>  
-          <groupId>com.sun.jersey</groupId>  
-          <artifactId>jersey-servlet</artifactId>  
-          <version>1.12</version>  
-          <scope>runtime</scope>  
-        </dependency>  
-
-	<dependency>
-    		<groupId>org.glassfish.jersey.containers</groupId>
-    		<artifactId>jersey-container-servlet</artifactId>
-    		<version>2.7</version>
-   		 <scope>provided</scope>
-		</dependency>
-
-	
--->
-		<dependency>
-    			<groupId>org.glassfish.jersey.containers</groupId>
-    			<artifactId>jersey-container-servlet</artifactId>
-    			<version>2.7</version>
-   			<scope>provided</scope>
-		</dependency>
-		<!--<dependency>
-   			 <groupId>javax.ws.rs</groupId>
-    			<artifactId>javax.ws.rs-api</artifactId>
-    			<version>2.0</version>
-    			<scope>provided</scope>
-		</dependency>-->
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-catalina</artifactId>
-			<version>7.0.16</version>
-		</dependency>
+                    <groupId>asm</groupId>
+                    <artifactId>asm</artifactId>
+                    <version>3.3.1</version>
+                </dependency>
+        -->
        	     
 	</dependencies>
 
