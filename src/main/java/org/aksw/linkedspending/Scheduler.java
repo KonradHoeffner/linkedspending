@@ -2,23 +2,22 @@ package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
+import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
 /** Pre-version of planned scheduler, which can (directly) control the JsonDownloader (start/stop/pause, all/specified datasets).*/
 @Path("control")
 public class Scheduler
 {
-    public static final String BASE_URI = "http://localhost:8080/myapp/";
+    //public static final String BASE_URI = "http://localhost:8080/myapp/";
+    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
     //private static final HttpServer server;
 
     /** Starts complete download */
@@ -113,7 +112,7 @@ public class Scheduler
         return "Resumed Converter";
     }
 
-    /*private static void startGrizzly()  throws Exception
+   /* private static void startGrizzly()  throws Exception
     {
 
         final String baseUri = "http://localhost:9998/";
@@ -133,33 +132,45 @@ public class Scheduler
         threadSelector.stopEndpoint();
         System.exit(0);
     }*/
+    /*
     public static HttpServer startServer() {
         // create a resource config that scans for JAX-RS resources and providers
         // in com.example package
-        final ResourceConfig rc = new ResourceConfig().packages("org.aksw.linkedspending");
+        //final ResourceConfig rc = new ResourceConfig().packages("org.aksw.linkedspending");
+        ResourceConfig resCon = new ResourceConfig(Scheduler.class);
+
         //todo: fix error -> NoClassDefFoundError: javax/ws/rs/core/Configurable
         System.out.println("ResourceConfig fine...");
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
         //return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI));
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+        return GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
     }
 
     public static void startGrizzly() throws IOException {
         final HttpServer server = startServer();
         System.out.println("startServer fine...");
         System.out.println(String.format("Jersey app started with WADL available at "
-                + "%sapplication.wadl\nHit enter to stop it...", BASE_URI));
+                + "%sapplication.wadl\nHit enter to stop it...", baseURI));
 
         System.in.read();
         server.stop();
+    }*/
+
+    @GET
+    @Path("shutdown")
+    public static String shutdown()
+    {
+        stopDownloader();
+        stopConverter();
+        GrizzlyHttpUtil.shutdownGrizzly();
+        return "Shutting down service.";
     }
 
     public static void main(String[] args)
     {
-        try{ startGrizzly(); }
+        try{ GrizzlyHttpUtil.startServer(); }
         catch (Exception e) {}
-        //System.out.println("Grizzly is running....");
 
         //downloadDataset("berlin_de");
         //runDownloader();
