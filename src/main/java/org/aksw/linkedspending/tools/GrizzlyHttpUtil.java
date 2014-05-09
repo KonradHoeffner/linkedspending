@@ -8,12 +8,14 @@ import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
 /** Sets up and handles a GrizzlyHttp provided by Jersey. */
-public class GrizzlyHttpUtil {
+public class GrizzlyHttpUtil
+{
     public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
     private static final HttpServer server = startServer();
 
     /** Creates a new http server */
-    public static HttpServer startServer() {
+    public static HttpServer startServer()
+    {
         ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
         return GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
     }
