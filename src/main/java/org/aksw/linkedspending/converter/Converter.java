@@ -770,4 +770,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
         return file;
     }
 
+    public static void main(String[] args)
+    {
+        new Converter().run();
+    }
 }
