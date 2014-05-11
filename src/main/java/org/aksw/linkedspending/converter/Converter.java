@@ -15,9 +15,8 @@ import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
 import lombok.NonNull;
 import lombok.extern.java.Log;
-import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
+import org.aksw.linkedspending.OpenspendingSoftwareModul;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.*;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -34,7 +33,7 @@ import java.util.logging.LogManager;
 @Log
 @NonNullByDefault
 @SuppressWarnings("serial")
-public class Converter implements Runnable {
+public class Converter extends OpenspendingSoftwareModul implements Runnable {
 
     static final Map<String,String> codeToCurrency = new HashMap<>();
     static final Map<Pair<String>,String> datasetPropertyNameToUri = new HashMap<>();
@@ -43,32 +42,9 @@ public class Converter implements Runnable {
     static ObjectMapper m = new ObjectMapper();
     static List<String> faultyDatasets = new LinkedList<>();
     static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
-    /**sets downloader stopable*/
-    private static boolean stopRequested = false;
-    /**pauses downloader until set to false again*/
-    private static boolean pauseRequested = false;
-    /**handles event notifications in hole linkedspending system*/
-    private static EventNotificationContainer eventContainer = new EventNotificationContainer();
 
-    /**sets the property stopRequested wich makes Downloader stopable,
-     * used by scheduler to stop JsonDownloader
-     * @param setTo true makes downloader stopable*/
-    public static void setStopRequested(boolean setTo) { stopRequested = setTo; }
-
-    /**
-     * sets whether the downloader should stop, even before having finished
-     * @param setTo true if downloader shall stop
-     * @see #pauseRequested
-     */
-    public static void setPauseRequested(boolean setTo) { pauseRequested = setTo; }
-    /**whether the cache is used or not*/
-    static final boolean USE_CACHE = false;//Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
-    /**???is a cache if USE_CACHE=true, otherwise null*/
-    static final Cache cache = USE_CACHE?CacheManager.getInstance().getCache("openspending-json"):null;
     /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-    /**the name of the folder, where the downloaded JSON-files are stored*/
-    static File folder = new File(PROPERTIES.getProperty("pathRdf"));
     /**
      * Map for all files to be loaded into the Converter
      */
@@ -239,10 +215,6 @@ public class Converter implements Runnable {
         //        System.out.println("Converting dataset "+url);
     }
 
-    public static JsonNode readJSON(URL url) throws IOException
-    {
-        return readJSON(url, false);
-    }
 
     /** Takes a json url of an openspending dataset model and extracts rdf into a jena model.
      * The DataStructureDefinition (DSD) specifies the structure of a dataset and contains a set of qb:ComponentSpecification resources.
@@ -642,59 +614,7 @@ public class Converter implements Runnable {
         }
     }
 
-    public static JsonNode readJSON(URL url,boolean detailedLogging) throws IOException
-    {
-        String content = readJSONString(url, detailedLogging);
-        if(detailedLogging) {
-            log.fine("finished loading text, creating json object from text");}
-        return m.readTree(content);
-        //        try {return new JsonNode(readJSONString(url));}
-        //        catch(JSONException e) {throw new IOException("Could not create a JSON object from string "+readJSONString(url),e);}
-    }
 
-    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {return readJSONString(url, detailedLogging, USE_CACHE);}
-
-    public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
-    {
-        //        System.out.println(cache.getKeys());
-        if(USE_CACHE)
-        {
-            Element e = cache.get(url.toString());
-            if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
-        }
-        if(detailedLogging) {
-            log.fine("cache miss for "+url.toString());}
-
-        // SWP 14 team: here is a start for the response code handling which you should get to work, I discontinued it because the connection
-        // may be a non-httpurlconnection (if the url relates to a file) so maybe there should be two readJsonString methods, one for a file and one for an http url
-        // or maybe it should be split into two methods where this one only gets a string as an input and the error handling for connections should be somewhere else
-        // of course there shouldn't be System.out.println() statements, they are just placeholders.
-        // error handling isnt even that critical here but needs to be in any case in the JSON downloader for the big parts
-        //        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        //        connection.connect();
-        //        int response = connection.getResponseCode();
-        //        switch(response)
-        //        {
-        //            case HttpURLConnection.HTTP_OK: System.out.println("OK"); // fine, continue
-        //            case HttpURLConnection.HTTP_GATEWAY_TIMEOUT: System.out.println("gateway timeout"); // retry
-        //            case HttpURLConnection.HTTP_UNAVAILABLE: System.out.println("unavailable"); // abort
-        //            default: log.error("unhandled http response code "+response+". Aborting download of dataset."); // abort
-        //        }
-        //        try(Scanner undelimited = new Scanner(connection.getInputStream(), "UTF-8"))
-        try(Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
-        {
-            try(Scanner scanner = undelimited.useDelimiter("\\A"))
-            {
-                String datasetsJsonString = scanner.next();
-                char firstChar = datasetsJsonString.charAt(0);
-                if(!(firstChar=='{'||firstChar=='[')) {throw new IOException("JSON String for URL "+url+" seems to be invalid.");}
-                if(USE_CACHE) {
-                    cache.put(new Element(url.toString(), datasetsJsonString));}
-                //IfAbsent
-                return datasetsJsonString;
-            }
-        }
-    }
 
     static void shutdown(int status)
     {
@@ -718,7 +638,6 @@ public class Converter implements Runnable {
         //        catch(JSONException e) {throw new IOException("Could not create a JSON array from string "+readJSONString(url),e);}
     }
 
-    public static String readJSONString(URL url) throws IOException {return readJSONString(url, false, USE_CACHE);}
 
     static void deleteDataset(String datasetName)
     {

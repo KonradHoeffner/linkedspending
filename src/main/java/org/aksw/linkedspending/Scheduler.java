@@ -35,8 +35,8 @@ public class Scheduler
         //j.setPauseRequested(false);
         //j.setCompleteRun(true);
 
-        downloader.setStopRequested(false);
-        downloader.setPauseRequested(false);
+        OpenspendingSoftwareModul.setStopRequested(false);
+        OpenspendingSoftwareModul.setPauseRequested(false);
         downloader.setCompleteRun(true);
         //Thread jDl = new Thread(new JsonDownloader());
         /*Thread jDl = new Thread(j);
@@ -67,7 +67,7 @@ public class Scheduler
     @Path("pausedownload")
     public static String pauseDownloader()
     {
-        downloader.setPauseRequested(true);
+        OpenspendingSoftwareModul.setPauseRequested(true);
         return "Paused Downloader";
     }
 
@@ -76,7 +76,7 @@ public class Scheduler
     @Path("resumedownload")
     public static String resumeDownload()
     {
-        downloader.setPauseRequested(false);
+        OpenspendingSoftwareModul.setPauseRequested(false);
         return "Resumed Downloader";
     }
 

@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import lombok.extern.java.Log;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
+import org.aksw.linkedspending.OpenspendingSoftwareModul;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.EventNotificationContainer;
 import org.aksw.linkedspending.tools.PropertiesLoader;
@@ -16,7 +14,6 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
@@ -29,10 +26,9 @@ import java.util.logging.LogManager;
 @NonNullByDefault
 @Log
 @SuppressWarnings("serial")
-public class JsonDownloader implements Runnable
+public class JsonDownloader extends OpenspendingSoftwareModul implements Runnable
 {
 
-    //todo differentiated exception handling needed in hole class
 
     // public static boolean finished = false;
 
@@ -42,18 +38,12 @@ public class JsonDownloader implements Runnable
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     /**testmode that makes Downloader only download one file from openspending:"berlin_de"*/
     static boolean TEST_MODE_ONLY_BERLIN = false;
-    /**sets downloader stopable*/
-    private static boolean stopRequested = false;
-    /**pauses downloader until set to false again*/
-    private static boolean pauseRequested =false;
     /**makes downloader load all files from openspending; opposite concrete file in field toBeDownloaded*/
     private static boolean completeRun = true;
     /**field with one(not shure if several possible too) specific file to be downloaded from openspending; used, when completeRun=false*/
     private static String toBeDownloaded;
     /**maximum number of threads used by downloader*/
     static final int MAX_THREADS = 10;
-    /**object to handle event notifications in hole linkedspending system*/
-    private static EventNotificationContainer eventContainer = new EventNotificationContainer();
     /**the initial page size
      * @see #pageSize*/
     static final int INITIAL_PAGE_SIZE = 100;
@@ -64,8 +54,6 @@ public class JsonDownloader implements Runnable
      * If the number of entries is bigger than pagesize, the file is split into several parts and stored in the .../json/parts/"pagesize"/"datasetname" folder.
      * Else the file is stored completely in the .../json/"datasetname" file.*/
     static final int pageSize = INITIAL_PAGE_SIZE;
-    /**the name of the folder, where the downloaded JSON-files are stored*/
-    static File folder = new File(PROPERTIES.getProperty("pathJson"));
     /**name of the root-folder, where the downloaded and splitted JSON-files are stored
      * @see #pageSize "pageSize" for more details*/
     static File rootPartsFolder = new File(PROPERTIES.getProperty("pathParts"));
@@ -90,14 +78,7 @@ public class JsonDownloader implements Runnable
     @SuppressWarnings("null") static final Set<String> emptyDatasets = Collections.synchronizedSet(new HashSet<String>());
     /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
-    /**used to convert from JSON-file to Java-object and vice versa*/
-    static ObjectMapper m = new ObjectMapper();
-    /**whether the cache is used or not*/
-    static final boolean USE_CACHE = false;// Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
 
-    //todo following comment
-    /**???is a cache if USE_CACHE=true, otherwise null*/
-    static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null;
 
     //todo accessing cache causes NullPointerException (in readJSONString())
 
@@ -109,22 +90,11 @@ public class JsonDownloader implements Runnable
     private static final long    TERMINATION_WAIT_DAYS    = 2;
 
     /**
-     * gets event container to deal with events
-     * @return the event container
-     */
-    public static EventNotificationContainer getEventContainer() {return eventContainer;}
-
-    /**
      * sets a JSON-file to be downloaded from openspending
      * @param setTo the filename of the JSON-file
      * @see #toBeDownloaded
      */
     public static void setToBeDownloaded(String setTo) {toBeDownloaded = setTo;}
-
-    /**sets the property stopRequested which makes Downloader stoppable,
-     * used by scheduler to stop JsonDownloader
-     * @param setTo true makes downloader stopable*/
-    public static void setStopRequested(boolean setTo) {stopRequested=setTo;}
 
     /**
      * sets whether all files are to be downloaded from openspending
@@ -132,110 +102,6 @@ public class JsonDownloader implements Runnable
      * @see #completeRun
      */
     public static void setCompleteRun(boolean setTo) {completeRun = setTo;}
-
-    /**
-     * sets whether the downloader should stop, even before having finished
-     * @param setTo true if downloader shall stop
-     * @see #pauseRequested
-     */
-    public static void setPauseRequested(boolean setTo) {pauseRequested = setTo;}
-
-    /**
-     * returns a JSON-string from the given url
-     * @param url the url where the JSON-string is located
-     * @return a string containing a JSON-object
-     * @throws IOException
-     */
-    public static String readJSONString(URL url) throws IOException {
-        return readJSONString(url, false, USE_CACHE);
-    }
-
-    /**
-     * returns a JSON-string from the given url
-     * @param url the url where the JSON-string is located
-     * @param detailedLogging true for better logging
-     * @return a string containing a JSON-object
-     * @throws IOException
-     */
-    public static String readJSONString(URL url,boolean detailedLogging) throws IOException {
-        return readJSONString(url, detailedLogging, USE_CACHE);
-    }
-
-    /**
-     * reads a JSON-string from openspending and returns it
-     * @param url the url for the string
-     * @param detailedLogging true for better logging
-     * @param USE_CACHE
-     * @return a JSON-string
-     * @throws IOException
-     */
-    public static String readJSONString(URL url,boolean detailedLogging,boolean USE_CACHE) throws IOException
-    {
-        //        System.out.println(cache.getKeys());
-        if(USE_CACHE)
-        {
-            Element e = cache.get(url.toString());
-            if(e!=null) {/*System.out.println("cache hit for "+url.toString());*/return (String)e.getObjectValue();}
-        }
-        if(detailedLogging) {log.fine("cache miss for "+url.toString());}
-
-        // SWP 14 team: here is a start for the response code handling which you should get to work, I discontinued it because the connection
-        // may be a non-httpurlconnection (if the url relates to a file) so maybe there should be two readJsonString methods, one for a file and one for an http url
-        // or maybe it should be split into two methods where this one only gets a string as an input and the error handling for connections should be somewhere else
-        // of course there shouldn't be System.out.println() statements, they are just placeholders.
-        // error handling isnt even that critical here but needs to be in any case in the JSON downloader for the big parts
-        //        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        //        connection.connect();
-        //        int response = connection.getResponseCode();
-        //        switch(response)
-        //        {
-        //            case HttpURLConnection.HTTP_OK: System.out.println("OK"); // fine, continue
-        //            case HttpURLConnection.HTTP_GATEWAY_TIMEOUT: System.out.println("gateway timeout"); // retry
-        //            case HttpURLConnection.HTTP_UNAVAILABLE: System.out.println("unavailable"); // abort
-        //            default: log.error("unhandled http response code "+response+". Aborting download of dataset."); // abort
-        //        }
-        //        try(Scanner undelimited = new Scanner(connection.getInputStream(), "UTF-8"))
-        try(Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
-        {
-            try(Scanner scanner = undelimited.useDelimiter("\\A"))
-            {
-                String datasetsJsonString = scanner.next();
-                char firstChar = datasetsJsonString.charAt(0);
-                if(!(firstChar=='{'||firstChar=='[')) {throw new IOException("JSON String for URL "+url+" seems to be invalid.");}
-                if(USE_CACHE) {cache.put(new Element(url.toString(), datasetsJsonString));}
-                //IfAbsent
-                return datasetsJsonString;
-            }
-        }
-    }
-
-    /**
-     * reads a JSON-string from an url and converts it into a JSON-object
-     * @param url the url where the JSON-string is located
-     * @param detailedLogging true for better logging
-     * @return a JSON-object
-     * @throws JsonProcessingException
-     * @throws IOException
-     */
-    public static JsonNode readJSON(URL url,boolean detailedLogging) throws JsonProcessingException, IOException
-    {
-        String content = readJSONString(url,detailedLogging);
-        if(detailedLogging) {log.fine("finished loading text, creating json object from text");}
-        return m.readTree(content);
-        //        try {return new JsonNode(readJSONString(url));}
-        //        catch(JSONException e) {throw new IOException("Could not create a JSON object from string "+readJSONString(url),e);}
-    }
-
-    /**
-     * reads a JSON-string from an url and converts it into a JSON-object
-     * @param url the url where the JSON-string is located
-     * @return a JSON-object
-     * @throws IOException
-     */
-    public static JsonNode readJSON(URL url) throws IOException
-    {
-        return readJSON(url,false);
-    }
 
     //todo does the cache file get updated once in a while? if not functionality is needed
     /**
@@ -286,23 +152,9 @@ public class JsonDownloader implements Runnable
         return (ArrayNode)m.readTree(getFile(datasetName)).get("results");
     }
 
-    //todo All 5 readJSON... methods exist only to retrieve one integer-value from an url???(some side effects are error handling)
     /**
-     * Reads a JSON-string from an url of openspending. Converts it into a JSON-object
-     * Retrieves only one Integer-value from the field:"results_count_query".
-     * @param datasetName the name of a dataset on openspending
-     * @return the number of results, that the dataset contains
-     * @throws MalformedURLException
-     * @throws IOException
-     */
-    public static int nrEntries(String datasetName) throws MalformedURLException, IOException
-    {
-        return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0")).get("stats").get("results_count_query").asInt();
-    }
-
-
-    /**
-     * downloads a set of datasets. datasets over a certain size are downloaded in parts.
+     * Downloads a set of datasets. datasets over a certain size are downloaded in parts.
+     * Uses multithreading futures to download files.
      * @param datasets a Collection of all filenames to be downloaded from openspending
      * @return returns true if stopped by Scheduler, false otherwise
      * @throws IOException
@@ -316,21 +168,20 @@ public class JsonDownloader implements Runnable
         List<Future<Boolean>> futures = new LinkedList<>();
         int i=0;
         //creates a Future for each file that is to be downloaded
-
         for(String dataset: datasets)
         {
             {
-                if(pauseRequested)
+                if(OpenspendingSoftwareModul.pauseRequested)
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
-                    while(pauseRequested)
+                    while(OpenspendingSoftwareModul.pauseRequested)
                     {
                         //todo fix this
                     }
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(stopRequested)             //added to make Downloader stoppable
+                if(OpenspendingSoftwareModul.stopRequested)             //added to make Downloader stoppable
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
                     service.shutdown();
@@ -342,7 +193,7 @@ public class JsonDownloader implements Runnable
         }
         ThreadMonitor monitor = new ThreadMonitor(service);
         monitor.start();
-        //here starts the real downloading of all JSON-files(takes a long while)
+
         for(Future<Boolean> future : futures)
         {
             try{if(future.get()) {successCount++;}}
@@ -356,10 +207,6 @@ public class JsonDownloader implements Runnable
         return false;
     }
 
-    static void downloadIfNotExisting()
-    {
-
-    }
 
     /**
      * Collects all parted Datasets from a specific File
