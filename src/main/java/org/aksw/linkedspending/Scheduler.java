@@ -146,15 +146,27 @@ public class Scheduler
         if(downloaderThread != null) stopDownloader();
         if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
-        return "Service shutted down.";
+        return "Service shut down.";
     }
 
     public static void main(String[] args)
     {
-        try{ GrizzlyHttpUtil.startServer(); }
-        catch (Exception e) {e.printStackTrace();}
-        try { Thread.sleep(60000); }    //Puts Thread asleep for one minute to wait for commands via REST-interface
-        catch(InterruptedException e) {e.printStackTrace();}
+        try
+        {
+            GrizzlyHttpUtil.startServer();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            Thread.sleep(60000); //Puts Thread asleep for one minute to wait for commands via REST-interface
+        }
+        catch(InterruptedException e)
+        {
+            e.printStackTrace();
+        }
 
         //downloadDataset("berlin_de");
         //runDownloader();
