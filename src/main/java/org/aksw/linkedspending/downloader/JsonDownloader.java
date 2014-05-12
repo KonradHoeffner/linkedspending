@@ -315,7 +315,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
      * merges part-files
      * @see #mergeJsonParts(java.util.Map)
      */
-    protected static void puzzleTogether()
+    protected synchronized static void puzzleTogether()
     {
         mergeJsonParts(getDataFiles(rootPartsFolder));
     }
@@ -328,7 +328,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
      * @throws InterruptedException
      * @throws ExecutionException
      */
-    protected static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
+    public static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
     {
         datasetNames = new TreeSet<>(Collections.singleton(datasetName));
         downloadIfNotExisting(datasetNames);
