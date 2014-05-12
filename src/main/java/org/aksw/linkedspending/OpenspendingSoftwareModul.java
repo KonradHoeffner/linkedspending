@@ -43,7 +43,10 @@ public class OpenspendingSoftwareModul {
     /**used to convert from JSON-file to Java-object and vice versa*/
     protected static ObjectMapper m = new ObjectMapper();
     /**the name of the folder, where the downloaded JSON-files are stored*/
-    public static File folder = new File(PROPERTIES.getProperty("pathRdf"));
+    public static File pathJson = new File(PROPERTIES.getProperty("pathJson"));
+    /**the name of the folder, where the downloaded RDF-files are stored*/
+    public static File pathRdf = new File(PROPERTIES.getProperty("pathRdf"));
+
 
     /**
      * returns a JSON-string from the given url

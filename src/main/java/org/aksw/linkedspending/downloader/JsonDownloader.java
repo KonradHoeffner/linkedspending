@@ -8,7 +8,6 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModul;
 import org.aksw.linkedspending.tools.EventNotification;
-import org.aksw.linkedspending.tools.EventNotificationContainer;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -36,8 +35,8 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     enum Position {TOP,MID,BOTTOM};
     /** external properties to be used in Project */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
-    /**testmode that makes Downloader only download one file from openspending:"berlin_de"*/
-    static boolean TEST_MODE_ONLY_BERLIN = false;
+    /**testmode that makes Downloader only download a specific dataset*/
+    static String TEST_MODE = null;
     /**makes downloader load all files from openspending; opposite concrete file in field toBeDownloaded*/
     private static boolean completeRun = true;
     /**field with one(not shure if several possible too) specific file to be downloaded from openspending; used, when completeRun=false*/
@@ -68,9 +67,21 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     /**set for the names of already locally saved JSON-files known to the downloader*/
     static protected SortedSet<String> datasetNames = new TreeSet<>();
 
-    static {if(!CACHE.exists()) {CACHE.mkdir();}}
-    static {if(!folder.exists()) {folder.mkdir();}}
-    static {if(!rootPartsFolder.exists()) {rootPartsFolder.mkdir();}}
+    static {
+        if(!CACHE.exists()) {
+            CACHE.mkdir();
+        }
+    }
+    static {
+        if(!pathJson.exists()) {
+            pathJson.mkdirs();
+        }
+    }
+    static {
+        if(!rootPartsFolder.exists()) {
+            rootPartsFolder.mkdirs();
+        }
+    }
 
     /**represents all the empty JSON-files in a set; highly interacts with: emptyDatasetFile<br>
      * is used for example to remove empty datasets from downloading-process
@@ -144,7 +155,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
      * @param datasetName the name of the file
      * @return the file to the given dataset
      */
-    static public File getFile(String datasetName) {return Paths.get(folder.getPath(),datasetName).toFile();}
+    static public File getFile(String datasetName) {return Paths.get(pathJson.getPath(),datasetName).toFile();}
 
     //todo what is this method for?
     public static @NonNull ArrayNode getResults(String datasetName) throws JsonProcessingException, IOException
@@ -216,6 +227,9 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     protected static Map<String, File> getDataFiles(File foldername)
     {
         Map<String,File> datasetToFolder = new HashMap<>();
+        if(!foldername.exists()) {
+            foldername.mkdirs();
+        }
         for(File folder : foldername.listFiles())
         {
             if(folder.isDirectory()) {
@@ -232,10 +246,10 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
 
     protected static void mergeJsonParts(Map<String, File> partData)
     {
-        //for each folder containing parts
+        //for each pathJson containing parts
         for (String dataset : partData.keySet()) {
-            File targetFile = new File(folder.getPath() + "/" + dataset);
-            File mergeFile = new File(folder.getPath() + "/" + dataset + ".tmp");
+            File targetFile = new File(pathJson.getPath() + "/" + dataset);
+            File mergeFile = new File(pathJson.getPath() + "/" + dataset + ".tmp");
             if(mergeFile.exists()) {
                 mergeFile.delete();
             }
@@ -243,7 +257,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             try (PrintWriter out = new PrintWriter(mergeFile)) {
                 int partNr = 0;
                 File[] parts = partData.get(dataset).listFiles();
-                //for each file in the parts folder
+                //for each file in the parts pathJson
                 for (File f : parts) {
                     if (f.length() == 0) {
                         log.severe(f + " is existing but empty.");
@@ -340,7 +354,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     protected static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
     {
         downloadStopped = false;
-        if(TEST_MODE_ONLY_BERLIN) {datasetNames=new TreeSet<>(Collections.singleton("berlin_de"));}
+        if(TEST_MODE != null) {datasetNames=new TreeSet<>(Collections.singleton(TEST_MODE));}
         else
         {
             if(emptyDatasetFile.exists())

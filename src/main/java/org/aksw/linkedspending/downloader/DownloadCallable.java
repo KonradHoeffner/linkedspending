@@ -55,9 +55,9 @@ class DownloadCallable implements Callable<Boolean>
     @Override public @Nullable
     Boolean call() throws IOException, InterruptedException
     {
-        Path path = Paths.get(OpenspendingSoftwareModul.folder.getPath(), datasetName);
+        Path path = Paths.get(OpenspendingSoftwareModul.pathJson.getPath(), datasetName);
         File file = path.toFile();
-        File partsFolder = new File(OpenspendingSoftwareModul.folder.toString()+"/parts/"+datasetName);
+        File partsFolder = new File(OpenspendingSoftwareModul.pathJson.toString()+"/parts/"+datasetName);
         File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");
         //            Path partsPath = Paths.get(partsFolder.getPath(),datasetName);
         log.fine(nr + " Fetching number of entries for dataset " + datasetName);

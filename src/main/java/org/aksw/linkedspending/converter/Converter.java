@@ -42,6 +42,11 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
     static ObjectMapper m = new ObjectMapper();
     static List<String> faultyDatasets = new LinkedList<>();
     static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
+    static {
+        if(!pathRdf.exists()) {
+            pathRdf.mkdirs();
+        }
+    }
 
     /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
@@ -664,7 +669,6 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
         try {
             int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
             float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
-            folder.mkdir();
             // observations use saved datasets so we need the saved names, if we only create the schema we can use the newest dataset names
             SortedSet<String> datasetNames =  getSavedDatasetNames();
             // TODO: parallelize
@@ -766,7 +770,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
     static File getDatasetFile(String name)
     {
         File file = files.get(name);
-        if(file==null) files.put(name,file= new File(folder+"/"+name+".nt"));
+        if(file==null) files.put(name,file= new File(pathRdf +"/"+name+".nt"));
         return file;
     }
 
