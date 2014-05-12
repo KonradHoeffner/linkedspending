@@ -17,8 +17,6 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 
 /** Downloads entry files from openspending.org. Provides the input for and thus has to be run before Converter.
  * Datasets are processed in paralllel. Each dataset with more than {@value #pageSize} entries is split into parts with that many entries. **/
@@ -32,7 +30,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     // public static boolean finished = false;
 
     /** helps to merge JSON-parts by representing a relative position in a given parts-file*/
-    enum Position {TOP,MID,BOTTOM};
+    enum Position {TOP,MID,BOTTOM}
     /** external properties to be used in Project */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     /**testmode that makes Downloader only download a specific dataset*/
@@ -46,8 +44,6 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     /**the initial page size
      * @see #pageSize*/
     static final int INITIAL_PAGE_SIZE = 100;
-    /**???not used anyway*/
-    static final int MIN_PAGE_SIZE = 100;
     /**the maximum number of JSON-objects in the JSON-array of a downloaded file in the parts folder<br>
      * explanation: The downloader loads JSON-files from openspending. The JSON-files are stored in .../json.
      * If the number of entries is bigger than pagesize, the file is split into several parts and stored in the .../json/parts/"pagesize"/"datasetname" folder.
@@ -383,8 +379,6 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     {
         //finished = false;
         long startTime = System.currentTimeMillis();
-        System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-        try{LogManager.getLogManager().readConfiguration();log.setLevel(Level.FINER);} catch ( Exception e ) { e.printStackTrace();}
         try
         {
             if(completeRun)

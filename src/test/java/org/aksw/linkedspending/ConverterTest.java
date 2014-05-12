@@ -1,21 +1,66 @@
 package org.aksw.linkedspending;
 
 import com.hp.hpl.jena.rdf.model.Model;
+import lombok.extern.java.Log;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.tools.DataModel;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.*;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
+@Log
 public class ConverterTest {
+
+    @Before
+    public void copyFiles() {
+        InputStream inStream = null;
+        FileOutputStream outStream = null;
+        try {
+            inStream = ConverterTest.class.getClassLoader().getResourceAsStream("muenster");
+            outStream = new FileOutputStream(new File("json/muenster"));
+            int read;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inStream.read(bytes)) != -1) {
+                outStream.write(bytes, 0, read);
+            }
+        } catch (IOException e) {
+            fail("Could not copy test file");
+        }  finally {
+            if(inStream != null) {
+                try {
+                    inStream.close();
+                } catch (IOException e) {
+                    log.warning("Error closing input stream: " + e.getMessage());
+                }
+            }
+            if(outStream != null) {
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    log.warning("Error closing output stream: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @After
+    public void deleteFiles() {
+        File test = new File("json/muenster");
+        if(test.exists()) {
+            test.delete();
+        }
+    }
+
     /**
-     * Copy muenster into the /json folder and muenster.dataset next to the .class file of this file to run the test
+     * Copy muenster into the /json folder and muenster.dataset next to the .class file of this file to run the muenster
      */
-    //@Test
+    @Test
     public void testCreateDataset() {
         Set<String> datasetSet = new TreeSet<>();
 

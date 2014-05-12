@@ -7,8 +7,6 @@ import lombok.extern.java.Log;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-import org.aksw.linkedspending.converter.Converter;
-import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.EventNotificationContainer;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -19,6 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 
 /**
  * Class to abstract redundant methods and Constants from Downloader and Converter.
@@ -31,7 +31,7 @@ public class OpenspendingSoftwareModul {
     /**whether the cache is used or not*/
     protected static final boolean USE_CACHE = false;// Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
     /**???is a cache if USE_CACHE=true, otherwise null*/
-    protected static final Cache cache = USE_CACHE? CacheManager.getInstance().getCache("openspending-json"):null;
+    protected static final Cache cache = USE_CACHE ? CacheManager.getInstance().getCache("openspending-json") : null;
     /** external properties to be used in Project */
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     /**sets downloader stopable*/
@@ -46,6 +46,15 @@ public class OpenspendingSoftwareModul {
     public static File pathJson = new File(PROPERTIES.getProperty("pathJson"));
     /**the name of the folder, where the downloaded RDF-files are stored*/
     public static File pathRdf = new File(PROPERTIES.getProperty("pathRdf"));
+    static {
+        try {
+            System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
+            LogManager.getLogManager().readConfiguration();
+        } catch ( IOException e ) {
+            log.setLevel(Level.INFO);
+            log.warning("Could not read logging configuration: " + e.getMessage());
+        }
+    }
 
 
     /**

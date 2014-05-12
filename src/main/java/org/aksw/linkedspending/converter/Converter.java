@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 
 @Log
 @NonNullByDefault
@@ -659,13 +658,6 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
 
         eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
         long startTime = System.currentTimeMillis();
-        try {
-            System.setProperty( "java.util.logging.config.file", "src/main/resources/logging.properties" );
-            LogManager.getLogManager().readConfiguration();
-        } catch ( IOException e ) {
-            log.setLevel(Level.INFO);
-            log.warning("Could not read logging configuration: " + e.getMessage());
-        }
         try {
             int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
             float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
