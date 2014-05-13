@@ -30,17 +30,9 @@ public class Scheduler
     @Path("downloadcomplete")
     public static String runDownloader()
     {
-        //JsonDownloader j = new JsonDownloader();
-        //j.setStopRequested(false);
-        //j.setPauseRequested(false);
-        //j.setCompleteRun(true);
-
         OpenspendingSoftwareModul.setStopRequested(false);
         OpenspendingSoftwareModul.setPauseRequested(false);
         downloader.setCompleteRun(true);
-        //Thread jDl = new Thread(new JsonDownloader());
-        /*Thread jDl = new Thread(j);
-        jDl.start();*/
         downloaderThread = new Thread(downloader);
         downloaderThread.start();
         return "Started complete download";
@@ -51,13 +43,7 @@ public class Scheduler
     @Path("stopdownload")
     public static String stopDownloader()
     {
-
-        /*downloader.setStopRequested(true);
-        while(!downloader.getDownloadStopped())
-        {
-            try{ Thread.sleep(200); }
-            catch(InterruptedException e) { }
-        }*/
+        //Todo interrupting the thread like that might have bad consequences.
         downloaderThread.interrupt();
         return "Stopped downloading";
     }
@@ -84,11 +70,6 @@ public class Scheduler
     @Path("downlaodspecific/{param}")
     public static String downloadDataset(/*String datasetName,*/ @PathParam("param") String datasetName )
     {
-        /*JsonDownloader j = new JsonDownloader();
-        j.setCompleteRun(false);
-        j.setToBeDownloaded(datasetName);
-        Thread jThr = new Thread(j);
-        jThr.start();*/
         downloader.setCompleteRun(false);
         downloader.setToBeDownloaded(datasetName);
         downloaderThread = new Thread(downloader);
@@ -101,11 +82,6 @@ public class Scheduler
     @Path("convertcomplete")      //localhost:8080/openspending2rdfbla.war/control/convertcomplete
     public static String runConverter()
     {
-        /*Thread convThr = new Thread(new Converter());
-        Converter.setPauseRequested(false);
-        Converter.setStopRequested(false);
-        convThr.start();*/
-
         converter.setPauseRequested(false);
         converter.setStopRequested(false);
         converterThread = new Thread(converter);
