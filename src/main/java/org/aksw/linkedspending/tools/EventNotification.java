@@ -30,7 +30,8 @@ public class EventNotification
         runTimeError,
         stoppedConverter,
         pausedConverter,
-        resumedConverter
+        resumedConverter,
+        IOError
     }
 
     /* source constants */

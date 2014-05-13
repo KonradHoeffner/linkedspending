@@ -325,7 +325,7 @@ public class JsonDownloader implements Runnable
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
                     while(pauseRequested)
                     {
-                        //todo fix this
+                        Thread.sleep(2000);
                     }
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
@@ -353,12 +353,8 @@ public class JsonDownloader implements Runnable
         service.shutdown();
         service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
         monitor.stopMonitoring();
+
         return false;
-    }
-
-    static void downloadIfNotExisting()
-    {
-
     }
 
     /**
@@ -422,11 +418,13 @@ public class JsonDownloader implements Runnable
                         }
                     } catch (IOException e) {
                         log.severe("could not write read parts file for " + dataset + ": " + e.getMessage());
+                        eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.IOError,EventNotification.EventSource.Downloader));
                     }
                     if (partNr != parts.length - 1) out.print(",");
                     partNr++;
                 }
             } catch (IOException e) {
+                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.IOError ,EventNotification.EventSource.Downloader));
                 log.severe("could not create merge file for " + dataset + ": "+ e.getMessage());
             }
 
@@ -475,8 +473,6 @@ public class JsonDownloader implements Runnable
     {
         datasetNames = new TreeSet<>(Collections.singleton(datasetName));
         downloadIfNotExisting(datasetNames);
-        //try-with-resources(since java 7)
-        //todo why is this here?
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
         {
             out.writeObject(emptyDatasets);
@@ -502,7 +498,11 @@ public class JsonDownloader implements Runnable
                 {
                     emptyDatasets.addAll((Set<String>) in.readObject());
                 }
-                catch (Exception e) {log.warning("Error reading empty datasets file");}
+                catch (Exception e)
+                {
+                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.fileNotFound,EventNotification.EventSource.Downloader));
+                    log.warning("Error reading empty datasets file");
+                }
             }
             datasetNames = getDatasetNames();
             datasetNames.removeAll(emptyDatasets);
@@ -512,6 +512,8 @@ public class JsonDownloader implements Runnable
         {
             out.writeObject(emptyDatasets);
         }
+        catch (FileNotFoundException e) {
+            eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.fileNotFound,EventNotification.EventSource.Downloader)); }
     }
 
     @Override

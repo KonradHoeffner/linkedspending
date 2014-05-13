@@ -17,7 +17,7 @@ import java.net.URI;
 public class Scheduler
 {
     //public static final String BASE_URI = "http://localhost:8080/myapp/";
-    private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
+    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
     //private static final HttpServer server;
 
     private static Thread downloaderThread;
@@ -98,7 +98,7 @@ public class Scheduler
 
     /** Starts converting of all new Datasets */
     @GET @Produces(MediaType.TEXT_PLAIN)
-    @Path("convertcomplete")      //localhost:8080/openspending2rdfbla.war/control/convertcomplete
+    @Path("convert")
     public static String runConverter()
     {
         /*Thread convThr = new Thread(new Converter());
@@ -151,10 +151,10 @@ public class Scheduler
 
     public static void main(String[] args)
     {
-        try{ GrizzlyHttpUtil.startServer(); }
-        catch (Exception e) {e.printStackTrace();}
-        try { Thread.sleep(60000); }    //Puts Thread asleep for one minute to wait for commands via REST-interface
-        catch(InterruptedException e) {e.printStackTrace();}
+        //try{ GrizzlyHttpUtil.startServer(); }
+        //catch (Exception e) {e.printStackTrace();}
+        //try { Thread.sleep(60000); }    //Puts Thread asleep for one minute to wait for commands via REST-interface
+        //catch(InterruptedException e) {e.printStackTrace();}
 
         //downloadDataset("berlin_de");
         //runDownloader();
@@ -168,10 +168,9 @@ public class Scheduler
             System.out.println(eN.getEventCode(true));
         }*/
 
-        //runConverter();
+        runConverter();
         //pauseConverter();
         //resumeConverter();
         //stopConverter();
-
     }
 }
