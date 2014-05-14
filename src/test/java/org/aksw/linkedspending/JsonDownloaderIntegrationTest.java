@@ -6,6 +6,8 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Properties;
 
+import static org.junit.Assert.fail;
+
 
 /**
  * Integration Test for the downloader class
@@ -14,19 +16,17 @@ public class JsonDownloaderIntegrationTest
 {
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     private Scheduler scheduler = new Scheduler();
-    private long size;
-    private long sizeNew;
-    private File downloadDir = new File(PROPERTIES.getProperty("pathParts"));
-    private boolean same;
-
+    private int number,numberNew,numberParts,numberPartsNew;
+    private File downloadDir = new File(PROPERTIES.getProperty("pathJson"));
+    private File partsDir = new File(PROPERTIES.getProperty("pathParts"));
 
     @Test
     public void downloaderTest()
     {
-        size = folderSize(downloadDir);
+        number = fileNumber(downloadDir);
+        numberParts = fileNumberRec(partsDir);
 
         scheduler.runDownloader();
-
 
         try
         {
@@ -34,33 +34,57 @@ public class JsonDownloaderIntegrationTest
         }
         catch(InterruptedException e)
         {
-
+            fail("Interrupted exception: " + e.getMessage());
         }
 
         scheduler.pauseDownloader();
 
-        sizeNew = folderSize(downloadDir);
+        numberNew = fileNumber(downloadDir);
+        numberPartsNew = fileNumberRec(partsDir);
 
-        if(size < sizeNew)
-        {
-            same = false;
-        }
-        else
-        {
-            same = true;
-        }
+        //System.out.println(number + " " + numberNew);
+        //System.out.println(numberParts + " " + numberPartsNew);
 
-        Assert.assertFalse("Download directory size not increased", same);
+        if(number < numberNew)
+        {
+            fail("Number of files decreased");
+        }
+        else if (number == numberNew)
+        {
+            if(numberParts < numberPartsNew){}
+            else
+            {
+                fail("Number of files not increased");
+            }
+        }
     }
 
-    private long folderSize(File directory) {
-        long length = 0;
+    private int fileNumberRec(File directory)
+    {
+        int number = 0;
         for (File file : directory.listFiles()) {
             if (file.isFile())
-                length += file.length();
+            {
+                number++;
+            }
             else
-                length += folderSize(file);
+            {
+                number += fileNumberRec(file);
+            }
         }
-        return length;
+        return number;
+    }
+
+    private int fileNumber(File directory)
+    {
+        int number = 0;
+        for (File file : directory.listFiles())
+        {
+            if (file.isFile())
+            {
+                number++;
+            }
+        }
+        return number;
     }
 }
