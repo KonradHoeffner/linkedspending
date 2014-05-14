@@ -166,21 +166,15 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         for(String dataset: datasets)
         {
             {
-                if(OpenspendingSoftwareModul.pauseRequested)
-                {
-                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
-                    while(OpenspendingSoftwareModul.pauseRequested) { Thread.sleep(5000); }
-                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
-                }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(OpenspendingSoftwareModul.stopRequested)
+                /*if(OpenspendingSoftwareModul.stopRequested)
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
                     service.shutdown();
                     service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
                     downloadStopped = true;
                     return true;
-                }
+                }*/
             }
         }
         ThreadMonitor monitor = new ThreadMonitor(service);
