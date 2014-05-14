@@ -1,60 +1,117 @@
 package org.aksw.linkedspending;
 
 import com.hp.hpl.jena.rdf.model.Model;
+import lombok.extern.java.Log;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.tools.DataModel;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.*;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
+@Log
 public class ConverterTest {
+
+    private final String DATASET = "2013";
+
+    @Before
+    public void copyFiles() {
+        File testFile = new File("json/" + DATASET);
+        if(testFile.exists()) {
+            testFile.renameTo(new File("json/" + DATASET + "_tmp"));
+        }
+        InputStream inStream = null;
+        FileOutputStream outStream = null;
+        try {
+            inStream = ConverterTest.class.getClassLoader().getResourceAsStream(DATASET);
+            outStream = new FileOutputStream(testFile);
+            int read;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inStream.read(bytes)) != -1) {
+                outStream.write(bytes, 0, read);
+            }
+        } catch (IOException e) {
+            fail("Could not copy test file");
+        }  finally {
+            if(inStream != null) {
+                try {
+                    inStream.close();
+                } catch (IOException e) {
+                    log.warning("Error closing input stream: " + e.getMessage());
+                }
+            }
+            if(outStream != null) {
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    log.warning("Error closing output stream: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @After
+    public void deleteFiles() {
+        File test = new File("json/" + DATASET);
+        if(test.exists()) {
+            test.delete();
+        }
+        File tmpFile = new File("json/" + DATASET + "_tmp");
+        if(tmpFile.exists()) {
+            tmpFile.renameTo(test);
+        }
+    }
+
     /**
-     * Copy muenster into the /json folder and muenster.dataset next to the .class file of this file to run the test
+     * Copy muenster into the /json folder and muenster.dataset next to the .class file of this file to run the muenster
      */
-    //@Test
+    @Test
     public void testCreateDataset() {
         Set<String> datasetSet = new TreeSet<>();
 
         BufferedReader datasetReader = new BufferedReader(new InputStreamReader(
-                ConverterTest.class.getClassLoader().getResourceAsStream("muenster.dataset")));
+                ConverterTest.class.getClassLoader().getResourceAsStream(DATASET + ".nt")));
 
         try {
             String line;
             while ((line = datasetReader.readLine()) != null) {
-                datasetSet.add(line);
+                datasetSet.add(line.replaceAll("_:.*", ""));
             }
-
-            datasetReader.close();
         } catch (IOException e) {
             fail("Could not load example converted data: " + e);
+        } finally {
+            try {
+                if(datasetReader != null) {
+                    datasetReader.close();
+                }
+            } catch (IOException e) {
+                log.warning("Error closing buffered reader: " + e.getMessage());
+            }
         }
 
         ByteArrayOutputStream datasetOut = new ByteArrayOutputStream();
 
         Model model = DataModel.newModel();
         try {
-            Converter.createDataset("muenster", model, datasetOut);
+            Converter.createDataset(DATASET, model, datasetOut);
         } catch (Exception e) {
             fail("Exception: " + e.getMessage());
         }
 
         BufferedReader datasetIn = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(datasetOut.toByteArray())));
         try {
-            String line = null;
+            String line;
             while ((line = datasetIn.readLine()) != null) {
-                if(line.startsWith("<http://linkedspending.aksw.org/instance/observation-muenster-a8116617854a09b94aab14913ef8a3de37cf7d13> <http://dublincore.org/documents/2012/06/14/uri-terms/source> _:") ||
-                   line.startsWith("<http://linkedspending.aksw.org/instance/observation-muenster-a80d78cf1b3afc7024560391dc958cf344c4f4ff> <http://dublincore.org/documents/2012/06/14/uri-terms/source> _:") ||
-                   line.startsWith("<http://linkedspending.aksw.org/instance/muenster> <http://dublincore.org/documents/2012/06/14/uri-terms/created> \"")) {
-                    // ignore generated string
-                    // TODO: improve!!
+                if(line.contains("uri-terms/created")) {
                     continue;
                 }
-                if(datasetSet.contains(line)) {
-                    datasetSet.remove(line);
+                if(datasetSet.contains(line.replaceAll("_:.*", ""))) {
+                    datasetSet.remove(line.replaceAll("_:.*", ""));
                 } else {
                     fail("Got data which is not in example data: " + line);
                 }

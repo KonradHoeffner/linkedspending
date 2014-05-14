@@ -1,6 +1,7 @@
 package org.aksw.linkedspending.downloader;
 
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.OpenspendingSoftwareModul;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.io.File;
@@ -54,15 +55,15 @@ class DownloadCallable implements Callable<Boolean>
     @Override public @Nullable
     Boolean call() throws IOException, InterruptedException
     {
-        Path path = Paths.get(JsonDownloader.folder.getPath(), datasetName);
+        Path path = Paths.get(OpenspendingSoftwareModul.pathJson.getPath(), datasetName);
         File file = path.toFile();
-        File partsFolder = new File(JsonDownloader.folder.toString()+"/parts/"+datasetName);
+        File partsFolder = new File(OpenspendingSoftwareModul.pathJson.toString()+"/parts/"+datasetName);
         File finalPart = new File(partsFolder.toString()+"/"+datasetName+".final");
         //            Path partsPath = Paths.get(partsFolder.getPath(),datasetName);
         log.fine(nr + " Fetching number of entries for dataset " + datasetName);
 
         //here is where all the readJSON... stuff is exclusively used
-        int nrEntries = JsonDownloader.nrEntries(datasetName);
+        int nrEntries = OpenspendingSoftwareModul.nrEntries(datasetName);
         if(nrEntries==0)
         {
             log.fine(nr+" No entries for dataset "+datasetName+" skipping download.");

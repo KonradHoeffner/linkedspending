@@ -17,7 +17,7 @@ import java.net.URI;
 public class Scheduler
 {
     //public static final String BASE_URI = "http://localhost:8080/myapp/";
-    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
+    private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
     //private static final HttpServer server;
 
     private static Thread downloaderThread;
@@ -35,8 +35,8 @@ public class Scheduler
         //j.setPauseRequested(false);
         //j.setCompleteRun(true);
 
-        downloader.setStopRequested(false);
-        downloader.setPauseRequested(false);
+        OpenspendingSoftwareModul.setStopRequested(false);
+        OpenspendingSoftwareModul.setPauseRequested(false);
         downloader.setCompleteRun(true);
         //Thread jDl = new Thread(new JsonDownloader());
         /*Thread jDl = new Thread(j);
@@ -67,7 +67,7 @@ public class Scheduler
     @Path("pausedownload")
     public static String pauseDownloader()
     {
-        downloader.setPauseRequested(true);
+        OpenspendingSoftwareModul.setPauseRequested(true);
         return "Paused Downloader";
     }
 
@@ -76,7 +76,7 @@ public class Scheduler
     @Path("resumedownload")
     public static String resumeDownload()
     {
-        downloader.setPauseRequested(false);
+        OpenspendingSoftwareModul.setPauseRequested(false);
         return "Resumed Downloader";
     }
 
@@ -98,7 +98,7 @@ public class Scheduler
 
     /** Starts converting of all new Datasets */
     @GET @Produces(MediaType.TEXT_PLAIN)
-    @Path("convert")
+    @Path("convertcomplete")      //localhost:8080/openspending2rdfbla.war/control/convertcomplete
     public static String runConverter()
     {
         /*Thread convThr = new Thread(new Converter());
@@ -146,15 +146,27 @@ public class Scheduler
         if(downloaderThread != null) stopDownloader();
         if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
-        return "Service shutted down.";
+        return "Service shut down.";
     }
 
     public static void main(String[] args)
     {
-        //try{ GrizzlyHttpUtil.startServer(); }
-        //catch (Exception e) {e.printStackTrace();}
-        //try { Thread.sleep(60000); }    //Puts Thread asleep for one minute to wait for commands via REST-interface
-        //catch(InterruptedException e) {e.printStackTrace();}
+        try
+        {
+            GrizzlyHttpUtil.startServer();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            Thread.sleep(60000); //Puts Thread asleep for one minute to wait for commands via REST-interface
+        }
+        catch(InterruptedException e)
+        {
+            e.printStackTrace();
+        }
 
         //downloadDataset("berlin_de");
         //runDownloader();
@@ -168,9 +180,10 @@ public class Scheduler
             System.out.println(eN.getEventCode(true));
         }*/
 
-        runConverter();
+        //runConverter();
         //pauseConverter();
         //resumeConverter();
         //stopConverter();
+
     }
 }

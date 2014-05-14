@@ -1,24 +1,28 @@
 package org.aksw.linkedspending;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.aksw.linkedspending.converter.ResultsReader;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JsonDownloaderTest
 {
-    //@Test
+    private final String DATASET = "2013";
+    @Test
     public void testGetPartialResults() throws IOException
     {
-        ResultsReader in = new ResultsReader("2013");
-        JsonNode node;
-        while((node=in.read())!=null ){}
-        //fail("not yet finished writing this test");
+        try {
+            JsonDownloader.downloadSpecific(DATASET);
+        } catch (Exception e) {
+            fail("Could not download dataset: " + e.getMessage());
+        }
+        File test = new File("json/parts/" + DATASET + "/" + DATASET + ".final");
+        assertTrue("JSON file not existing", test.exists());
     }
 
     @Test
@@ -26,59 +30,6 @@ public class JsonDownloaderTest
     {
         Collection<String> names = JsonDownloader.getDatasetNames();
         assertTrue(names.size()>300);
-        assertTrue(names.contains("berlin_de"));
-    }
-    //TODO adjust and uncomment after puzzleTogether is fixed - try to avoid messing with datasets
-    /**@Test public void testPuzzleTogether() throws FileNotFoundException,IOException
-    {
-        File testfile1 = new File("src/test/resources/testfile1");
-        try (PrintWriter out = new PrintWriter(testfile1))
-        {
-            out.println("\"results\": [");
-            out.print("{\nhallo\n}");
-        }
-
-        File testfile2 = new File("src/test/resources/testfile2");
-        try (PrintWriter out = new PrintWriter(testfile2))
-        {
-            out.println("\"results\": [");
-            out.print("{\nwelt\n}");
-        }
-
-        new JsonDownloaderProxy().callPuzzleTogether();
-
-        String input= "";
-        try(BufferedReader in = new BufferedReader(new FileReader(new File("json/model"))))
-        {
-            while((input += in.readLine())!=null){}
-        }
-        int result = input.compareTo(
-                "\"results\": [\n" +
-                "{\n" +
-                "hallo\n" +
-                "}," +
-                "\"results\": [\n" +
-                "{\n" +
-                "welt\n" +
-                "},");
-        testfile1.delete();
-        testfile2.delete();
-        assertTrue(result == 0);
-
-    }*/
-
-    public class JsonDownloaderProxy extends JsonDownloader
-    {
-        public void callPuzzleTogether() throws IOException
-        {
-            puzzleTogether();
-        }
-        public void callDownloadAll()
-        {
-            try {
-                downloadAll();
-            } catch (Exception e)
-            {/*TODO: Exeption Handling */ }
-        }
+        assertTrue(names.contains(DATASET));
     }
 }
