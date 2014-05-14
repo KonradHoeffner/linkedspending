@@ -56,6 +56,7 @@ public class OpenspendingSoftwareModul {
         }
     }
 
+    public static boolean getPauseRequested() {return pauseRequested;}
 
     /**
      * returns a JSON-string from the given url
@@ -186,4 +187,10 @@ public class OpenspendingSoftwareModul {
      * @return the event container
      */
     public static EventNotificationContainer getEventContainer() {return eventContainer;}
+
+    /** Pauses the current thread as long as pauseRequested is set true. */
+    public static void pause()
+    {
+        while(pauseRequested) try {Thread.sleep(5000);} catch(InterruptedException e){}
+    }
 }

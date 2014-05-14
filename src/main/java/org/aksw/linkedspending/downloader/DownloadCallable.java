@@ -2,6 +2,7 @@ package org.aksw.linkedspending.downloader;
 
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModul;
+import org.aksw.linkedspending.Scheduler;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.io.File;
@@ -92,6 +93,11 @@ class DownloadCallable implements Callable<Boolean>
         }
         for(int page=1;page<=nrOfPages;page++)
         {
+            while(Scheduler.getDownloader().getPauseRequested()) //added to make downloader pausable
+            {
+                try {Thread.sleep(5000);}
+                catch(InterruptedException e) {}
+            }
             File f = new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
             if(f.exists()) {continue;}
             log.fine(nr+" page "+page+"/"+nrOfPages);

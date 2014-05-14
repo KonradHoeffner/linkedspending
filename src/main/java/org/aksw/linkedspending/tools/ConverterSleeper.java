@@ -8,12 +8,10 @@ public class ConverterSleeper extends Scheduler implements Runnable
     @Override
     public void run()
     {
-        super.getConverterThread().start();
-
-        while(!super.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader))
+        while (!super.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader))
         { //condition might cause bug when multiple events of this type occur
             try {super.getConverterThread().sleep(15000);}
-            catch(InterruptedException e) {}
+            catch (InterruptedException e) {}
         }
     }
 }

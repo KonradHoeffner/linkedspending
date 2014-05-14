@@ -26,16 +26,16 @@ public class Scheduler
 
     protected static Thread getDownloaderThread() {return downloaderThread;}
     protected static Thread getConverterThread() {return converterThread;}
-    protected static JsonDownloader getDownloader() {return downloader;}
-    protected static Converter getConverter() {return converter;}
+    public static JsonDownloader getDownloader() {return downloader;}
+    public static Converter getConverter() {return converter;}
 
     /** Starts complete download */
     @GET
     @Path("downloadcomplete")
     public static String runDownloader()
     {
-        OpenspendingSoftwareModul.setStopRequested(false);
-        OpenspendingSoftwareModul.setPauseRequested(false);
+        downloader.setStopRequested(false);
+        downloader.setPauseRequested(false);
         downloader.setCompleteRun(true);
         downloaderThread = new Thread(downloader);
         downloaderThread.start();
@@ -57,7 +57,7 @@ public class Scheduler
     @Path("pausedownload")
     public static String pauseDownloader()
     {
-        OpenspendingSoftwareModul.setPauseRequested(true);
+        downloader.setPauseRequested(true);
         return "Paused Downloader";
     }
 
@@ -66,7 +66,7 @@ public class Scheduler
     @Path("resumedownload")
     public static String resumeDownload()
     {
-        OpenspendingSoftwareModul.setPauseRequested(false);
+        downloader.setPauseRequested(false);
         return "Resumed Downloader";
     }
 
@@ -109,6 +109,9 @@ public class Scheduler
     public static String pauseConverter()
     {
         Converter.setPauseRequested(true);
+        ConverterSleeper cS = new ConverterSleeper();
+        Thread cSThread = new Thread(cS);
+        cSThread.start();
         return "Paused Converter.";
     }
 
@@ -165,12 +168,13 @@ public class Scheduler
 
         ConverterSleeper cS = new ConverterSleeper();
         Thread cSThread = new Thread(cS);
+        converterThread.start();
         cSThread.start();
     }
 
     public static void main(String[] args)
     {
-        try
+        /*try
         {
             GrizzlyHttpUtil.startServer();
         }
@@ -185,10 +189,16 @@ public class Scheduler
         catch(InterruptedException e)
         {
             e.printStackTrace();
-        }
+        }*/
 
         //downloadDataset("berlin_de");
-        //runDownloader();
+        runDownloader();
+
+        try{Thread.sleep(5000);} catch(Exception e) {}
+        pauseDownloader();
+        //downloader.setPauseRequested(true);
+        //downloader.pause();
+        //pauseDownloader();
         //pauseDownloader();
         //resumeDownload();
         //stopDownloader();
