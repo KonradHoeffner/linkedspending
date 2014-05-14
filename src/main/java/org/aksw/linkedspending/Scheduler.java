@@ -2,13 +2,12 @@ package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.aksw.linkedspending.tools.ConverterSleeper;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
@@ -16,31 +15,28 @@ import java.net.URI;
 @Path("control")
 public class Scheduler
 {
-    //public static final String BASE_URI = "http://localhost:8080/myapp/";
     private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
-    //private static final HttpServer server;
 
     private static Thread downloaderThread;
     private static Thread converterThread;
     private static JsonDownloader downloader = new JsonDownloader();
     private static Converter converter = new Converter();
 
+    public static URI getBaseURI() {return baseURI;}
+
+    protected static Thread getDownloaderThread() {return downloaderThread;}
+    protected static Thread getConverterThread() {return converterThread;}
+    protected static JsonDownloader getDownloader() {return downloader;}
+    protected static Converter getConverter() {return converter;}
+
     /** Starts complete download */
     @GET
     @Path("downloadcomplete")
     public static String runDownloader()
     {
-        //JsonDownloader j = new JsonDownloader();
-        //j.setStopRequested(false);
-        //j.setPauseRequested(false);
-        //j.setCompleteRun(true);
-
         OpenspendingSoftwareModul.setStopRequested(false);
         OpenspendingSoftwareModul.setPauseRequested(false);
         downloader.setCompleteRun(true);
-        //Thread jDl = new Thread(new JsonDownloader());
-        /*Thread jDl = new Thread(j);
-        jDl.start();*/
         downloaderThread = new Thread(downloader);
         downloaderThread.start();
         return "Started complete download";
@@ -51,13 +47,7 @@ public class Scheduler
     @Path("stopdownload")
     public static String stopDownloader()
     {
-
-        /*downloader.setStopRequested(true);
-        while(!downloader.getDownloadStopped())
-        {
-            try{ Thread.sleep(200); }
-            catch(InterruptedException e) { }
-        }*/
+        //Todo interrupting the thread like that might have bad consequences.
         downloaderThread.interrupt();
         return "Stopped downloading";
     }
@@ -82,13 +72,8 @@ public class Scheduler
 
     /** Starts downloading a specified dataset */
     @Path("downlaodspecific/{param}")
-    public static String downloadDataset(/*String datasetName,*/ @PathParam("param") String datasetName )
+    public static String downloadDataset( @PathParam("param") String datasetName )
     {
-        /*JsonDownloader j = new JsonDownloader();
-        j.setCompleteRun(false);
-        j.setToBeDownloaded(datasetName);
-        Thread jThr = new Thread(j);
-        jThr.start();*/
         downloader.setCompleteRun(false);
         downloader.setToBeDownloaded(datasetName);
         downloaderThread = new Thread(downloader);
@@ -97,15 +82,10 @@ public class Scheduler
     }
 
     /** Starts converting of all new Datasets */
-    @GET @Produces(MediaType.TEXT_PLAIN)
-    @Path("convertcomplete")      //localhost:8080/openspending2rdfbla.war/control/convertcomplete
+    @GET
+    @Path("convertcomplete")
     public static String runConverter()
     {
-        /*Thread convThr = new Thread(new Converter());
-        Converter.setPauseRequested(false);
-        Converter.setStopRequested(false);
-        convThr.start();*/
-
         converter.setPauseRequested(false);
         converter.setStopRequested(false);
         converterThread = new Thread(converter);
@@ -126,7 +106,8 @@ public class Scheduler
     /** Pauses converting process */
     @GET
     @Path("pauseconvert")
-    public static String pauseConverter() {
+    public static String pauseConverter()
+    {
         Converter.setPauseRequested(true);
         return "Paused Converter.";
     }
@@ -134,11 +115,13 @@ public class Scheduler
     /** Resumes converting process */
     @GET
     @Path("resumeconvert")
-    public static String resumeConverter() {
+    public static String resumeConverter()
+    {
         Converter.setPauseRequested(false);
         return "Resumed Converter";
     }
 
+    /** Completly shutdowns downloader, converter (if running) and scheduler */
     @GET
     @Path("shutdown")
     public static String shutdown()
@@ -147,6 +130,42 @@ public class Scheduler
         if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
         return "Service shut down.";
+    }
+
+    /** Runs a complete download after a specified period of time and starts converting afterwards
+     * @Param timeTillStart the specified point of time
+     * @Param unit the unit of time measurement (d for days, min for minutes)*/
+    @GET
+    @Path("schedule/{time}/{unit}")
+    public static String scheduleCompleteRun(@PathParam("time") int timeTillStart, @PathParam("unit") String unit)
+    {
+        long timeInMs;
+        if (unit.equals("d")) timeInMs = timeTillStart * 1000 * 60 * 60 * 24;
+        else if (unit.equals("h")) timeInMs = timeTillStart * 1000 * 60 * 60;
+        else if (unit.equals("min")) timeInMs = timeTillStart * 1000 * 60;
+        else if (unit.equals("s")) timeInMs = timeTillStart * 1000;
+        else return "Wrong arguments.";
+
+        scheduleCompleteRun(timeInMs);
+        return "Complete run starting in " + timeTillStart + unit;
+    }
+
+    /** Helping method for String scheduleCompleteRun(). Waits specified time and runs downloader and converter.
+     * Converter is run after download has finished. */
+    private static void scheduleCompleteRun(long timeInMs)
+    {
+        try { Thread.sleep(timeInMs); }
+        catch (InterruptedException e) { }
+
+        runDownloader();
+
+        converter.setPauseRequested(false);
+        converter.setStopRequested(false);
+        converterThread = new Thread(converter);
+
+        ConverterSleeper cS = new ConverterSleeper();
+        Thread cSThread = new Thread(cS);
+        cSThread.start();
     }
 
     public static void main(String[] args)

@@ -63,21 +63,9 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     /**set for the names of already locally saved JSON-files known to the downloader*/
     static protected SortedSet<String> datasetNames = new TreeSet<>();
 
-    static {
-        if(!CACHE.exists()) {
-            CACHE.mkdir();
-        }
-    }
-    static {
-        if(!pathJson.exists()) {
-            pathJson.mkdirs();
-        }
-    }
-    static {
-        if(!rootPartsFolder.exists()) {
-            rootPartsFolder.mkdirs();
-        }
-    }
+    static { if(!CACHE.exists()) { CACHE.mkdir(); } }
+    static { if(!pathJson.exists()) { pathJson.mkdirs();} }
+    static { if(!rootPartsFolder.exists()) { rootPartsFolder.mkdirs(); } }
 
     /**represents all the empty JSON-files in a set; highly interacts with: emptyDatasetFile<br>
      * is used for example to remove empty datasets from downloading-process
@@ -181,14 +169,11 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 if(OpenspendingSoftwareModul.pauseRequested)
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
-                    while(OpenspendingSoftwareModul.pauseRequested)
-                    {
-                        //todo fix this
-                    }
+                    while(OpenspendingSoftwareModul.pauseRequested) { Thread.sleep(5000); }
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(OpenspendingSoftwareModul.stopRequested)             //added to make Downloader stoppable
+                if(OpenspendingSoftwareModul.stopRequested)
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
                     service.shutdown();

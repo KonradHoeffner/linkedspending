@@ -24,12 +24,4 @@ public class GrizzlyHttpUtil
     {
         server.shutdown();
     }
-/*
-    public static void startGrizzly() throws IOException {
-        //final HttpServer server = startServer();
-        //System.out.println("startServer fine...");
-        System.out.println(String.format("Jersey app started with WADL available at "
-                + "%sapplication.wadl\n", baseURI));
-    }
-*/
 }

@@ -1,5 +1,8 @@
 package org.aksw.linkedspending.tools;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Vector;
 
 /** Holds eventNotifications and can create statistical information */
@@ -36,5 +39,38 @@ public class EventNotificationContainer
             if(n.getSource() == source && n.getType() == type) return true;
         }
         return false;
+    }
+
+    /** Prints all occured events into a file named eventOutput. If this file already exists, output will be printed
+     * into a file named eventOutput1 (or any number, in case there more of these files) */
+    public void printEventsToFile()
+    {
+        try
+        {
+            File f = new File("eventOutput");
+            int i = 1;
+            String fileName = "eventOutput";
+            while(true)
+            {
+                if(f.exists())
+                {
+                    f = null;
+                    f = new File("eventOutput"+i);
+                }
+                else
+                {
+                    FileWriter output = new FileWriter(f);
+                    for(int j=0; i < notifications.size(); i++)
+                    {
+                        output.write(notifications.get(j).getEventCode(true));
+                        output.append(System.getProperty("line.separator"));
+                    }
+                    output.close();
+                    break;
+                }
+                i++;
+            }
+        }
+        catch(IOException e) { e.printStackTrace(); }
     }
 }
