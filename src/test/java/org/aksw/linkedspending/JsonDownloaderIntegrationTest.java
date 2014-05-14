@@ -27,6 +27,7 @@ public class JsonDownloaderIntegrationTest
 
         scheduler.runDownloader();
 
+
         try
         {
             Thread.sleep(30000);

@@ -20,6 +20,7 @@ public class ConverterIntegrationTest
     private boolean same;
 
 
+
     @Test
     public void converterTest()
     {
