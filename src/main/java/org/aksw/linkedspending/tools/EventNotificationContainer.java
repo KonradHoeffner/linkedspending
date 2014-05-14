@@ -45,18 +45,28 @@ public class EventNotificationContainer
      * into a file named eventOutput1 (or any number, in case there more of these files) */
     public void printEventsToFile()
     {
-        try(FileWriter output = new FileWriter(new File("eventOutput"));)
+        try
         {
             File f = new File("eventOutput");
             int i = 1;
             String fileName = "eventOutput";
             while(true)
             {
-                if(f.exists()) f = new File("eventOutput"+i);
+                if(f.exists())
+                {
+                    f = null;
+                    f = new File("eventOutput"+i);
+                }
                 else
                 {
+                    FileWriter output = new FileWriter(f);
                     for(int j=0; i < notifications.size(); i++)
-                    { output.write(notifications.get(j).getEventCode(true)); }
+                    {
+                        output.write(notifications.get(j).getEventCode(true));
+                        output.append(System.getProperty("line.separator"));
+                    }
+                    output.close();
+                    break;
                 }
                 i++;
             }
