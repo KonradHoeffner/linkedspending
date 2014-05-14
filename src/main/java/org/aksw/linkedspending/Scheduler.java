@@ -174,7 +174,7 @@ public class Scheduler
 
     public static void main(String[] args)
     {
-        /*try
+        try
         {
             GrizzlyHttpUtil.startServer();
         }
@@ -189,13 +189,13 @@ public class Scheduler
         catch(InterruptedException e)
         {
             e.printStackTrace();
-        }*/
+        }
 
         //downloadDataset("berlin_de");
-        runDownloader();
+        //runDownloader();
 
-        try{Thread.sleep(5000);} catch(Exception e) {}
-        pauseDownloader();
+        //try{Thread.sleep(5000);} catch(Exception e) {}
+        //pauseDownloader();
         //downloader.setPauseRequested(true);
         //downloader.pause();
         //pauseDownloader();
