@@ -173,7 +173,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
                 }
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                if(OpenspendingSoftwareModul.stopRequested)             //added to make Downloader stoppable
+                if(OpenspendingSoftwareModul.stopRequested)
                 {
                     eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
                     service.shutdown();

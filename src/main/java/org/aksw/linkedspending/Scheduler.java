@@ -2,14 +2,12 @@ package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
-import org.aksw.linkedspending.tools.EventNotification;
+import org.aksw.linkedspending.tools.ConverterSleeper;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
@@ -17,9 +15,7 @@ import java.net.URI;
 @Path("control")
 public class Scheduler
 {
-    //public static final String BASE_URI = "http://localhost:8080/myapp/";
     private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
-    //private static final HttpServer server;
 
     private static Thread downloaderThread;
     private static Thread converterThread;
@@ -27,6 +23,11 @@ public class Scheduler
     private static Converter converter = new Converter();
 
     public static URI getBaseURI() {return baseURI;}
+
+    protected static Thread getDownloaderThread() {return downloaderThread;}
+    protected static Thread getConverterThread() {return converterThread;}
+    protected static JsonDownloader getDownloader() {return downloader;}
+    protected static Converter getConverter() {return converter;}
 
     /** Starts complete download */
     @GET
@@ -81,8 +82,8 @@ public class Scheduler
     }
 
     /** Starts converting of all new Datasets */
-    @GET @Produces(MediaType.TEXT_PLAIN)
-    @Path("convertcomplete")      //localhost:8080/openspending2rdfbla.war/control/convertcomplete
+    @GET
+    @Path("convertcomplete")
     public static String runConverter()
     {
         converter.setPauseRequested(false);
@@ -157,12 +158,14 @@ public class Scheduler
         catch (InterruptedException e) { }
 
         runDownloader();
-        while(!downloader.getEventContainer().checkForEvent(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader))
-        { //condition might cause bug when multiple events of this type occur
-            try {Thread.sleep(1000);}
-            catch(InterruptedException e) {}
-        }
-        runConverter();
+
+        converter.setPauseRequested(false);
+        converter.setStopRequested(false);
+        converterThread = new Thread(converter);
+
+        ConverterSleeper cS = new ConverterSleeper();
+        Thread cSThread = new Thread(cS);
+        cSThread.start();
     }
 
     public static void main(String[] args)

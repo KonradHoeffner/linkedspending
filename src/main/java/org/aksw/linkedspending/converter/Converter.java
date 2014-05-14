@@ -655,7 +655,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
     {
         //stopRequested = false;
         //pauseRequested = false;
-
+        // Converter starts 5s after it should start, allowing the Scheduler to do schedule a complete run without pausing itself.
+        try { Thread.sleep(5000); } catch(InterruptedException e) {e.printStackTrace();}
         eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
         long startTime = System.currentTimeMillis();
         try {
