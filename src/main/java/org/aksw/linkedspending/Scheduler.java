@@ -2,6 +2,7 @@ package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 
 import javax.ws.rs.GET;
@@ -24,6 +25,8 @@ public class Scheduler
     private static Thread converterThread;
     private static JsonDownloader downloader = new JsonDownloader();
     private static Converter converter = new Converter();
+
+    public static URI getBaseURI() {return baseURI;}
 
     /** Starts complete download */
     @GET
@@ -68,7 +71,7 @@ public class Scheduler
 
     /** Starts downloading a specified dataset */
     @Path("downlaodspecific/{param}")
-    public static String downloadDataset(/*String datasetName,*/ @PathParam("param") String datasetName )
+    public static String downloadDataset( @PathParam("param") String datasetName )
     {
         downloader.setCompleteRun(false);
         downloader.setToBeDownloaded(datasetName);
@@ -102,7 +105,8 @@ public class Scheduler
     /** Pauses converting process */
     @GET
     @Path("pauseconvert")
-    public static String pauseConverter() {
+    public static String pauseConverter()
+    {
         Converter.setPauseRequested(true);
         return "Paused Converter.";
     }
@@ -110,11 +114,13 @@ public class Scheduler
     /** Resumes converting process */
     @GET
     @Path("resumeconvert")
-    public static String resumeConverter() {
+    public static String resumeConverter()
+    {
         Converter.setPauseRequested(false);
         return "Resumed Converter";
     }
 
+    /** Completly shutdowns downloader, converter (if running) and scheduler */
     @GET
     @Path("shutdown")
     public static String shutdown()
@@ -123,6 +129,40 @@ public class Scheduler
         if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
         return "Service shut down.";
+    }
+
+    /** Runs a complete download after a specified period of time and starts converting afterwards
+     * @Param timeTillStart the specified point of time
+     * @Param unit the unit of time measurement (d for days, min for minutes)*/
+    @GET
+    @Path("schedule/{time}/{unit}")
+    public static String scheduleCompleteRun(@PathParam("time") int timeTillStart, @PathParam("unit") String unit)
+    {
+        long timeInMs;
+        if (unit.equals("d")) timeInMs = timeTillStart * 1000 * 60 * 60 * 24;
+        else if (unit.equals("h")) timeInMs = timeTillStart * 1000 * 60 * 60;
+        else if (unit.equals("min")) timeInMs = timeTillStart * 1000 * 60;
+        else if (unit.equals("s")) timeInMs = timeTillStart * 1000;
+        else return "Wrong arguments.";
+
+        scheduleCompleteRun(timeInMs);
+        return "Complete run starting in " + timeTillStart + unit;
+    }
+
+    /** Helping method for String scheduleCompleteRun(). Waits specified time and runs downloader and converter.
+     * Converter is run after download has finished. */
+    private static void scheduleCompleteRun(long timeInMs)
+    {
+        try { Thread.sleep(timeInMs); }
+        catch (InterruptedException e) { }
+
+        runDownloader();
+        while(!downloader.getEventContainer().checkForEvent(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader))
+        { //condition might cause bug when multiple events of this type occur
+            try {Thread.sleep(1000);}
+            catch(InterruptedException e) {}
+        }
+        runConverter();
     }
 
     public static void main(String[] args)

@@ -27,7 +27,7 @@ public class SchedulerTest
         // create the client
         Client c = ClientBuilder.newClient();
 
-        target = c.target(Scheduler.baseURI);
+        target = c.target(Scheduler.getBaseURI());
     }
 
     @After

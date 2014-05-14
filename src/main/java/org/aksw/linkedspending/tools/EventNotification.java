@@ -45,8 +45,8 @@ public class EventNotification
     private EventSource source;
 
     //todo please write what this is for
-    /**
-     * Not to be used for all events (only makes sense with types 0, 1, 2, 3 */
+    /** Indicates if the event was successful or not.
+     * Not to be used for all events (only makes sense with types such as finishedDownloading,...) */
     private boolean success;
 
     /** Creates new EventNotification.
@@ -88,7 +88,6 @@ public class EventNotification
     public String getEventCode(boolean withTime)
     {
         String s, t;
-        //We need to format the time, which is internally stored as ms since 1st January 1970
         DateFormat dF = new SimpleDateFormat("HH:mm.ss");
         t = dF.format(time);
         if (withTime) s = t + " " + source + " " + type;

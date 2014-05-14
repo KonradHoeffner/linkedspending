@@ -3,16 +3,7 @@
 
 <web-app>
 
-    <display-name>openspending2rdf Web Application</display-name>
-
-<!--
-    <servlet>
-      <servlet-name>o2r</servlet-name>
-      <description>The openspending2rdf-servlet</description>
-      <servlet-class>org.aksw.openspending2rdf.Scheduler</servlet-class>
-      <load-on-startup>5</load-on-startup>
-    </servlet>
--->
+    <display-name>openspending2rdf Web Access</display-name>
 
     <servlet>
       <servlet-name>o2r</servlet-name>
@@ -26,27 +17,12 @@
       </init-param>
       <load-on-startup>1</load-on-startup>
     </servlet>
-<!--
-    <servlet>
-      <servlet-name>o2r</servlet-name>
-      <servlet-class>org.aksw.linkedspending.Scheduler</servlet-class>
-    </servlet>
--->
+
     <servlet-mapping>
       <servlet-name>o2r</servlet-name>
       <url-pattern>/*</url-pattern>
     </servlet-mapping>
 
-<!--
-    <servlet>
-        <servlet-name>javax.ws.rs.core.Application</servlet-name>
-    </servlet>
- 
-    <servlet-mapping>
-        <servlet-name>javax.ws.rs.core.Application</servlet-name>
-        <url-pattern>/myresources/*</url-pattern>
-    </servlet-mapping>
--->
     <session-config>
       <session-timeout>30</session-timeout>    <!-- 30 minutes -->
     </session-config>
