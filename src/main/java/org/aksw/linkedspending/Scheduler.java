@@ -47,8 +47,6 @@ public class Scheduler
     @Path("stopdownload")
     public static String stopDownloader()
     {
-        //Todo interrupting the thread like that might have bad consequences.
-        //downloaderThread.interrupt();
         downloader.setStopRequested(true);
         return "Stopped downloading";
     }
