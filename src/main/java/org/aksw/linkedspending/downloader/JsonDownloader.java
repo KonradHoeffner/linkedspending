@@ -206,8 +206,9 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
 
     /** After stop has been requested, this method writes all names of unfinished datasets into file named
      * unfinishedDatasetNames. With the help of this file, unfinished dataset files will be deleted before
-     * another run is started. */
-    public static void writeUnfinishedDatasetNames()
+     * another run is started.
+     * @return True, if file has been successfully created. False otherwise. */
+    protected static boolean writeUnfinishedDatasetNames()
     {
         SortedSet<String> unfinishedDatasets = new TreeSet<>();
         unfinishedDatasets = datasetNames;
@@ -218,45 +219,26 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             File f = new File("unfinishedDatasetNames");
             FileWriter output = new FileWriter(f);
 
-            //Writer fileWr = new FileWriter("unfinishedDatasetNames");
-            //Writer bufWriter = new BufferedWriter(fileWr);
-
             for(String dataset : unfinishedDatasets)
             {
                 output.write(dataset);
                 output.append(System.getProperty("line.separator"));
             }
             output.close();
-            //bufWriter.close();
         }
         catch(IOException e)
         {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     /** Deletes dataset files which have not been marked as finished from their DownloadCallables.
      * Called as a clean-up after stop has been requested.
      * @return true, if files have been deleted successfully. False, if a FileNotFoundException occured. */
-    public static boolean deleteUnfinishedDatasets()
+    protected static boolean deleteUnfinishedDatasets()
     {
-        /*
-        SortedSet<String> unfinishedDatasets = new TreeSet<>();
-        unfinishedDatasets = datasetNames;
-        unfinishedDatasets.removeAll(finishedDatasets);
-
-        int i=0;
-        for(String dataset : unfinishedDatasets)
-        {
-            i++;
-            System.out.println("Deleting file nr. "+ i);
-            File f = new File("json/"+dataset);
-            if(f.delete()) System.out.println("Deleting: "+"json/"+dataset);
-        }
-
-        File f = new File("json/parts");
-        f.delete();
-        */
         File f = new File("unfinishedDatasetNames");
         if(f.isFile() && !f.delete()) return false;
         try
@@ -279,7 +261,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     /** Recursively deletes a given folder which can't be exspected to be empty. Used to delete json/parts
      * after a stop has been requested.
      * @return Returns true if parts folder has successfully been deleted, false otherwise.*/
-    public static boolean deleteNotEmptyFolder(File folderToBeDeleted)
+    protected static boolean deleteNotEmptyFolder(File folderToBeDeleted)
     {
         File[] files = folderToBeDeleted.listFiles();
         if(files != null)
