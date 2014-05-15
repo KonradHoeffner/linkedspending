@@ -25,8 +25,6 @@ import java.util.concurrent.*;
 @SuppressWarnings("serial")
 public class JsonDownloader extends OpenspendingSoftwareModul implements Runnable
 {
-
-
     // public static boolean finished = false;
 
     /** helps to merge JSON-parts by representing a relative position in a given parts-file*/
@@ -62,6 +60,9 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
     /**set for the names of already locally saved JSON-files known to the downloader*/
     static protected SortedSet<String> datasetNames = new TreeSet<>();
+    static protected LinkedList<String> finishedDatasets = new LinkedList<>();
+
+    public LinkedList<String> getFinishedDatasets() {return finishedDatasets;}
 
     static { if(!CACHE.exists()) { CACHE.mkdir(); } }
     static { if(!pathJson.exists()) { pathJson.mkdirs();} }
@@ -167,14 +168,6 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         {
             {
                 futures.add(service.submit(new DownloadCallable(dataset,i++)));
-                /*if(OpenspendingSoftwareModul.stopRequested)
-                {
-                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
-                    service.shutdown();
-                    service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
-                    downloadStopped = true;
-                    return true;
-                }*/
             }
         }
         ThreadMonitor monitor = new ThreadMonitor(service);
@@ -185,6 +178,24 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             try{if(future.get()) {successCount++;}}
             catch(ExecutionException e) {e.printStackTrace();}
         }
+
+        if(stopRequested)
+        {
+            service.shutdown();
+            service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
+            while(!service.isShutdown())
+            {
+                System.out.println("service still there...slepeing");
+                try {Thread.sleep(1000);}
+                catch(InterruptedException e) {}
+            }
+            monitor.stopMonitoring();
+            //Thread.sleep(120000);
+            //deleteUnfinishedDatasets();
+            writeUnfinishedDatasetNames();
+            return true;
+        }
+
         //cleaning up
         log.info(successCount+" datasets newly created.");
         service.shutdown();
@@ -193,6 +204,95 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         return false;
     }
 
+    /** After stop has been requested, this method writes all names of unfinished datasets into file named
+     * unfinishedDatasetNames. With the help of this file, unfinished dataset files will be deleted before
+     * another run is started. */
+    public static void writeUnfinishedDatasetNames()
+    {
+        SortedSet<String> unfinishedDatasets = new TreeSet<>();
+        unfinishedDatasets = datasetNames;
+        unfinishedDatasets.removeAll(finishedDatasets);
+
+        try
+        {
+            File f = new File("unfinishedDatasetNames");
+            FileWriter output = new FileWriter(f);
+
+            //Writer fileWr = new FileWriter("unfinishedDatasetNames");
+            //Writer bufWriter = new BufferedWriter(fileWr);
+
+            for(String dataset : unfinishedDatasets)
+            {
+                output.write(dataset);
+                output.append(System.getProperty("line.separator"));
+            }
+            output.close();
+            //bufWriter.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /** Deletes dataset files which have not been marked as finished from their DownloadCallables.
+     * Called as a clean-up after stop has been requested.
+     * @return true, if files have been deleted successfully. False, if a FileNotFoundException occured. */
+    public static boolean deleteUnfinishedDatasets()
+    {
+        /*
+        SortedSet<String> unfinishedDatasets = new TreeSet<>();
+        unfinishedDatasets = datasetNames;
+        unfinishedDatasets.removeAll(finishedDatasets);
+
+        int i=0;
+        for(String dataset : unfinishedDatasets)
+        {
+            i++;
+            System.out.println("Deleting file nr. "+ i);
+            File f = new File("json/"+dataset);
+            if(f.delete()) System.out.println("Deleting: "+"json/"+dataset);
+        }
+
+        File f = new File("json/parts");
+        f.delete();
+        */
+        File f = new File("unfinishedDatasetNames");
+        if(f.isFile() && !f.delete()) return false;
+        try
+        {
+            BufferedReader input = new BufferedReader(new FileReader(f));
+            String s = input.readLine();
+            while( s != null )
+            {
+                File g = new File("json/"+s);
+                if(g.isFile()) g.delete();
+                s = input.readLine();
+            }
+            f.delete();
+        }
+        catch(IOException e) {return false;}
+        if(!deleteNotEmptyFolder(new File("json/parts"))) return false;
+        return true;
+    }
+
+    /** Recursively deletes a given folder which can't be exspected to be empty. Used to delete json/parts
+     * after a stop has been requested.
+     * @return Returns true if parts folder has successfully been deleted, false otherwise.*/
+    public static boolean deleteNotEmptyFolder(File folderToBeDeleted)
+    {
+        File[] files = folderToBeDeleted.listFiles();
+        if(files != null)
+        {
+            for(File file : files)
+            {
+                if(file.isDirectory()) deleteNotEmptyFolder(file);
+                else file.delete();
+            }
+        }
+        if(!folderToBeDeleted.delete()) return false;
+        return true;
+    }
 
     /**
      * Collects all parted Datasets from a specific File
@@ -357,6 +457,14 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     public void run() /*throws JsonProcessingException, IOException, InterruptedException, ExecutionException*/
     {
         //finished = false;
+        //cleaning up from previously stopped runs
+        File f = new File("unfinishedDatasetNames");
+        if(f.exists()) deleteUnfinishedDatasets();
+        //f.delete();
+
+        //try{Thread.sleep(60000);}
+        //catch(InterruptedException e) {e.printStackTrace();}
+
         long startTime = System.currentTimeMillis();
         try
         {

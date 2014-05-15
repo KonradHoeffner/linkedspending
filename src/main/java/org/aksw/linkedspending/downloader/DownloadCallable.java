@@ -98,11 +98,19 @@ class DownloadCallable implements Callable<Boolean>
                 try {Thread.sleep(5000);}
                 catch(InterruptedException e) {}
             }
+
+
             File f = new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
             if(f.exists()) {continue;}
             log.fine(nr+" page "+page+"/"+nrOfPages);
             URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+ JsonDownloader.pageSize+"&page="+page);
             //                System.out.println(entries);
+
+            if(Scheduler.getDownloader().getStopRequested())
+            {
+                System.out.println("Aborting DownloadCallable");
+                return false;
+            }
 
             try
             {
@@ -120,11 +128,14 @@ class DownloadCallable implements Callable<Boolean>
             // ideally, memory should be measured during the transfer but thats not easily possible except
             // by creating another thread which is overkill. Because it is multithreaded anyways I hope this value isn't too far from the truth.
             JsonDownloader.memoryBenchmark.updateAndGetMaxMemoryBytes();
+
+
         }
         // TODO: sometimes at the end "]}" is missing, add it in this case
         // manually solvable in terminal with cat /tmp/problems  | xargs -I  @  sh -c "echo ']}' >> '@'"
         // where /tmp/problems is the file containing the list of files with the error
         log.info(nr+" Finished download of "+datasetName+".");
+        Scheduler.getDownloader().getFinishedDatasets().add(datasetName);
         return true;
     }
 }

@@ -48,7 +48,8 @@ public class Scheduler
     public static String stopDownloader()
     {
         //Todo interrupting the thread like that might have bad consequences.
-        downloaderThread.interrupt();
+        //downloaderThread.interrupt();
+        downloader.setStopRequested(true);
         return "Stopped downloading";
     }
 
@@ -174,6 +175,11 @@ public class Scheduler
 
     public static void main(String[] args)
     {
+
+    /*todo: Zu löschende Dateien werden nach Stop nicht gelöscht.
+    * Sind noch Dateien vorhanden, werden diese nicht gelöscht. Sind keine vorhanden, werden neue angelegt und nicht gelöscht
+    * */
+        /*
         try
         {
             GrizzlyHttpUtil.startServer();
@@ -189,10 +195,16 @@ public class Scheduler
         catch(InterruptedException e)
         {
             e.printStackTrace();
-        }
+        }*/
+
+
 
         //downloadDataset("berlin_de");
-        //runDownloader();
+        runDownloader();
+
+        //if(downloader.deleteUnfinishedDatasets()) System.out.println("Juhuuu!");
+        //File f = new File("json/2012_tax");
+        //if(f.delete()) System.out.println("Parts deleted");
 
         //try{Thread.sleep(5000);} catch(Exception e) {}
         //pauseDownloader();
@@ -201,8 +213,8 @@ public class Scheduler
         //pauseDownloader();
         //pauseDownloader();
         //resumeDownload();
-        //stopDownloader();
-
+        stopDownloader();
+        //downloader.deleteUnfinishedDatasets();
         /*while(!JsonDownloader.finished) {}
         for(EventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
         {
