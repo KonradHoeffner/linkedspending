@@ -432,7 +432,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             String suffix = osUri.substring(osUri.lastIndexOf('/')+1);
             String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-"+datasetName+"-"+suffix;
             Resource observation = model.createResource(lsUri);
-            model.add(observation, RDFS.label, datasetName+"// TODO Auto-generated method stub, observation "+suffix);
+            model.add(observation, RDFS.label, datasetName+" observation "+suffix);
             model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
             model.add(observation, RDF.type, DataModel.DataCube.getObservation());
             model.add(observation, DataModel.DCMI.source,osObservation);
