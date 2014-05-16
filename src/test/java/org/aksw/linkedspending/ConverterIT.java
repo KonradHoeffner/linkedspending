@@ -85,7 +85,7 @@ public class ConverterIT
         }
         catch (Exception e)
         {
-
+            fail("Exception: " + e.getMessage());
         }
         //System.out.println(line);
 
