@@ -17,6 +17,7 @@ public class Scheduler
 {
     private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
 
+    private static Thread scheduleTimeThread;
     private static Thread downloaderThread;
     private static Thread converterThread;
     private static JsonDownloader downloader = new JsonDownloader();
@@ -29,7 +30,8 @@ public class Scheduler
     public static JsonDownloader getDownloader() {return downloader;}
     public static Converter getConverter() {return converter;}
 
-    /** Starts complete download */
+    /** Starts complete download.
+     * To be used for out-of-schedule runs only. */
     @GET
     @Path("downloadcomplete")
     public static String runDownloader()
@@ -80,7 +82,8 @@ public class Scheduler
         return "Started downloading dataset " + datasetName;
     }
 
-    /** Starts converting of all new Datasets */
+    /** Starts converting of all new Datasets.
+     * To be used for out-of-schedule runs only. */
     @GET
     @Path("convertcomplete")
     public static String runConverter()
@@ -134,7 +137,8 @@ public class Scheduler
         return "Service shut down.";
     }
 
-    /** Runs a complete download after a specified period of time and starts converting afterwards
+    /** Runs a complete download after a specified period of time and starts converting afterwards.
+     * To be used for out-of-schedule runs only.
      * @Param timeTillStart the specified point of time
      * @Param unit the unit of time measurement (d for days, min for minutes)*/
     @GET
@@ -173,11 +177,12 @@ public class Scheduler
 
     public static void main(String[] args)
     {
+        //todo: @ScheduleTimeHandler: can environmentVariables be changed while the programm is running?
+        //todo: If yes, should be considered in ScheduleTimeHandler.
+        ScheduleTimeHandler sth = new ScheduleTimeHandler();
+        scheduleTimeThread = new Thread(sth);
+        scheduleTimeThread.start();
 
-    /*todo: Zu löschende Dateien werden nach Stop nicht gelöscht.
-    * Sind noch Dateien vorhanden, werden diese nicht gelöscht. Sind keine vorhanden, werden neue angelegt und nicht gelöscht
-    * */
-        /*
         try
         {
             GrizzlyHttpUtil.startServer();
@@ -193,12 +198,10 @@ public class Scheduler
         catch(InterruptedException e)
         {
             e.printStackTrace();
-        }*/
-
-
+        }
 
         //downloadDataset("berlin_de");
-        runDownloader();
+        //runDownloader();
 
         //if(downloader.deleteUnfinishedDatasets()) System.out.println("Juhuuu!");
         //File f = new File("json/2012_tax");
@@ -211,7 +214,7 @@ public class Scheduler
         //pauseDownloader();
         //pauseDownloader();
         //resumeDownload();
-        stopDownloader();
+        //stopDownloader();
         //downloader.deleteUnfinishedDatasets();
         /*while(!JsonDownloader.finished) {}
         for(EventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
@@ -223,6 +226,5 @@ public class Scheduler
         //pauseConverter();
         //resumeConverter();
         //stopConverter();
-
     }
 }
