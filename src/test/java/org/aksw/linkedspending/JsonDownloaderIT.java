@@ -12,7 +12,7 @@ import static org.junit.Assert.fail;
 /**
  * Integration Test for the downloader class
  */
-public class JsonDownloaderIntegrationTest
+public class JsonDownloaderIT
 {
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     private Scheduler scheduler = new Scheduler();
@@ -23,8 +23,8 @@ public class JsonDownloaderIntegrationTest
     @Test
     public void downloaderTest()
     {
-        number = fileNumber(downloadDir);
-        numberParts = fileNumberRec(partsDir);
+        number = fileNumber(downloadDir, false);
+        numberParts = fileNumber(partsDir, true);
 
         scheduler.runDownloader();
 
@@ -37,10 +37,10 @@ public class JsonDownloaderIntegrationTest
             fail("Interrupted exception: " + e.getMessage());
         }
 
-        scheduler.pauseDownloader();
+        scheduler.stopDownloader();
 
-        numberNew = fileNumber(downloadDir);
-        numberPartsNew = fileNumberRec(partsDir);
+        numberNew = fileNumber(downloadDir, false);
+        numberPartsNew = fileNumber(partsDir, true);
 
         //System.out.println(number + " " + numberNew);
         //System.out.println(numberParts + " " + numberPartsNew);
@@ -51,31 +51,14 @@ public class JsonDownloaderIntegrationTest
         }
         else if (number == numberNew)
         {
-            if(numberParts < numberPartsNew){}
-            else
+            if(numberParts >= numberPartsNew)
             {
                 fail("Number of files not increased");
             }
         }
     }
 
-    private int fileNumberRec(File directory)
-    {
-        int number = 0;
-        for (File file : directory.listFiles()) {
-            if (file.isFile())
-            {
-                number++;
-            }
-            else
-            {
-                number += fileNumberRec(file);
-            }
-        }
-        return number;
-    }
-
-    private int fileNumber(File directory)
+    private int fileNumber(File directory, boolean rec)
     {
         int number = 0;
         for (File file : directory.listFiles())
@@ -83,6 +66,10 @@ public class JsonDownloaderIntegrationTest
             if (file.isFile())
             {
                 number++;
+            }
+            else if(rec)
+            {
+                number += fileNumber(file, true);
             }
         }
         return number;
