@@ -29,13 +29,15 @@
 				qb:componentRequired "true"^^xsd:boolean;
 				qb:componentAttachment qb:Observation.
 				
-:refDate a rdf:Property;
+:refDate a rdf:Property,qb:DimensionProperty;
+	rdfs:subPropertyOf sdmx-concept:refPeriod;
 	rdfs:label "reference date";
 	rdfs:comment "the date an observation refers to";
 	rdfs:domain qb:Observation;
 	rdfs:range xsd:date. 
 
-:refYear
+:refYear a rdf:Property,qb:DimensionProperty;
+	rdfs:subPropertyOf sdmx-concept:refPeriod;
 	rdfs:label "reference year";
 	rdfs:comment "the year an observation refers to";
 	rdfs:domain qb:Observation;
