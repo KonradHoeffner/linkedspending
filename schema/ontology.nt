@@ -21,10 +21,15 @@
 <http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://purl.org/linked-data/cube#componentRequired> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <http://linkedspending.aksw.org/ontology/CurrencyComponentSpecification> <http://purl.org/linked-data/cube#componentAttachment> <http://purl.org/linked-data/cube#Observation> .
 <http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/linked-data/cube#DimensionProperty> .
+<http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/linked-data/sdmx/2009/concept#refPeriod> .
 <http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#label> "reference date" .
 <http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#comment> "the date an observation refers to" .
 <http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#domain> <http://purl.org/linked-data/cube#Observation> .
 <http://linkedspending.aksw.org/ontology/refDate> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#date> .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/linked-data/cube#DimensionProperty> .
+<http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/linked-data/sdmx/2009/concept#refPeriod> .
 <http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#label> "reference year" .
 <http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#comment> "the year an observation refers to" .
 <http://linkedspending.aksw.org/ontology/refYear> <http://www.w3.org/2000/01/rdf-schema#domain> <http://purl.org/linked-data/cube#Observation> .
