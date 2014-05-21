@@ -149,4 +149,15 @@ public class ScheduleTimeHandler implements Runnable
         dayString+= hour;
         startDay = dayString;
     }
+
+    /** Sets ratio to repeat runs. E.g., value = 2 means it will repeat every 2 weeks. */
+    public void setRepeat(String value) {repeatEveryXWeeks = value;}
+
+    /** Sets ratio to repeat runs. E.g., value = 2 means it will repeat every 2 weeks. */
+    public void setRepeat(int value)
+    {
+        String repeatString = new String();
+        repeatString+=value;
+        repeatEveryXWeeks = repeatString;
+    }
 }

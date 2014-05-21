@@ -39,6 +39,26 @@ public class Scheduler
     }
 
     /**
+     * Sets a new start date for scheduled runs (e.g. setstartdate/7/20 sets start time to 20 o'clock at Sunday)
+     * @param startDay The starting day (1 = Monday, ... , 7 = Sunday)
+     * @param startHour The starting hour
+     * @param repeat The ratio to repeat in weeks (e.g. 2 means one run every two weeks)
+     */
+    @Path("setstartdate/{day}/{hour}/{repeat}")
+    public static String setScheduleTime(@PathParam("day") String startDay, @PathParam("hour") String startHour, @PathParam("repeat") String repeat)
+    {
+        scheduleTimeHandler.setShutdownRequested(true);
+
+        scheduleTimeHandler.setStartDay(startDay);
+        scheduleTimeHandler.setStartTime(startHour);
+        scheduleTimeHandler.setRepeat(repeat);
+
+        scheduleTimeThread = new Thread(scheduleTimeHandler);
+        scheduleTimeThread.start();
+        return "Set new start date!";
+    }
+
+    /**
      * For running the programm manually. ScheduleTimeHandler will be stopped and the programm will
      * await commands from a user.
      */

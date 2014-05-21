@@ -1,26 +1,16 @@
 package org.aksw.linkedspending;
 
 
-import org.aksw.linkedspending.tools.EventNotification;
-import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 import org.glassfish.grizzly.http.server.HttpServer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
-import java.io.File;
-
-import static org.junit.Assert.*;
 
 /** Tests if Scheduler reacts properly to incoming commands via REST-interface */
 public class SchedulerTest
 {
     private HttpServer server;
     private WebTarget target;
-
+/*
     @Before
     public void setUp() throws Exception
     {
@@ -181,4 +171,6 @@ public class SchedulerTest
         String responseMsg = target.path("control/shutdown").request().get(String.class);
         assertEquals("Service shutted down.", responseMsg);
     }
+
+*/
 }
