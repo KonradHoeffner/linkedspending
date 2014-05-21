@@ -22,6 +22,7 @@ public class Scheduler
     private static Thread converterThread;
     private static JsonDownloader downloader = new JsonDownloader();
     private static Converter converter = new Converter();
+    private static ScheduleTimeHandler scheduleTimeHandler;
 
     public static URI getBaseURI() {return baseURI;}
 
@@ -30,18 +31,61 @@ public class Scheduler
     public static JsonDownloader getDownloader() {return downloader;}
     public static Converter getConverter() {return converter;}
 
+    private static boolean manualMode = false;
+
+    private static void shutdownScheduleTimeHandler()
+    {
+        scheduleTimeHandler.setShutdownRequested(true);
+    }
+
+    /**
+     * For running the programm manually. ScheduleTimeHandler will be stopped and the programm will
+     * await commands from a user.
+     */
+    @GET
+    @Path("runmanually")
+    public static String runManually()
+    {
+        manualMode = true;
+        shutdownScheduleTimeHandler();
+        return "Manual running has been started.";
+    }
+
+    /**
+     * Resets the programm to run in automatic mode after it has been run manually.
+     * Has no effect if it hasn't been run manually yet.
+     */
+    @GET
+    @Path("runautomatically")
+    public static String runAutomatically()
+    {
+        if(!manualMode) return "Programm already running automatically.";
+        else
+        {
+            manualMode = false;
+            scheduleTimeHandler.setShutdownRequested(false);
+            scheduleTimeThread = new Thread(scheduleTimeHandler);
+            scheduleTimeThread.start();
+            return "Program now is in automatic mode.";
+        }
+    }
+
     /** Starts complete download.
      * To be used for out-of-schedule runs only. */
     @GET
     @Path("downloadcomplete")
     public static String runDownloader()
     {
-        downloader.setStopRequested(false);
-        downloader.setPauseRequested(false);
-        downloader.setCompleteRun(true);
-        downloaderThread = new Thread(downloader);
-        downloaderThread.start();
-        return "Started complete download";
+        if (manualMode)
+        {
+            downloader.setStopRequested(false);
+            downloader.setPauseRequested(false);
+            downloader.setCompleteRun(true);
+            downloaderThread = new Thread(downloader);
+            downloaderThread.start();
+            return "Started complete download";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Stops JsonDownloader. Already started downloads won't be finished, use it carefully! */
@@ -49,8 +93,12 @@ public class Scheduler
     @Path("stopdownload")
     public static String stopDownloader()
     {
-        downloader.setStopRequested(true);
-        return "Stopped downloading";
+        if(manualMode)
+        {
+            downloader.setStopRequested(true);
+            return "Stopped downloading";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Pauses JsonDownloader */
@@ -58,28 +106,39 @@ public class Scheduler
     @Path("pausedownload")
     public static String pauseDownloader()
     {
-        downloader.setPauseRequested(true);
-        return "Paused Downloader";
+        if (manualMode)
+        {
+            downloader.setPauseRequested(true);
+            return "Paused Downloader";
+        }
+        else return "Error: Program not in manual mode!";
     }
-
     /** Resumes downloading process */
     @GET
     @Path("resumedownload")
     public static String resumeDownload()
     {
+        if(manualMode)
+        {
         downloader.setPauseRequested(false);
         return "Resumed Downloader";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Starts downloading a specified dataset */
     @Path("downlaodspecific/{param}")
     public static String downloadDataset( @PathParam("param") String datasetName )
     {
-        downloader.setCompleteRun(false);
-        downloader.setToBeDownloaded(datasetName);
-        downloaderThread = new Thread(downloader);
-        downloaderThread.start();
-        return "Started downloading dataset " + datasetName;
+        if(manualMode)
+        {
+            downloader.setCompleteRun(false);
+            downloader.setToBeDownloaded(datasetName);
+            downloaderThread = new Thread(downloader);
+            downloaderThread.start();
+            return "Started downloading dataset " + datasetName;
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Starts converting of all new Datasets.
@@ -88,11 +147,15 @@ public class Scheduler
     @Path("convertcomplete")
     public static String runConverter()
     {
+        if(manualMode)
+        {
         converter.setPauseRequested(false);
         converter.setStopRequested(false);
         converterThread = new Thread(converter);
         converterThread.start();
         return "Started Converter.";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Stops the converting process */
@@ -100,9 +163,13 @@ public class Scheduler
     @Path("stopconvert")
     public static String stopConverter()
     {
-        //Converter.setStopRequested(true);
-        converterThread.interrupt();
-        return "Stopped Converter.";
+        if(manualMode)
+        {
+            //converterThread.interrupt();
+            converter.setStopRequested(true);
+            return "Stopped Converter.";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Pauses converting process */
@@ -110,11 +177,15 @@ public class Scheduler
     @Path("pauseconvert")
     public static String pauseConverter()
     {
-        Converter.setPauseRequested(true);
-        ConverterSleeper cS = new ConverterSleeper();
-        Thread cSThread = new Thread(cS);
-        cSThread.start();
-        return "Paused Converter.";
+        if(manualMode)
+        {
+            Converter.setPauseRequested(true);
+            ConverterSleeper cS = new ConverterSleeper();
+            Thread cSThread = new Thread(cS);
+            cSThread.start();
+            return "Paused Converter.";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Resumes converting process */
@@ -122,8 +193,12 @@ public class Scheduler
     @Path("resumeconvert")
     public static String resumeConverter()
     {
-        Converter.setPauseRequested(false);
-        return "Resumed Converter";
+        if(manualMode)
+        {
+            Converter.setPauseRequested(false);
+            return "Resumed Converter";
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Completly shutdowns downloader, converter (if running) and scheduler */
@@ -145,15 +220,19 @@ public class Scheduler
     @Path("schedule/{time}/{unit}")
     public static String scheduleCompleteRun(@PathParam("time") int timeTillStart, @PathParam("unit") String unit)
     {
-        long timeInMs;
-        if (unit.equals("d")) timeInMs = timeTillStart * 1000 * 60 * 60 * 24;
-        else if (unit.equals("h")) timeInMs = timeTillStart * 1000 * 60 * 60;
-        else if (unit.equals("min")) timeInMs = timeTillStart * 1000 * 60;
-        else if (unit.equals("s")) timeInMs = timeTillStart * 1000;
-        else return "Wrong arguments.";
+        if(manualMode)
+        {
+            long timeInMs;
+            if (unit.equals("d")) timeInMs = timeTillStart * 1000 * 60 * 60 * 24;
+            else if (unit.equals("h")) timeInMs = timeTillStart * 1000 * 60 * 60;
+            else if (unit.equals("min")) timeInMs = timeTillStart * 1000 * 60;
+            else if (unit.equals("s")) timeInMs = timeTillStart * 1000;
+            else return "Wrong arguments.";
 
-        scheduleCompleteRun(timeInMs);
-        return "Complete run starting in " + timeTillStart + unit;
+            scheduleCompleteRun(timeInMs);
+            return "Complete run starting in " + timeTillStart + unit;
+        }
+        else return "Error: Program not in manual mode!";
     }
 
     /** Helping method for String scheduleCompleteRun(). Waits specified time and runs downloader and converter.
@@ -179,52 +258,16 @@ public class Scheduler
     {
         //todo: @ScheduleTimeHandler: can environmentVariables be changed while the programm is running?
         //todo: If yes, should be considered in ScheduleTimeHandler.
-        ScheduleTimeHandler sth = new ScheduleTimeHandler();
-        scheduleTimeThread = new Thread(sth);
+        //ScheduleTimeHandler sth = new ScheduleTimeHandler();
+        scheduleTimeHandler = new ScheduleTimeHandler();
+        scheduleTimeThread = new Thread(scheduleTimeHandler);
         scheduleTimeThread.start();
 
-        try
-        {
-            GrizzlyHttpUtil.startServer();
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            Thread.sleep(60000); //Puts Thread asleep for one minute to wait for commands via REST-interface
-        }
-        catch(InterruptedException e)
-        {
-            e.printStackTrace();
-        }
 
-        //downloadDataset("berlin_de");
-        //runDownloader();
+        try {GrizzlyHttpUtil.startServer();}
+        catch (Exception e) { e.printStackTrace();}
+        try { Thread.sleep(60000); }//Puts Thread asleep for one minute to wait for commands via REST-interface
+        catch(InterruptedException e) { e.printStackTrace(); }
 
-        //if(downloader.deleteUnfinishedDatasets()) System.out.println("Juhuuu!");
-        //File f = new File("json/2012_tax");
-        //if(f.delete()) System.out.println("Parts deleted");
-
-        //try{Thread.sleep(5000);} catch(Exception e) {}
-        //pauseDownloader();
-        //downloader.setPauseRequested(true);
-        //downloader.pause();
-        //pauseDownloader();
-        //pauseDownloader();
-        //resumeDownload();
-        //stopDownloader();
-        //downloader.deleteUnfinishedDatasets();
-        /*while(!JsonDownloader.finished) {}
-        for(EventNotification eN : JsonDownloader.getEventContainer().getEventNotifications())
-        {
-            System.out.println(eN.getEventCode(true));
-        }*/
-
-        //runConverter();
-        //pauseConverter();
-        //resumeConverter();
-        //stopConverter();
     }
 }

@@ -11,7 +11,8 @@ import java.util.Properties;
  * static helper class for loading properties
  */
 @Log
-public final class PropertiesLoader {
+public final class PropertiesLoader
+{
     /** properties */
     private static HashMap<String, Properties> propertiesList = new HashMap<>();
 
@@ -23,8 +24,10 @@ public final class PropertiesLoader {
      * @param filename file name
      * @return properties
      */
-    public static Properties getProperties(String filename) {
-        if(!propertiesList.containsKey(filename)) {
+    public static Properties getProperties(String filename)
+    {
+        if(!propertiesList.containsKey(filename))
+        {
             Properties properties = loadProperties(filename);
             propertiesList.put(filename, properties);
         }
@@ -36,26 +39,31 @@ public final class PropertiesLoader {
      * @param filename file name
      * @return properties
      */
-    private static Properties loadProperties(String filename) {
+    private static Properties loadProperties(String filename)
+    {
         Properties properties = new Properties();
         InputStream propertiesFile = null;
-        try {
+        try
+        {
             propertiesFile = PropertiesLoader.class.getClassLoader().getResourceAsStream(filename);
-            if(propertiesFile == null) {
-                log.severe("Could not open " + filename);
-            }
+            if(propertiesFile == null) { log.severe("Could not open " + filename); }
             properties.load(propertiesFile);
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
             log.severe("Could not load properties from file: " + e.getMessage());
-        } finally {
-            if(propertiesFile != null) {
-                try {
-                    propertiesFile.close();
-                } catch (IOException e) {
+        }
+        finally
+        {
+            if(propertiesFile != null)
+            {
+                try { propertiesFile.close(); }
+                catch (IOException e)
+                {
                     log.warning("Error closing properties file: " + e.getMessage());
                 }
             }
         }
         return properties;
     }
+
 }

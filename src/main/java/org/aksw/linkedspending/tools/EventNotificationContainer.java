@@ -73,4 +73,17 @@ public class EventNotificationContainer
         }
         catch(IOException e) { e.printStackTrace(); }
     }
+
+    /** Removes all elements contained in notifications vector */
+    public void clear()
+    {
+        notifications.clear();
+    }
+
+    /** Adds a new EventNotification to notifications vector
+     * @param e EventNotification to be added */
+    public void add(EventNotification e)
+    {
+        notifications.add(e);
+    }
 }

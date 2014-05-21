@@ -657,7 +657,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
         //pauseRequested = false;
         // Converter starts 5s after it should start, allowing the Scheduler to do schedule a complete run without pausing itself.
         try { Thread.sleep(5000); } catch(InterruptedException e) {e.printStackTrace();}
-        eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
+        eventContainer.add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
         long startTime = System.currentTimeMillis();
         try {
             int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
@@ -676,12 +676,12 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             for(final String datasetName : datasetNames) {
                 if(stopRequested)
                 {
-                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.stoppedConverter, EventNotification.EventSource.Converter));
+                    eventContainer.add(new EventNotification(EventNotification.EventType.stoppedConverter, EventNotification.EventSource.Converter));
                     break;
                 }
                 else if(pauseRequested)
                 {
-                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter));
+                    eventContainer.add(new EventNotification(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter));
                     while(pauseRequested){
                         try {
                             Thread.sleep(10000);
@@ -689,7 +689,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                             log.warning(e.getMessage());
                         }
                     }
-                    eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter));
+                    eventContainer.add(new EventNotification(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter));
                 }
                 i++;
                 Model model = DataModel.newModel();
@@ -717,8 +717,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                         e.printStackTrace();
                         if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio) {
                             log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
-                            eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.tooManyErrors, EventNotification.EventSource.Converter));
-                            eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
+                            eventContainer.add(new EventNotification(EventNotification.EventType.tooManyErrors, EventNotification.EventSource.Converter));
+                            eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
                             shutdown(1);
                         }
 
@@ -732,8 +732,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                     cache.getCacheManager().shutdown();
                 }
                 log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
-                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.tooManyErrors, EventNotification.EventSource.Converter));
-                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
+                eventContainer.add(new EventNotification(EventNotification.EventType.tooManyErrors, EventNotification.EventSource.Converter));
+                eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
                 shutdown(1);
             }
 
@@ -747,11 +747,15 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
         // we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster
         catch(RuntimeException e) {
             log.log(Level.SEVERE,e.getLocalizedMessage(),e);
-            eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.runTimeError, EventNotification.EventSource.Converter));
-            eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
+            eventContainer.add(new EventNotification(EventNotification.EventType.runTimeError, EventNotification.EventSource.Converter));
+            eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
+            eventContainer.printEventsToFile();
+            eventContainer.clear();
             shutdown(1);
         }
-        eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,true));
+        eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,true));
+        eventContainer.printEventsToFile();
+        eventContainer.clear();
         shutdown(0);
     }
 

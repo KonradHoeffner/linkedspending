@@ -382,7 +382,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     }
 
     /**
-     * Downloads one specific dataset-file from openspending.
+     * Downloads a single specific dataset-file from openspending.
      * Writes the emptyDatasetFile.
      * @param datasetName the name of the dataset to be downloaded
      * @throws IOException
@@ -452,19 +452,21 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         {
             if(completeRun)
             {
-                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader));
+                eventContainer.add(new EventNotification(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader));
                 downloadAll();
-                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader, true));
+                eventContainer.add(new EventNotification(EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader, true));
             }
             else
             {
-                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader));
+                eventContainer.add(new EventNotification(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader));
                 downloadSpecific(toBeDownloaded);
-                eventContainer.getEventNotifications().add(new EventNotification(EventNotification.EventType.finishedDownloadingSingle, EventNotification.EventSource.Downloader, true));
+                eventContainer.add(new EventNotification(EventNotification.EventType.finishedDownloadingSingle, EventNotification.EventSource.Downloader, true));
             }
             puzzleTogether();
         }
         catch (Exception e){e.printStackTrace();}
+        eventContainer.printEventsToFile();
+        eventContainer.clear();
         //finished = true;
         log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
         System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
