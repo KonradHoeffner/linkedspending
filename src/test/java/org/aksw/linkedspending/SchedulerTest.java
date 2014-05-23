@@ -1,5 +1,7 @@
 package org.aksw.linkedspending;
 
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.hamcrest.SelfDescribing;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
@@ -12,7 +14,9 @@ import org.junit.Test;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.UriBuilder;
 import java.io.File;
+import java.net.URI;
 
 /** Tests if Scheduler reacts properly to incoming commands via REST-interface */
 public class SchedulerTest
@@ -23,11 +27,14 @@ public class SchedulerTest
     @Before
     public void setUp() throws Exception
     {
+        URI uri = UriBuilder.fromUri("http://localhost/").port(10010).build();
         // start the server
-        server = GrizzlyHttpUtil.startServer();
+        //server = GrizzlyHttpUtil.startServer();
+        ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
+        server = GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
+
         // create the client
         Client c = ClientBuilder.newClient();
-
         target = c.target(Scheduler.getBaseURI());
     }
 
