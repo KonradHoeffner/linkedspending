@@ -10,7 +10,7 @@ import java.net.URI;
 /** Sets up and handles a GrizzlyHttp provided by Jersey. */
 public class GrizzlyHttpUtil
 {
-    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
+    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(10010).build();
     private static final HttpServer server = startServer();
 
     /** Creates a new http server */
