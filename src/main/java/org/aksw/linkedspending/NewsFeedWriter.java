@@ -1,8 +1,10 @@
 package org.aksw.linkedspending;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Date;
 import java.util.Properties;
 
 import com.sun.syndication.feed.synd.SyndFeed;
@@ -31,11 +33,14 @@ public class NewsFeedWriter {
 
         feed.setTitle(title);
 
+        feed.setPublishedDate(new Date());
         feed.setLink(PROPERTIES.getProperty("urlNewsFeed"));
 
         feed.setDescription(description);
 
-        Writer writer = new FileWriter(PROPERTIES.getProperty("pathNewsFeed")+title+".rss");
+        final File feedFolder = new File(PROPERTIES.getProperty("pathNewsFeed"));
+        if(!feedFolder.exists()) { feedFolder.mkdir(); }
+        Writer writer = new FileWriter(feedFolder+"/"+title+feed.getPublishedDate()+".rss");
 
         SyndFeedOutput output = new SyndFeedOutput();
 
