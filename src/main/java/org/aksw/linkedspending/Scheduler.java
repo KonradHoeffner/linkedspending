@@ -15,7 +15,7 @@ import java.net.URI;
 @Path("control")
 public class Scheduler
 {
-    private static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(9998).build();
+    public static final URI baseURI = UriBuilder.fromUri("http://localhost/").port(10010).build();
 
     private static Thread scheduleTimeThread;
     private static Thread downloaderThread;
