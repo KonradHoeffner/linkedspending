@@ -10,12 +10,14 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
+import com.sun.syndication.io.FeedException;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.CacheManager;
+import org.aksw.linkedspending.NewsFeedWriter;
 import org.aksw.linkedspending.OpenspendingSoftwareModul;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.*;
@@ -653,6 +655,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
     @Override
     public void run()
     {
+        String newsDescription="<br>";
         //stopRequested = false;
         //pauseRequested = false;
         // Converter starts 5s after it should start, allowing the Scheduler to do schedule a complete run without pausing itself.
@@ -709,6 +712,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                     try {
                         createDataset(datasetName, model, out);
                         writeModel(model, out);
+                        newsDescription+=datasetName+"<br>";
                     } catch(Exception e) {
                         exceptions++;
                         deleteDataset(datasetName);
@@ -739,8 +743,20 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
 
             if(stopRequested) log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
                     +"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+ memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
-            else log.info("** FINISHED CONVERSION: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
+            else {int newlyCreatedDatasets=i-exceptions-fileexists;
+                log.info("** FINISHED CONVERSION: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(newlyCreatedDatasets)+" newly created)."
                     +"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+ memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
+
+                //write News(new converted Datasets)
+                if(newlyCreatedDatasets>=1){
+                        String newsTitle="";
+                        if(newlyCreatedDatasets==1)newsTitle=newlyCreatedDatasets+ " new Dataset has been converted.";
+                        else newsTitle=newlyCreatedDatasets+ " new Datasets have been converted.";
+                        NewsFeedWriter.writeNewsFeed(newsTitle,newsDescription);
+                    
+                }
+
+            }
             if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+ faultyDatasets);
         }
 
