@@ -26,7 +26,7 @@ public class NewsFeedWriter {
      * @throws IOException
      * @throws FeedException if the feed could not have been created
      */
-    public static void writeNewsFeed(String title, String description) throws IOException, FeedException {
+    public static void writeNewsFeed(String title, String description){
         SyndFeed feed = new SyndFeedImpl();
 
         feed.setFeedType("rss_2.0");
@@ -40,13 +40,20 @@ public class NewsFeedWriter {
 
         final File feedFolder = new File(PROPERTIES.getProperty("pathNewsFeed"));
         if(!feedFolder.exists()) { feedFolder.mkdir(); }
-        Writer writer = new FileWriter(feedFolder+"/"+title+feed.getPublishedDate()+".rss");
 
-        SyndFeedOutput output = new SyndFeedOutput();
+        Writer writer = null;
+        try {
+            writer = new FileWriter(feedFolder+"/"+title+feed.getPublishedDate()+".rss");
+            SyndFeedOutput output = new SyndFeedOutput();
+            output.output(feed,writer);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FeedException e) {
+            e.printStackTrace();
+        }
 
-        output.output(feed,writer);
 
-        writer.close();
     }
 
     public static void main(String[] args) throws IOException, FeedException
