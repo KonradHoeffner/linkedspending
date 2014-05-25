@@ -10,7 +10,8 @@ public class EventNotification
     /* Feel free to add more constants if needed */
     /* Type constants */
 
-    public enum EventType {
+    public enum EventType
+    {
         finishedDownloadingSingle,
         finishedDownloadingComplete,
         finishedConvertingSingle,
@@ -35,7 +36,8 @@ public class EventNotification
     }
 
     /* source constants */
-    public enum EventSource {
+    public enum EventSource
+    {
         Converter,
         Downloader
     }
