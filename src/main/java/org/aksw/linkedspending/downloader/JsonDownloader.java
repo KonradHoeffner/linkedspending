@@ -125,6 +125,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
             m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
         }
+
         ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
         log.info(datasetArray.size()+" datasets available. "+emptyDatasets.size()+" marked as empty, "+(datasetArray.size()-emptyDatasets.size())+" remaining.");
         for(int i=0;i<datasetArray.size();i++)
@@ -132,6 +133,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             JsonNode dataSetJson = datasetArray.get(i);
             datasetNames.add(dataSetJson.get("name").textValue());
         }
+
         return datasetNames;
     }
 
@@ -189,6 +191,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 try {Thread.sleep(1000);}
                 catch(InterruptedException e) {}
             }
+
             monitor.stopMonitoring();
             //Thread.sleep(120000);
             //deleteUnfinishedDatasets();
@@ -224,6 +227,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 output.write(dataset);
                 output.append(System.getProperty("line.separator"));
             }
+
             output.close();
         }
         catch(IOException e)
@@ -251,8 +255,10 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 if(g.isFile()) g.delete();
                 s = input.readLine();
             }
+
             f.delete();
         }
+
         catch(IOException e) {return false;}
         if(!deleteNotEmptyFolder(new File("json/parts"))) return false;
         return true;
@@ -284,12 +290,14 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     protected static Map<String, File> getDataFiles(File foldername)
     {
         Map<String,File> datasetToFolder = new HashMap<>();
-        if(!foldername.exists()) {
+        if(!foldername.exists())
+        {
             foldername.mkdirs();
         }
         for(File folder : foldername.listFiles())
         {
-            if(folder.isDirectory()) {
+            if(folder.isDirectory())
+            {
                 datasetToFolder.put(folder.getName(), folder);
             }
         }
@@ -304,27 +312,35 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     protected static void mergeJsonParts(Map<String, File> partData)
     {
         //for each pathJson containing parts
-        for (String dataset : partData.keySet()) {
+        for (String dataset : partData.keySet())
+        {
             File targetFile = new File(pathJson.getPath() + "/" + dataset);
             File mergeFile = new File(pathJson.getPath() + "/" + dataset + ".tmp");
-            if(mergeFile.exists()) {
+            if(mergeFile.exists())
+            {
                 mergeFile.delete();
             }
 
-            try (PrintWriter out = new PrintWriter(mergeFile)) {
+            try (PrintWriter out = new PrintWriter(mergeFile))
+            {
                 int partNr = 0;
                 File[] parts = partData.get(dataset).listFiles();
                 //for each file in the parts pathJson
-                for (File f : parts) {
-                    if (f.length() == 0) {
+                for (File f : parts)
+                {
+                    if (f.length() == 0)
+                    {
                         log.severe(f + " is existing but empty.");
                     }
                     Position pos = Position.TOP;
-                    try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+                    try (BufferedReader in = new BufferedReader(new FileReader(f)))
+                    {
                         String line;
                         //each line in a parts-file
-                        while ((line = in.readLine()) != null) {
-                            switch (pos) {
+                        while ((line = in.readLine()) != null)
+                        {
+                            switch (pos)
+                            {
                                 case TOP:
                                     if (partNr == 0) out.println(line);
                                     if (line.contains("\"results\": [")) pos = Position.MID;
@@ -344,29 +360,39 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                     if (partNr != parts.length - 1) out.print(",");
                     partNr++;
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 log.severe("could not create merge file for " + dataset + ": "+ e.getMessage());
             }
 
-            if (targetFile.exists()) {
+            if (targetFile.exists())
+            {
                 boolean equals;
-                try {
+                try
+                {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode target = mapper.readTree(new FileInputStream(targetFile));
                     JsonNode merge = mapper.readTree(new FileInputStream(mergeFile));
                     equals = target.equals(merge);
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     log.severe("could not compare files for " + dataset + ": " + e.getMessage());
                     equals = false;
                 }
-                if (equals) {
+                if (equals)
+                {
                     mergeFile.delete();
-                } else {
+                }
+                else
+                {
                     targetFile.delete();
                     mergeFile.renameTo(targetFile);
 
                 }
-            } else {
+            }
+            else
+            {
                 mergeFile.renameTo(targetFile);
             }
         }
