@@ -34,7 +34,8 @@ import java.util.logging.Level;
 @Log
 @NonNullByDefault
 @SuppressWarnings("serial")
-public class Converter extends OpenspendingSoftwareModul implements Runnable {
+public class Converter extends OpenspendingSoftwareModul implements Runnable
+{
 
     static final Map<String,String> codeToCurrency = new HashMap<>();
     static final Map<Pair<String>,String> datasetPropertyNameToUri = new HashMap<>();
@@ -43,8 +44,10 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
     static ObjectMapper m = new ObjectMapper();
     static List<String> faultyDatasets = new LinkedList<>();
     static File statistics = new File("statistics"+(System.currentTimeMillis()/1000));
-    static {
-        if(!pathRdf.exists()) {
+    static
+    {
+        if(!pathRdf.exists())
+        {
             pathRdf.mkdirs();
         }
     }
@@ -56,8 +59,12 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
      */
     static Map<String,File> files = new ConcurrentHashMap<>();
 
-    static {
-        if(USE_CACHE) {CacheManager.getInstance().addCacheIfAbsent("openspending-json");}
+    static
+    {
+        if(USE_CACHE)
+        {
+            CacheManager.getInstance().addCacheIfAbsent("openspending-json");
+        }
     }
 
     static
@@ -70,7 +77,10 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                 codeToCurrency.put(tokens[0], tokens[1]);
             }
         }
-        catch (Exception e) {throw new RuntimeException(e);}
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     static
@@ -93,18 +103,24 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
     public static SortedSet<String> getSavedDatasetNames()
     {
         File path = new File(PROPERTIES.getProperty("pathJson"));
-        try {
-            if (!path.exists()) {
+        try
+        {
+            if (!path.exists())
+            {
                 path.mkdirs();
             }
             SortedSet<String> names = new TreeSet<>();
-            for (File f : path.listFiles()) {
-                if (f.isFile()) {
+            for (File f : path.listFiles())
+            {
+                if (f.isFile())
+                {
                     names.add(f.getName());
                 }
             }
             return names;
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             log.severe("could not access dataset files");
         }
         return null;
@@ -147,8 +163,11 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             //            model.add(SdmxAttribute.currency, RDF.type, DataCube.AttributeProperty);
             //            //model.add(SdmxAttribute.currency, RDFS.subPropertyOf,SDMXMEASURE.obsValue);
             //            model.add(SdmxAttribute.currency, RDFS.range,XSD.decimal);
-        } else {
-            log.warning("no currency for dataset "+datasetName+", skipping");throw new Exceptions.DatasetHasNoCurrencyException(datasetName);}
+        }
+        else
+        {
+            log.warning("no currency for dataset "+datasetName+", skipping");throw new Exceptions.DatasetHasNoCurrencyException(datasetName);
+        }
         final Integer defaultYear;
         {
             String defaultYearString = cleanString(datasetJson.get("default_time").asText());
@@ -157,7 +176,10 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             defaultYear = defaultYearString==null?null:Integer.valueOf(defaultYearString);
         }
         Set<ComponentProperty> componentProperties;
-        try {componentProperties = createComponents(readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/model")).get("mapping"), model, datasetName, dataSet, dsd, defaultYear != null);    }
+        try
+        {
+            componentProperties = createComponents(readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/model")).get("mapping"), model, datasetName, dataSet, dsd, defaultYear != null);
+        }
         catch (Exceptions.MissingDataException | Exceptions.UnknownMappingTypeException e)
         {
             log.severe("Error creating components for dataset "+datasetName);
@@ -177,6 +199,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
             model.add(dataSet, DataModel.LSOntology.getRefYear(),yearLiteral);
         }
+
         if(!territories.isEmpty())
         {
             model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getCountryComponent());
@@ -272,7 +295,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
 
     @Nullable static String cleanString(@Nullable String s)
     {
-        if(s==null||"null".equals(s)||s.trim().isEmpty()) return null;
+        if(s==null||"null".equals(s)||s.trim().isEmpty())
+            return null;
         return s;
     }
 
@@ -314,7 +338,10 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
 
             model.add(componentProperty, RDF.type, RDF.Property);
 
-            if(label!=null) {model.add(componentProperty,RDFS.label,label);}
+            if(label!=null)
+            {
+                model.add(componentProperty,RDFS.label,label);
+            }
             else
             {
                 label = name;
@@ -325,8 +352,11 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             {
                 String description = cleanString(componentJson.get("description").asText());
                 if(description!=null) {model.add(componentProperty,RDFS.comment,description);}
-            } else {
-                log.warning("no description for "+key);}
+            }
+            else
+            {
+                log.warning("no description for "+key);
+            }
 
             switch(type)
             {
@@ -579,7 +609,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
         if(expectedValues==0)
         {
             log.warning("no observations for dataset "+datasetName+".");
-        } else
+        }
+        else
         {
             model.addLiteral(dataSet, DataModel.LSOntology.getCompleteness(), 1-(double)(missingValues/expectedValues));
             for(ComponentProperty d: componentProperties)
@@ -662,7 +693,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
         try { Thread.sleep(5000); } catch(InterruptedException e) {e.printStackTrace();}
         eventContainer.add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
         long startTime = System.currentTimeMillis();
-        try {
+        try
+        {
             int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
             float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
             // observations use saved datasets so we need the saved names, if we only create the schema we can use the newest dataset names
@@ -676,7 +708,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             int offset = 0;
             int i=0;
             int fileexists=0;
-            for(final String datasetName : datasetNames) {
+            for(final String datasetName : datasetNames)
+            {
                 if(stopRequested)
                 {
                     eventContainer.add(new EventNotification(EventNotification.EventType.stoppedConverter, EventNotification.EventSource.Converter));
@@ -685,13 +718,18 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                 else if(pauseRequested)
                 {
                     eventContainer.add(new EventNotification(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter));
-                    while(pauseRequested){
-                        try {
+                    while(pauseRequested)
+                    {
+                        try
+                        {
                             Thread.sleep(10000);
-                        } catch (InterruptedException e) {
+                        }
+                        catch (InterruptedException e)
+                        {
                             log.warning(e.getMessage());
                         }
                     }
+
                     eventContainer.add(new EventNotification(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter));
                 }
                 i++;
@@ -699,69 +737,86 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
                 File file = getDatasetFile(datasetName);
                 File json = new File(PROPERTIES.getProperty("pathJson") + datasetName);
                 //skip some files
-                if(file.exists() && file.length() > 0 && file.lastModified() >= json.lastModified()) {
+                if(file.exists() && file.length() > 0 && file.lastModified() >= json.lastModified())
+                {
                     log.finer("skipping already existing and up to date file nr " + i + ": " + file);
                     fileexists++;
                     continue;
                 }
-                try {
+
+                try
+                {
                     OutputStream out = new FileOutputStream(file, true);
 
                     URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
                     log.info("Dataset nr. "+i+"/"+datasetNames.size()+": "+url);
-                    try {
+                    try
+                    {
                         createDataset(datasetName, model, out);
                         writeModel(model, out);
                         newsDescription+=datasetName+"<br>";
-                    } catch(Exception e) {
+                    }
+                    catch(Exception e)
+                    {
                         exceptions++;
                         deleteDataset(datasetName);
                         faultyDatasets.add(datasetName);
                         log.severe("Error creating dataset "+datasetName+". Skipping.");
                         e.printStackTrace();
-                        if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio) {
+                        if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio)
+                        {
                             log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
                             eventContainer.add(new EventNotification(EventNotification.EventType.tooManyErrors, EventNotification.EventSource.Converter));
                             eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
                             shutdown(1);
                         }
-
                     }
-                } catch (IOException e) {
+                }
+                catch (IOException e)
+                {
                     log.severe("could not create dataset " + datasetName + ": " + e.getMessage());
                 }
             }
-            if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio) {
-                if(USE_CACHE) {
+            if(exceptions>=minExceptions&&((double)exceptions/(i+1))>exceptionStopRatio)
+            {
+                if(USE_CACHE)
+                {
                     cache.getCacheManager().shutdown();
                 }
+
                 log.severe("Too many exceptions ("+exceptions+" out of "+(i+1));
                 eventContainer.add(new EventNotification(EventNotification.EventType.tooManyErrors, EventNotification.EventSource.Converter));
                 eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
                 shutdown(1);
             }
 
-            if(stopRequested) log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
-                    +"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+ memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
-            else {int newlyCreatedDatasets=i-exceptions-fileexists;
+            if(stopRequested)
+            {
+                log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(i-exceptions-fileexists)+" newly created)."
+                        +"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+ memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
+            }
+            else
+            {
+                int newlyCreatedDatasets=i-exceptions-fileexists;
                 log.info("** FINISHED CONVERSION: Processed "+(i-offset)+" datasets with "+exceptions+" exceptions and "+fileexists+" already existing ("+(newlyCreatedDatasets)+" newly created)."
                     +"Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds, maximum memory usage of "+ memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 
                 //write News(new converted Datasets)
-                if(newlyCreatedDatasets>=1){
+                if(newlyCreatedDatasets>=1)
+                {
                         String newsTitle="";
                         if(newlyCreatedDatasets==1)newsTitle=newlyCreatedDatasets+ " new Dataset has been converted.";
                         else newsTitle=newlyCreatedDatasets+ " new Datasets have been converted.";
                         NewsFeedWriter.writeNewsFeed(newsTitle,newsDescription);
-                    
                 }
-
             }
+
             if(faultyDatasets.size()>0) log.warning("Datasets with errors which were not converted: "+ faultyDatasets);
         }
 
         // we must absolutely make sure that the cache is shut down before we leave the program, else cache can become corrupt which is a big time waster
-        catch(RuntimeException e) {
+        catch(RuntimeException e)
+        {
             log.log(Level.SEVERE,e.getLocalizedMessage(),e);
             eventContainer.add(new EventNotification(EventNotification.EventType.runTimeError, EventNotification.EventSource.Converter));
             eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,false));
@@ -769,6 +824,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable {
             eventContainer.clear();
             shutdown(1);
         }
+
         eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,true));
         eventContainer.printEventsToFile();
         eventContainer.clear();
