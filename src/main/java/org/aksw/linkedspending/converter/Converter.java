@@ -93,7 +93,10 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
                 datasetPropertyNameToUri.put(new Pair<String>(tokens[0], tokens[1]),tokens[2]);
             }
         }
-        catch (Exception e) {throw new RuntimeException(e);}
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
