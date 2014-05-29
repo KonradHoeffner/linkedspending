@@ -26,7 +26,7 @@ import java.util.logging.LogManager;
 @NonNullByDefault
 @Log
 @SuppressWarnings("serial")
-public class OpenspendingSoftwareModul {
+public abstract class OpenspendingSoftwareModul {
 
     /**whether the cache is used or not*/
     protected static final boolean USE_CACHE = false;// Boolean.parseBoolean(PROPERTIES.getProperty("useCache", "true"));
