@@ -86,8 +86,10 @@ class DownloadCallable implements Callable<Boolean>
         partsFolder.mkdirs();
         // starts from beginning when final file already exists
         File finalFile = new File(partsFolder.toString() + "/" + datasetName + ".final");
-        if(finalFile.exists()) {
-            for (File part : partsFolder.listFiles()) {
+        if(finalFile.exists())
+        {
+            for (File part : partsFolder.listFiles())
+            {
                 part.delete();
             }
         }
@@ -99,7 +101,6 @@ class DownloadCallable implements Callable<Boolean>
                 catch(InterruptedException e) {}
             }
 
-
             File f = new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
             if(f.exists()) {continue;}
             log.fine(nr+" page "+page+"/"+nrOfPages);
@@ -109,6 +110,7 @@ class DownloadCallable implements Callable<Boolean>
             if(Scheduler.getDownloader().getStopRequested())
             {
                 System.out.println("Aborting DownloadCallable");
+                Scheduler.getDownloader().getUnfinishedDatasets().add(datasetName);
                 return false;
             }
 
@@ -128,8 +130,6 @@ class DownloadCallable implements Callable<Boolean>
             // ideally, memory should be measured during the transfer but thats not easily possible except
             // by creating another thread which is overkill. Because it is multithreaded anyways I hope this value isn't too far from the truth.
             JsonDownloader.memoryBenchmark.updateAndGetMaxMemoryBytes();
-
-
         }
         // TODO: sometimes at the end "]}" is missing, add it in this case
         // manually solvable in terminal with cat /tmp/problems  | xargs -I  @  sh -c "echo ']}' >> '@'"

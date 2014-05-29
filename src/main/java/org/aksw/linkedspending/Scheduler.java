@@ -31,6 +31,7 @@ public class Scheduler
     public static JsonDownloader getDownloader() {return downloader;}
     public static Converter getConverter() {return converter;}
 
+    private static boolean shutdownRequested = false;
     private static boolean manualMode = false;
 
     private static void shutdownScheduleTimeHandler()
@@ -140,14 +141,15 @@ public class Scheduler
     {
         if(manualMode)
         {
-        downloader.setPauseRequested(false);
-        return "Resumed Downloader";
+            downloader.setPauseRequested(false);
+            return "Resumed Downloader";
         }
         else return "Error: Program not in manual mode!";
     }
 
     /** Starts downloading a specified dataset */
-    @Path("downlaodspecific/{param}")
+    @GET
+    @Path("downloadspecific/{param}")
     public static String downloadDataset( @PathParam("param") String datasetName )
     {
         if(manualMode)
@@ -226,6 +228,7 @@ public class Scheduler
     @Path("shutdown")
     public static String shutdown()
     {
+        shutdownRequested = true;
         if(downloaderThread != null) stopDownloader();
         if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
@@ -286,8 +289,19 @@ public class Scheduler
 
         try {GrizzlyHttpUtil.startServer();}
         catch (Exception e) { e.printStackTrace();}
-        try { Thread.sleep(60000); }//Puts Thread asleep for one minute to wait for commands via REST-interface
-        catch(InterruptedException e) { e.printStackTrace(); }
+
+        while(!shutdownRequested)
+        {
+            try{Thread.sleep(60000);}
+            catch(InterruptedException e)
+            {
+                e.printStackTrace();
+                continue;
+            }
+        }
+        System.exit(0);
+        //try { Thread.sleep(60000); }//Puts Thread asleep for one minute to wait for commands via REST-interface
+        //catch(InterruptedException e) { e.printStackTrace(); }
 
     }
 }

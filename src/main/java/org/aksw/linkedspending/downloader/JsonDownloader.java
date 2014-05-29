@@ -60,9 +60,11 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
     /**set for the names of already locally saved JSON-files known to the downloader*/
     static protected SortedSet<String> datasetNames = new TreeSet<>();
+    static protected SortedSet<String> unfinishedDatasets = new TreeSet<>();
     static protected LinkedList<String> finishedDatasets = new LinkedList<>();
 
     public LinkedList<String> getFinishedDatasets() {return finishedDatasets;}
+    public SortedSet<String> getUnfinishedDatasets() {return unfinishedDatasets;}
 
     static { if(!CACHE.exists()) { CACHE.mkdir(); } }
     static { if(!pathJson.exists()) { pathJson.mkdirs();} }
@@ -144,7 +146,6 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
      */
     static public File getFile(String datasetName) {return Paths.get(pathJson.getPath(),datasetName).toFile();}
 
-    //todo what is this method for?
     public static @NonNull ArrayNode getResults(String datasetName) throws JsonProcessingException, IOException
     {
         return (ArrayNode)m.readTree(getFile(datasetName)).get("results");
@@ -185,12 +186,6 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         {
             service.shutdown();
             service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
-            while(!service.isShutdown())
-            {
-                System.out.println("service still there...slepeing");
-                try {Thread.sleep(1000);}
-                catch(InterruptedException e) {}
-            }
 
             monitor.stopMonitoring();
             //Thread.sleep(120000);
@@ -213,8 +208,8 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
      * @return True, if file has been successfully created. False otherwise. */
     protected static boolean writeUnfinishedDatasetNames()
     {
-        SortedSet<String> unfinishedDatasets = new TreeSet<>();
-        unfinishedDatasets = datasetNames;
+        SortedSet<String> unfinishedDatasets = datasetNames;
+        //unfinishedDatasets = datasetNames;
         unfinishedDatasets.removeAll(finishedDatasets);
 
         try
@@ -227,7 +222,6 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 output.write(dataset);
                 output.append(System.getProperty("line.separator"));
             }
-
             output.close();
         }
         catch(IOException e)
@@ -244,7 +238,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     protected static boolean deleteUnfinishedDatasets()
     {
         File f = new File("unfinishedDatasetNames");
-        if(f.isFile() && !f.delete()) return false;
+        //if(f.isFile() && !f.delete()) return false;
         try
         {
             BufferedReader input = new BufferedReader(new FileReader(f));
@@ -257,6 +251,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             }
 
             f.delete();
+            input.close();
         }
 
         catch(IOException e) {return false;}
@@ -354,12 +349,14 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                                     break;
                             }
                         }
+                        in.close();
                     } catch (IOException e) {
                         log.severe("could not write read parts file for " + dataset + ": " + e.getMessage());
                     }
                     if (partNr != parts.length - 1) out.print(",");
                     partNr++;
                 }
+                out.close();
             }
             catch (IOException e)
             {
@@ -417,13 +414,29 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
      */
     public static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
     {
-        datasetNames = new TreeSet<>(Collections.singleton(datasetName));
-        downloadIfNotExisting(datasetNames);
-        //try-with-resources(since java 7)
-        //todo why is this here?
+        //datasetNames = new TreeSet<>(Collections.singleton(datasetName));
+        //downloadIfNotExisting(datasetNames);
+
+        //datasetNames = getDatasetNames();
+        //datasetNames.removeAll(emptyDatasets);
+
+        int successCount = 0;
+        ThreadPoolExecutor service = (ThreadPoolExecutor)Executors.newFixedThreadPool(MAX_THREADS);
+        Future<Boolean> future;
+        //creates a Future for each file that is to be downloaded
+
+        future = service.submit(new DownloadCallable(datasetName,0));
+
+        ThreadMonitor monitor = new ThreadMonitor(service);
+        monitor.start();
+
+        try{if(future.get()) {successCount++;}}
+        catch(ExecutionException e) {e.printStackTrace();}
+
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
         {
             out.writeObject(emptyDatasets);
+            out.close();
         }
     }
 
@@ -445,6 +458,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(emptyDatasetFile)))
                 {
                     emptyDatasets.addAll((Set<String>) in.readObject());
+                    in.close();
                 }
                 catch (Exception e) {log.warning("Error reading empty datasets file");}
             }
@@ -455,6 +469,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
         {
             out.writeObject(emptyDatasets);
+            out.close();
         }
     }
 
@@ -467,7 +482,8 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         //finished = false;
         //cleaning up from previously stopped runs
         File f = new File("unfinishedDatasetNames");
-        if(f.exists()) deleteUnfinishedDatasets();
+        if(f.exists() && deleteUnfinishedDatasets()) {}
+        else if(f.exists() && !deleteUnfinishedDatasets()) return;
         //f.delete();
 
         //try{Thread.sleep(60000);}
@@ -488,14 +504,19 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
                 downloadSpecific(toBeDownloaded);
                 eventContainer.add(new EventNotification(EventNotification.EventType.finishedDownloadingSingle, EventNotification.EventSource.Downloader, true));
             }
-            puzzleTogether();
+            if(!stopRequested) puzzleTogether();
         }
         catch (Exception e){e.printStackTrace();}
+
+        File f = new File("unfinishedDatasetNames");
+        if(f.exists() && deleteUnfinishedDatasets()) {}
+        else if(f.exists() && !deleteUnfinishedDatasets()) return;
+
         eventContainer.printEventsToFile();
         eventContainer.clear();
-        //finished = true;
+
         log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
-        System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
+        //System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
     }
 
     /** Main method for testing and developing purposes only */

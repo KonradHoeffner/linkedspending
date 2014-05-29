@@ -36,7 +36,7 @@ import java.util.logging.Level;
 @SuppressWarnings("serial")
 public class Converter extends OpenspendingSoftwareModul implements Runnable
 {
-
+//todo shutdown() uses System.exit() which terminates the whole JVM when only the current thread is to be shutdown
     static final Map<String,String> codeToCurrency = new HashMap<>();
     static final Map<Pair<String>,String> datasetPropertyNameToUri = new HashMap<>();
     /** properties */
@@ -76,6 +76,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
                 String[] tokens = in.nextTokens();
                 codeToCurrency.put(tokens[0], tokens[1]);
             }
+            in.close();
         }
         catch (Exception e)
         {
@@ -92,6 +93,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
                 String[] tokens = in.nextTokens();
                 datasetPropertyNameToUri.put(new Pair<String>(tokens[0], tokens[1]),tokens[2]);
             }
+            in.close();
         }
         catch (Exception e)
         {
@@ -654,8 +656,6 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
         }
     }
 
-
-
     static void shutdown(int status)
     {
         if(USE_CACHE) {CacheManager.getInstance().shutdown();}
@@ -774,6 +774,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
                             shutdown(1);
                         }
                     }
+                    out.close();
                 }
                 catch (IOException e)
                 {
