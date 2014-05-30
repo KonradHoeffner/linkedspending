@@ -316,8 +316,6 @@ public class Scheduler
 
     public static void main(String[] args)
     {
-        //todo: @ScheduleTimeHandler: can environmentVariables be changed while the programm is running?
-        //todo: If yes, should be considered in ScheduleTimeHandler.
         //ScheduleTimeHandler sth = new ScheduleTimeHandler();
         scheduleTimeHandler = new ScheduleTimeHandler();
         scheduleTimeThread = new Thread(scheduleTimeHandler);

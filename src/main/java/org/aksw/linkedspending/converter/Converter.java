@@ -36,7 +36,6 @@ import java.util.logging.Level;
 @SuppressWarnings("serial")
 public class Converter extends OpenspendingSoftwareModul implements Runnable
 {
-//todo shutdown() uses System.exit() which terminates the whole JVM when only the current thread is to be shutdown
     static final Map<String,String> codeToCurrency = new HashMap<>();
     static final Map<Pair<String>,String> datasetPropertyNameToUri = new HashMap<>();
     /** properties */
@@ -659,7 +658,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
     static void shutdown(int status)
     {
         if(USE_CACHE) {CacheManager.getInstance().shutdown();}
-        System.exit(status);
+        //System.exit(status);
     }
 
     static void writeModel(Model model, OutputStream out)
@@ -690,8 +689,6 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
     public void run()
     {
         String newsDescription="<br>";
-        //stopRequested = false;
-        //pauseRequested = false;
         // Converter starts 5s after it should start, allowing the Scheduler to do schedule a complete run without pausing itself.
         try { Thread.sleep(5000); } catch(InterruptedException e) {e.printStackTrace();}
         eventContainer.add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
