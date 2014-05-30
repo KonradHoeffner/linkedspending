@@ -8,6 +8,8 @@ import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
@@ -232,6 +234,7 @@ public class Scheduler
         if(downloaderThread != null) stopDownloader();
         if(converterThread != null) stopConverter();
         GrizzlyHttpUtil.shutdownGrizzly();
+        System.exit(0);
         return "Service shut down.";
     }
 
@@ -277,6 +280,40 @@ public class Scheduler
         cSThread.start();
     }
 
+    /**
+     * Returns a html table which lists all available commands and a description for each of them.
+     * @return html-formatted String
+     */
+    @GET
+    @Path("listcommands")
+    //@Produces("text/html")
+    public static String listCommands()
+    {
+        String tableHead = "<table border=1>";
+
+        tableHead+="<th>command</th>";
+        tableHead+="<th>description</th>";
+        String tr1 ="<tr><td>/control/runmanually</td><td>Enables manual mode required for use of several commands.</td></tr>";
+        String tr2 ="<tr><td>/control/runautomatically</td><td>Enables automatic mode. Complete runs will be performed according to a specified time table.</td></tr>";
+        String tr3 ="<tr><td>/control/setstartdate/{day}/{hour}/{repeat}</td><td>Configures time table of complete runs. Allowed parameters are day: 1-Monday...7-Sunday, hour-1...24, repeat: number of weeks to repeat complete runs</td></tr>";
+        String tr4 ="<tr><td>/control/downloadcomplete</td><td>Starts a complete download of all available datasets. Requires manual mode.</td></tr>";
+        String tr5 ="<tr><td>/control/stopdownload</td><td>Stops current downloading process and deletes unfinished datasets. Requires manual mode.</td></tr>";
+        String tr6 ="<tr><td>/control/pausedownload</td><td>Pauses current downloading process to be resumed later. Requires manual mode.</td></tr>";
+        String tr7 ="<tr><td>/control/resumedownload</td><td>Resumes current downloading process. Has no effect if downloader is unpaused. Requires manual mode.</td></tr>";
+        String tr8 ="<tr><td>/control/downloadcomplete</td><td>Starts a complete download of all available datasets. Requires manual mode.</td></tr>";
+        String tr9 ="<tr><td>/control/downloadspecific/{param}</td><td>Downloads a single dataset whose name is specified in {param}. Requires manual mode.</td></tr>";
+        String tr10 ="<tr><td>/control/convertcomplete</td><td>Converts all new datasets. Requires manual mode.</td></tr>";
+        String tr11 ="<tr><td>/control/stopconvert</td><td>Stops the current converting process. Requires manual mode.</td></tr>";
+        String tr12 ="<tr><td>/control/pauseconvert</td><td>Pauses the current converting process to be resumed later. Requires manual mode.</td></tr>";
+        String tr13 ="<tr><td>/control/resumeconvert</td><td>Converts all new datasets. Requires manual mode.</td></tr>";
+        String tr14 ="<tr><td>/control/shutdown</td><td>Completly shuts down the program.</td></tr>";
+        String tr15 ="<tr><td>/control/listcommands</td><td>Displays a table containing all available commands.</td></tr>";
+
+        String tableEnd="</table>";
+
+        return tableHead + tr1  + tr2 + tr3 + tr4 + tr5 + tr6 + tr7 + tr8 + tr9 + tr10 + tr11 + tr12 + tr13 + tr14 + tr15 + tableEnd;
+    }
+
     public static void main(String[] args)
     {
         //todo: @ScheduleTimeHandler: can environmentVariables be changed while the programm is running?
@@ -287,10 +324,10 @@ public class Scheduler
         scheduleTimeThread.start();
 
 
-        try {GrizzlyHttpUtil.startServer();}
+        try {GrizzlyHttpUtil.startThisServer();}
         catch (Exception e) { e.printStackTrace();}
 
-        while(!shutdownRequested)
+        /*while(!shutdownRequested)
         {
             try{Thread.sleep(60000);}
             catch(InterruptedException e)
@@ -299,7 +336,7 @@ public class Scheduler
                 continue;
             }
         }
-        System.exit(0);
+        System.exit(0);*/
         //try { Thread.sleep(60000); }//Puts Thread asleep for one minute to wait for commands via REST-interface
         //catch(InterruptedException e) { e.printStackTrace(); }
 

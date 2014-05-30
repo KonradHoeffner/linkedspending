@@ -31,7 +31,7 @@ public class SchedulerTest
     {
         //URI uri = UriBuilder.fromUri("http://localhost/").port(10010).build();
         // start the server
-        server = GrizzlyHttpUtil.startServer();
+        server = GrizzlyHttpUtil.startServer(10011);
 
         //ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
         //server = GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
@@ -39,6 +39,7 @@ public class SchedulerTest
         // create the client
         //c = ClientBuilder.newClient();
         /*todo: there seems to be a bug with creating a client (throws nullpointerexception) at the moment, try fix this later. */
+        //todo: edit: might have been caused by doubly starting http server, which is fixed now. Check tests again.
         ClientConfig clientConfig = new ClientConfig();
         c = ClientBuilder.newClient();
         target = c.target(UriBuilder.fromUri("http://localhost/").port(10010).build());

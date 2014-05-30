@@ -508,9 +508,9 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         }
         catch (Exception e){e.printStackTrace();}
 
-        File f = new File("unfinishedDatasetNames");
-        if(f.exists() && deleteUnfinishedDatasets()) {}
-        else if(f.exists() && !deleteUnfinishedDatasets()) return;
+        File g = new File("unfinishedDatasetNames");
+        if(g.exists() && deleteUnfinishedDatasets()) {}
+        else if(g.exists() && !deleteUnfinishedDatasets()) return;
 
         eventContainer.printEventsToFile();
         eventContainer.clear();
