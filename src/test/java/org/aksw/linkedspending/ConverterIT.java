@@ -28,6 +28,7 @@ public class ConverterIT
     {
         number = fileNumber(converterDir);
 
+        Scheduler.runManually();
         Scheduler.runConverter();
 
         try
