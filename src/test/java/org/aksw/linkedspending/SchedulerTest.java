@@ -1,6 +1,9 @@
 package org.aksw.linkedspending;
 
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.hamcrest.SelfDescribing;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -14,6 +17,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
+import java.net.URI;
 
 /** Tests if Scheduler reacts properly to incoming commands via REST-interface */
 public class SchedulerTest
