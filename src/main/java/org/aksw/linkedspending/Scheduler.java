@@ -34,7 +34,7 @@ public class Scheduler
     public static Converter getConverter() {return converter;}
 
     private static boolean shutdownRequested = false;
-    private static boolean manualMode = false;
+    private static boolean manualMode = true;
 
     private static void shutdownScheduleTimeHandler()
     {
