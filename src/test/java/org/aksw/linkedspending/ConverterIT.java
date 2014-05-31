@@ -1,7 +1,6 @@
 package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
@@ -48,7 +47,7 @@ public class ConverterIT
 
         if(number >= numberNew)
         {
-            fail("Number of files not increased");
+            fail("Number of files not increased(This test needs files to be converted. Beware situation where all downloaded files are already converted.)");
         }
     }
 

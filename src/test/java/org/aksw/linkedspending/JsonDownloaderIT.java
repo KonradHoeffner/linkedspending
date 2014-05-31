@@ -73,4 +73,5 @@ public class JsonDownloaderIT
         }
         return number;
     }
+
 }
