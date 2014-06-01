@@ -1,7 +1,6 @@
 package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
@@ -17,18 +16,19 @@ import static org.junit.Assert.fail;
 public class ConverterIT
 {
     private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
-    private Scheduler scheduler = new Scheduler();
     private int number,numberNew,fileCount;
     private File converterDir = new File(PROPERTIES.getProperty("pathRdf"));
     private String convertPath = PROPERTIES.getProperty("pathRdf");
     private String randomFile;
 
+    /**This test needs files to be converted. Beware situation where all downloaded files are already converted.*/
     @Test
     public void converterTest()
     {
         number = fileNumber(converterDir);
 
-        scheduler.runConverter();
+        Scheduler.runManually();
+        Scheduler.runConverter();
 
         try
         {
@@ -39,7 +39,7 @@ public class ConverterIT
             fail("Interrupted exception: " + e.getMessage());
         }
 
-        scheduler.stopConverter();
+        Scheduler.stopConverter();
 
         numberNew = fileNumber(converterDir);
 
@@ -47,7 +47,7 @@ public class ConverterIT
 
         if(number >= numberNew)
         {
-            fail("Number of files not increased");
+            fail("Number of files not increased(This test needs files to be converted. Beware situation where all downloaded files are already converted.)");
         }
     }
 

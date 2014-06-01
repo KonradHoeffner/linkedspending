@@ -1,6 +1,7 @@
 package org.aksw.linkedspending;
 
 import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -12,6 +13,12 @@ import static org.junit.Assert.fail;
 
 public class JsonDownloaderTest
 {
+    @Before
+    public void before()
+    {
+        JsonDownloader.setStopRequested(false);
+    }
+
     private final String DATASET = "2013";
     @Test
     public void testGetPartialResults() throws IOException

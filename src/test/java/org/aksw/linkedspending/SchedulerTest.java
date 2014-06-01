@@ -52,6 +52,10 @@ public class SchedulerTest
         server.shutdown();
     }
 
+    /*
+    This funktionality is already better tested in JsonDownloaderIT.downloaderTest().
+    Also what is long totalSpace = f.getTotalSpace(); supposed to do?
+    Please rethink or delete this.
     @Test
     public void testRunDownloader()
     {
@@ -75,6 +79,7 @@ public class SchedulerTest
         boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader);
         Assert.assertTrue(b);
     }
+    */
 
     @Test
     public void testStopDownloader()

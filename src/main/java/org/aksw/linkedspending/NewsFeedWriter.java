@@ -23,10 +23,9 @@ public class NewsFeedWriter {
      * Writes a xml-file into the newsfeed-folder. News get displayed on start screen of linkedspending.
      * @param title the title the news should have
      * @param description a more detailed description of the news
-     * @throws IOException
-     * @throws FeedException if the feed could not have been created
      */
-    public static void writeNewsFeed(String title, String description){
+    public static void writeNewsFeed(String title, String description)
+    {
         SyndFeed feed = new SyndFeedImpl();
 
         feed.setFeedType("rss_2.0");
@@ -41,7 +40,7 @@ public class NewsFeedWriter {
         final File feedFolder = new File(PROPERTIES.getProperty("pathNewsFeed"));
         if(!feedFolder.exists()) { feedFolder.mkdir(); }
 
-        Writer writer = null;
+        Writer writer;
         try {
             writer = new FileWriter(feedFolder+"/"+title+feed.getPublishedDate()+".rss");
             SyndFeedOutput output = new SyndFeedOutput();
@@ -57,7 +56,6 @@ public class NewsFeedWriter {
     }
 
     public static void main(String[] args) throws IOException, FeedException
-
     {
         NewsFeedWriter.writeNewsFeed("SWP14 Newsfeed","This is a test for displaying News.");
 
