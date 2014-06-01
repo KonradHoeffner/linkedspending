@@ -75,11 +75,10 @@ public class SchedulerTest
         catch(InterruptedException e) {}
         long totalSpace2 = f.getTotalSpace();
 
-        Assert.assertTrue(totalSpace < totalSpace2);*/
+        Assert.assertTrue(totalSpace < totalSpace2);
         boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader);
-        Assert.assertTrue(b);
-    }
-    */
+        assertTrue(b);
+    }*/
 
     @Test
     public void testStopDownloader()
