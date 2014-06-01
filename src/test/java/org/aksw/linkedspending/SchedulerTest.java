@@ -56,7 +56,6 @@ public class SchedulerTest
     public void testRunDownloader()
     {
         //Tests REST-functionality
-
         //String responseMsg = target.path("http://localhost:10010/control/downloadcomplete").request().get(String.class);
         //Assert.assertEquals("Started complete download", responseMsg);
         Scheduler.runManually();
@@ -65,14 +64,16 @@ public class SchedulerTest
         try{Thread.sleep(5000);}
         catch(InterruptedException e) {}
 
-        File f = new File("/json");
+        /*File f = new File("/json");
         long totalSpace = f.getTotalSpace();
 
         try{Thread.sleep(20000);}
         catch(InterruptedException e) {}
         long totalSpace2 = f.getTotalSpace();
 
-        Assert.assertTrue(totalSpace < totalSpace2);
+        Assert.assertTrue(totalSpace < totalSpace2);*/
+        boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -85,14 +86,17 @@ public class SchedulerTest
         try{Thread.sleep(30000);}
         catch(InterruptedException e) {}
 
-        File f = new File("/json");
+        /*File f = new File("/json");
         long before = f.getTotalSpace();
 
         try{Thread.sleep(10000);}
         catch(InterruptedException e) {}
 
         long after = f.getTotalSpace();
-        Assert.assertTrue(after == before);
+        Assert.assertTrue(after == before);*/
+        //if the Downloader was successfully stopped, several DownloadCallables will add finishedDownloadingDataset (success == false) events after a while.
+        boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -104,13 +108,16 @@ public class SchedulerTest
         Scheduler.runDownloader();
         Scheduler.pauseDownloader();
 
-        File f = new File("/json");
+        //Did the size of /json folder change after downloader has been paused?
+        /*File f = new File("/json");
         long totalSpace = f.getTotalSpace();
-        try{Thread.sleep(20000);}
+        try{Thread.sleep(5000);}
         catch(InterruptedException e) {}
         long totalSpace2 = f.getTotalSpace();
 
-        Assert.assertTrue(totalSpace == totalSpace2);
+        Assert.assertTrue(totalSpace == totalSpace2);*/
+        boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -123,13 +130,16 @@ public class SchedulerTest
         Scheduler.pauseDownloader();
         Scheduler.resumeDownload();
 
-        File f = new File("/json");
+        /*File f = new File("/json");
         long totalSpace = f.getTotalSpace();
         try{Thread.sleep(20000);}
         catch(InterruptedException e) {}
         long totalSpace2 = f.getTotalSpace();
 
-        Assert.assertTrue(totalSpace < totalSpace2);
+        Assert.assertTrue(totalSpace < totalSpace2);*/
+
+        boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -140,10 +150,13 @@ public class SchedulerTest
         Scheduler.runManually();
         Scheduler.downloadDataset("berlin_de");
 
-        try {Thread.sleep(30000);}
+        /*try {Thread.sleep(30000);}
         catch(InterruptedException e) {}
         File f = new File("json/berlin_de");
         Assert.assertTrue(f.isFile() && (f.getTotalSpace() > 0));      //does berlin_de exist and is not empty?
+        */
+        boolean b = Scheduler.getDownloader().getEventContainer().checkForEvent(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -154,12 +167,18 @@ public class SchedulerTest
         Scheduler.runManually();
         Scheduler.runConverter();
 
+        try {Thread.sleep(6000);}
+        catch(InterruptedException e) {}
+        /*
         File f = new File("/output");
         long start = f.getTotalSpace();
         try {Thread.sleep(30000);}
         catch(InterruptedException e) {}
         long later = f.getTotalSpace();     //did something change in output directory?
-        Assert.assertTrue(start != later);
+        Assert.assertTrue(start != later); */
+
+        boolean b = Scheduler.getConverter().getEventContainer().checkForEvent(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -171,8 +190,11 @@ public class SchedulerTest
         Scheduler.runConverter();
         Scheduler.stopConverter();
 
-        boolean test = Scheduler.getConverter().getEventContainer().checkForEvent(EventNotification.EventType.stoppedConverter, EventNotification.EventSource.Converter);
-        Assert.assertTrue(test == true);
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
+
+        boolean b = Scheduler.getConverter().getEventContainer().checkForEvent(EventNotification.EventType.stoppedConverter, EventNotification.EventSource.Converter);
+        Assert.assertTrue(b);
     }
 
     @Test
@@ -184,20 +206,26 @@ public class SchedulerTest
         Scheduler.runConverter();
         Scheduler.pauseConverter();
 
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
+        /*
         File f = new File("/output");
         long before = f.getTotalSpace();
         try {Thread.sleep(30000);}
         catch(InterruptedException e) {}
         long after = f.getTotalSpace();
 
-        Assert.assertTrue(after == before);
+        Assert.assertTrue(after == before);*/
+
+        boolean b = Scheduler.getConverter().getEventContainer().checkForEvent(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter);
+        Assert.assertTrue(b);
     }
 
     @Test
     public void testResumeConverter()
     {
-        File f = new File("/output");
-        long before = f.getTotalSpace();
+        //File f = new File("/output");
+        //long before = f.getTotalSpace();
 
         Scheduler.runManually();
         Scheduler.runConverter();
@@ -206,11 +234,17 @@ public class SchedulerTest
         //String responseMsg = target.path("control/resumeconvert").request().get(String.class);
         //Assert.assertEquals("Resumed Converter", responseMsg);
 
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
+        /*
         try {Thread.sleep(30000);}
         catch(InterruptedException e) {}
         long after = f.getTotalSpace();
 
-        Assert.assertTrue(after != before);
+        Assert.assertTrue(after != before);*/
+
+        boolean b = Scheduler.getConverter().getEventContainer().checkForEvent(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter);
+        Assert.assertTrue(b);
     }
 
     @Test

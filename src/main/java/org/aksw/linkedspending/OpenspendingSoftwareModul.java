@@ -33,11 +33,11 @@ public abstract class OpenspendingSoftwareModul {
     /**???is a cache if USE_CACHE=true, otherwise null*/
     protected static final Cache cache = USE_CACHE ? CacheManager.getInstance().getCache("openspending-json") : null;
     /** external properties to be used in Project */
-    private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+    protected static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
     /**sets downloader stopable*/
-    public static boolean stopRequested = false;
+    protected static boolean stopRequested = false;
     /**pauses downloader until set to false again*/
-    public static boolean pauseRequested =false;
+    protected static boolean pauseRequested =false;
     /**object to handle event notifications in hole linkedspending system*/
     protected static EventNotificationContainer eventContainer = new EventNotificationContainer();
     /**used to convert from JSON-file to Java-object and vice versa*/
@@ -59,6 +59,7 @@ public abstract class OpenspendingSoftwareModul {
     public static boolean getPauseRequested() {return pauseRequested;}
 
     public static boolean getStopRequested() {return stopRequested;}
+
 
     /**
      * returns a JSON-string from the given url
@@ -173,16 +174,20 @@ public abstract class OpenspendingSoftwareModul {
     /**sets the property stopRequested which makes Downloader stoppable,
      * used by scheduler to stop JsonDownloader
      * @param setTo true makes downloader stopable*/
-    public static void setStopRequested(boolean setTo) {
-        OpenspendingSoftwareModul.stopRequested=setTo;}
+    public static void setStopRequested(boolean setTo)
+    {
+        OpenspendingSoftwareModul.stopRequested=setTo;
+    }
 
     /**
      * sets whether the downloader should stop, even before having finished
      * @param setTo true if downloader shall stop
      * @see OpenspendingSoftwareModul#pauseRequested
      */
-    public static void setPauseRequested(boolean setTo) {
-        OpenspendingSoftwareModul.pauseRequested = setTo;}
+    public static void setPauseRequested(boolean setTo)
+    {
+        OpenspendingSoftwareModul.pauseRequested = setTo;
+    }
 
     /**
      * gets event container to deal with events

@@ -3,6 +3,7 @@ package org.aksw.linkedspending.downloader;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModul;
 import org.aksw.linkedspending.Scheduler;
+import org.aksw.linkedspending.tools.EventNotification;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.io.File;
@@ -103,7 +104,7 @@ class DownloadCallable implements Callable<Boolean>
 
             File f = new File(partsFolder.toString()+"/"+datasetName+"."+(page==nrOfPages?"final":page));
             if(f.exists()) {continue;}
-            log.fine(nr+" page "+page+"/"+nrOfPages);
+            log.fine(nr + " page " + page + "/" + nrOfPages);
             URL entries = new URL("https://openspending.org/"+datasetName+"/entries.json?pagesize="+ JsonDownloader.pageSize+"&page="+page);
             //                System.out.println(entries);
 
@@ -111,6 +112,8 @@ class DownloadCallable implements Callable<Boolean>
             {
                 System.out.println("Aborting DownloadCallable");
                 Scheduler.getDownloader().getUnfinishedDatasets().add(datasetName);
+                Scheduler.getDownloader().getEventContainer().add(
+                        new EventNotification(EventNotification.EventType.finishedDownloadingDataset, EventNotification.EventSource.DownloadCallable, datasetName, false));
                 return false;
             }
 
@@ -130,12 +133,15 @@ class DownloadCallable implements Callable<Boolean>
             // ideally, memory should be measured during the transfer but thats not easily possible except
             // by creating another thread which is overkill. Because it is multithreaded anyways I hope this value isn't too far from the truth.
             JsonDownloader.memoryBenchmark.updateAndGetMaxMemoryBytes();
+
         }
         // TODO: sometimes at the end "]}" is missing, add it in this case
         // manually solvable in terminal with cat /tmp/problems  | xargs -I  @  sh -c "echo ']}' >> '@'"
         // where /tmp/problems is the file containing the list of files with the error
         log.info(nr+" Finished download of "+datasetName+".");
         Scheduler.getDownloader().getFinishedDatasets().add(datasetName);
+        Scheduler.getDownloader().getEventContainer().add(
+                new EventNotification(EventNotification.EventType.finishedDownloadingDataset, EventNotification.EventSource.DownloadCallable, datasetName, true));
         return true;
     }
 }

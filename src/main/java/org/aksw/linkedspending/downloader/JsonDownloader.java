@@ -77,11 +77,17 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     /**used to provide one statistical value: "the maximum memory used by jvm while downloading*/
     static MemoryBenchmark memoryBenchmark = new MemoryBenchmark();
 
-
     //todo accessing cache causes NullPointerException (in readJSONString())
 
     private static boolean downloadStopped = false;
     public boolean getDownloadStopped() {return downloadStopped;}
+
+    public static void setPauseRequested(boolean setTo)
+    {
+        pauseRequested = setTo;
+        if(setTo) eventContainer.add(new EventNotification(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader));
+        else eventContainer.add(new EventNotification(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader));
+    }
 
     /**The maximum days the downloader is waiting until shutdown.
      * Once a stopRequested=true signal is send to downloader it blocks and tries to finish its last tasks before shutting down.*/
@@ -178,12 +184,14 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
 
         for(Future<Boolean> future : futures)
         {
+            if(stopRequested) break;
             try{if(future.get()) {successCount++;}}
             catch(ExecutionException e) {e.printStackTrace();}
         }
 
         if(stopRequested)
         {
+            eventContainer.add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
             service.shutdown();
             service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
 
@@ -425,6 +433,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         Future<Boolean> future;
         //creates a Future for each file that is to be downloaded
 
+        eventContainer.add(new EventNotification(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader, datasetName));
         future = service.submit(new DownloadCallable(datasetName,0));
 
         ThreadMonitor monitor = new ThreadMonitor(service);

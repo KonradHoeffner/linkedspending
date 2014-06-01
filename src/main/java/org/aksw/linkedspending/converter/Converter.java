@@ -689,8 +689,11 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
     public void run()
     {
         String newsDescription="<br>";
+        eventContainer.clear();
         // Converter starts 5s after it should start, allowing the Scheduler to do schedule a complete run without pausing itself.
-        try { Thread.sleep(5000); } catch(InterruptedException e) {e.printStackTrace();}
+        try { Thread.sleep(5000); }
+        catch(InterruptedException e) {e.printStackTrace();}
+
         eventContainer.add(new EventNotification(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter));
         long startTime = System.currentTimeMillis();
         try
@@ -720,14 +723,8 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
                     eventContainer.add(new EventNotification(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter));
                     while(pauseRequested)
                     {
-                        try
-                        {
-                            Thread.sleep(10000);
-                        }
-                        catch (InterruptedException e)
-                        {
-                            log.warning(e.getMessage());
-                        }
+                        try {Thread.sleep(10000);}
+                        catch (InterruptedException e) {log.warning(e.getMessage());}
                     }
 
                     eventContainer.add(new EventNotification(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter));
@@ -828,7 +825,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
 
         eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete, EventNotification.EventSource.Converter,true));
         eventContainer.printEventsToFile();
-        eventContainer.clear();
+
         shutdown(0);
     }
 
