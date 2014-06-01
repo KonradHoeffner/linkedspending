@@ -68,10 +68,6 @@ public class ConverterTest {
     }
 
 
-    /**
-     * Copy muenster into the /json folder and muenster.dataset next to the .class file of this file to run the muenster
-     */
-    /*This test seems to do more harm than good. Delete if it isn't going to be fixed.
     @Test
     public void testCreateDataset() {
         Set<String> datasetSet = new TreeSet<>();
@@ -122,10 +118,14 @@ public class ConverterTest {
             fail("Exception while parsing output: " + e);
         }
 
+        for(String dataset : datasetSet) {
+            if(dataset.contains("uri-terms/created")) {
+                datasetSet.remove(dataset);
+            }
+        }
         if(!datasetSet.isEmpty()) {
             fail("Some data was missing");
         }
     }
-    */
 }
 

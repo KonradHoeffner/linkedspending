@@ -127,20 +127,10 @@ public class EventNotification
     /** Returns a String of following format: "time source type" (for withTime = true) or "source type" (withTime = false) */
     public String getEventCode(boolean withTime)
     {
-        String s, t;
-
-        if (withTime)
-        {
-            DateFormat dF = new SimpleDateFormat("HH:mm.ss");
-            t = dF.format(time);
-            s = t + " " + source + " " + type;
-        }
-        else s = source + " " + type;
-
-        if(!note.equals(null)) s += " " + note;
-        if(success) s += " sucessful";
-        else s += " unsuccessful";
-
-        return s;
+        return (withTime ? new SimpleDateFormat("HH:mm.ss").format(time) + " " : "") +
+                source + " " +
+                type + " " +
+                (note.equals(null) ? "" : note + " ") +
+                (success ? "successful" : "unsuccessful");
     }
 }
