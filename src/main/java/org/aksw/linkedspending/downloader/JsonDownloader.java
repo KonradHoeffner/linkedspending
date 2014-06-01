@@ -192,6 +192,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         if(stopRequested)
         {
             eventContainer.add(new EventNotification(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
+
             service.shutdown();
             service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
 
@@ -199,6 +200,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
             //Thread.sleep(120000);
             //deleteUnfinishedDatasets();
             writeUnfinishedDatasetNames();
+            eventContainer.printEventsToFile();
             return true;
         }
 
@@ -490,6 +492,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
     {
         //finished = false;
         //cleaning up from previously stopped runs
+        eventContainer.clear();
         File f = new File("unfinishedDatasetNames");
         if(f.exists() && deleteUnfinishedDatasets()) {}
         else if(f.exists() && !deleteUnfinishedDatasets()) return;
@@ -522,7 +525,7 @@ public class JsonDownloader extends OpenspendingSoftwareModul implements Runnabl
         else if(g.exists() && !deleteUnfinishedDatasets()) return;
 
         eventContainer.printEventsToFile();
-        eventContainer.clear();
+
 
         log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
         //System.exit(0); // circumvent non-close bug of ObjectMapper.readTree

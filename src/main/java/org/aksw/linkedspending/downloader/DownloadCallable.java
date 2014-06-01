@@ -110,7 +110,7 @@ class DownloadCallable implements Callable<Boolean>
 
             if(Scheduler.getDownloader().getStopRequested())
             {
-                System.out.println("Aborting DownloadCallable");
+                //System.out.println("Aborting DownloadCallable");
                 Scheduler.getDownloader().getUnfinishedDatasets().add(datasetName);
                 Scheduler.getDownloader().getEventContainer().add(
                         new EventNotification(EventNotification.EventType.finishedDownloadingDataset, EventNotification.EventSource.DownloadCallable, datasetName, false));

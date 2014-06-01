@@ -3,6 +3,7 @@ package org.aksw.linkedspending;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.ConverterSleeper;
+import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 
 import javax.ws.rs.GET;
