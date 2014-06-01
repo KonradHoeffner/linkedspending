@@ -723,7 +723,7 @@ public class Converter extends OpenspendingSoftwareModul implements Runnable
                     eventContainer.add(new EventNotification(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter));
                     while(pauseRequested)
                     {
-                        try {Thread.sleep(10000);}
+                        try {Thread.sleep(100);}
                         catch (InterruptedException e) {log.warning(e.getMessage());}
                     }
 

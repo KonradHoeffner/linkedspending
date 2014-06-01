@@ -141,6 +141,8 @@ public class SchedulerTest
         Scheduler.runManually();
         Scheduler.runDownloader();
         Scheduler.pauseDownloader();
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
         Scheduler.resumeDownload();
 
         /*File f = new File("/json");
@@ -248,6 +250,8 @@ public class SchedulerTest
         Scheduler.runManually();
         Scheduler.runConverter();
         Scheduler.pauseConverter();
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
         Scheduler.resumeConverter();
         //String responseMsg = target.path("control/resumeconvert").request().get(String.class);
         //Assert.assertEquals("Resumed Converter", responseMsg);
