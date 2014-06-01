@@ -1,5 +1,7 @@
 package org.aksw.linkedspending;
 
+import org.aksw.linkedspending.converter.Converter;
+import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -31,7 +33,7 @@ public class SchedulerTest
     {
         //URI uri = UriBuilder.fromUri("http://localhost/").port(10010).build();
         // start the server
-        server = GrizzlyHttpUtil.startServer(10011);
+        server = GrizzlyHttpUtil.startServer(10010);
 
         //ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
         //server = GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
@@ -43,6 +45,15 @@ public class SchedulerTest
         ClientConfig clientConfig = new ClientConfig();
         c = ClientBuilder.newClient();
         target = c.target(UriBuilder.fromUri("http://localhost/").port(10010).build());
+    }
+
+    @Before
+    public void before()
+    {
+        JsonDownloader.setStopRequested(false);
+        JsonDownloader.setPauseRequested(false);
+        Converter.setPauseRequested(false);
+        Converter.setStopRequested(false);
     }
 
     @After
@@ -83,8 +94,9 @@ public class SchedulerTest
         //String responseMsg = target.path("control/stopdownload").request().get(String.class);
         //Assert.assertEquals("Stopped downloading", responseMsg);
         Scheduler.runManually();
+        Scheduler.runDownloader();
         Scheduler.stopDownloader();
-        try{Thread.sleep(30000);}
+        try{Thread.sleep(5000);}
         catch(InterruptedException e) {}
 
         /*File f = new File("/json");
@@ -150,6 +162,11 @@ public class SchedulerTest
         //Assert.assertEquals("Started downloading dataset " + "berlin_de", responseMsg);
         Scheduler.runManually();
         Scheduler.downloadDataset("berlin_de");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         /*try {Thread.sleep(30000);}
         catch(InterruptedException e) {}
