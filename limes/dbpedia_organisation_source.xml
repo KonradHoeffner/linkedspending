@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE LIMES SYSTEM "limes.dtd">
+<LIMES>
+	<PREFIX>
+		<NAMESPACE>http://www.w3.org/1999/02/22-rdf-syntax-ns#</NAMESPACE>
+		<LABEL>rdf</LABEL>
+	</PREFIX>
+	<PREFIX>
+		<NAMESPACE>http://www.w3.org/2000/01/rdf-schema#</NAMESPACE>
+		<LABEL>rdfs</LABEL>
+	</PREFIX>
+	<PREFIX>
+		<NAMESPACE>http://xmlns.com/foaf/0.1/</NAMESPACE>
+		<LABEL>foaf</LABEL>
+	</PREFIX>
+	<PREFIX>
+		<NAMESPACE>http://www.w3.org/2002/07/owl#</NAMESPACE>
+		<LABEL>owl</LABEL>
+	</PREFIX>
+	<PREFIX>
+		<NAMESPACE>http://dbpedia.org/ontology/</NAMESPACE>
+		<LABEL>dbpedia</LABEL>
+	</PREFIX>
+	<PREFIX>
+		<NAMESPACE>http://dbpedia.org/property/</NAMESPACE>
+		<LABEL>dbpedia-p</LABEL>
+	</PREFIX>
+	<PREFIX>
+		<NAMESPACE>http://purl.org/dc/terms/</NAMESPACE>
+		<LABEL>dc</LABEL>
+	</PREFIX>
+    <PREFIX>
+        <NAMESPACE>http://linkedspending.aksw.org/ontology/</NAMESPACE>
+        <LABEL>ns1</LABEL>
+    </PREFIX>
+    <PREFIX>
+        <NAMESPACE>http://purl.org/linked-data/cube#</NAMESPACE>
+        <LABEL>ns2</LABEL>
+    </PREFIX>
+	<SOURCE>
+		<ID>dbpedia</ID>
+		<ENDPOINT>http://dbpedia.org/sparql</ENDPOINT>
+		<VAR>?x</VAR>
+		<PAGESIZE>-1</PAGESIZE>
+		<RESTRICTION>?x rdf:type dbpedia:Organisation</RESTRICTION>
+		<PROPERTY>rdfs:label AS nolang->lowercase RENAME organisation</PROPERTY>
+	</SOURCE>
+	<TARGET>
+		<ID>linkedspending</ID>
+		<ENDPOINT>http://linkedspending.aksw.org/sparql</ENDPOINT>
+		<GRAPH> </GRAPH>
+		<VAR>?y</VAR>
+		<PAGESIZE>-1</PAGESIZE>
+		<RESTRICTION>?y rdf:type ns2:Observation</RESTRICTION>
+        <PROPERTY>ns1:from ?s . ?s rdfs:label AS nolang->lowercase RENAME source</PROPERTY>
+	</TARGET>
+	<METRIC>trigrams(x.organisation,y.source)</METRIC>
+	<ACCEPTANCE>
+		<THRESHOLD>0.8</THRESHOLD>
+		<FILE>dbpedia_organisation_source_accepted.nt</FILE>
+		<RELATION>owl:sameAs</RELATION>
+	</ACCEPTANCE>
+	<REVIEW>
+		<THRESHOLD>0.5</THRESHOLD>
+		<FILE>dbpedia_organisation_source_reviewme.nt</FILE>
+		<RELATION>owl:sameAs</RELATION>
+	</REVIEW>
+	<EXECUTION>Simple</EXECUTION>
+	<OUTPUT>TTL</OUTPUT>
+</LIMES>
