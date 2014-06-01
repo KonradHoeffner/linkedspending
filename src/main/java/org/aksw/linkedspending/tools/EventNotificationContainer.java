@@ -3,6 +3,8 @@ package org.aksw.linkedspending.tools;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
 /** Holds eventNotifications and can create statistical information */
@@ -47,29 +49,23 @@ public class EventNotificationContainer
     {
         try
         {
-            File f = new File("eventOutput");
-            int i = 1;
+            File d = new File("eventoutputFolder");
+            if(!d.isDirectory()) d.mkdir();
+
             String fileName = "eventOutput";
-            while(true)
-            {
-                if(f.exists())
+
+            long time = System.currentTimeMillis();
+            fileName += new SimpleDateFormat("YYYY MM dd HH mm").format(time);
+
+            File f = new File("eventoutputFolder/"+fileName);
+
+            FileWriter output = new FileWriter(f);
+                for(int j=0; j < notifications.size(); j++)
                 {
-                    f = null;
-                    f = new File("eventOutput"+i);
+                    output.write(notifications.get(j).getEventCode(true));
+                    output.append(System.getProperty("line.separator"));
                 }
-                else
-                {
-                    FileWriter output = new FileWriter(f);
-                    for(int j=0; i < notifications.size(); i++)
-                    {
-                        output.write(notifications.get(j).getEventCode(true));
-                        output.append(System.getProperty("line.separator"));
-                    }
-                    output.close();
-                    break;
-                }
-                i++;
-            }
+                output.close();
         }
         catch(IOException e) { e.printStackTrace(); }
     }
