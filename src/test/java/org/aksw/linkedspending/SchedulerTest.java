@@ -119,8 +119,12 @@ public class SchedulerTest
         //Assert.assertEquals("Paused Downloader", responseMsg);
         Scheduler.runManually();
         Scheduler.runDownloader();
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
         Scheduler.pauseDownloader();
 
+        try {Thread.sleep(8000);}
+        catch(InterruptedException e) {}
         //Did the size of /json folder change after downloader has been paused?
         /*File f = new File("/json");
         long totalSpace = f.getTotalSpace();
