@@ -61,7 +61,7 @@ import java.net.URI;
 	/**
 	 * Sets a new start date for scheduled runs (e.g. setstartdate/7/20 sets start time to 20
 	 * o'clock at Sunday)
-	 * 
+	 *
 	 * @param startDay
 	 *            The starting day (1 = Monday, ... , 7 = Sunday)
 	 * @param startHour
@@ -69,8 +69,8 @@ import java.net.URI;
 	 * @param repeat
 	 *            The ratio to repeat in weeks (e.g. 2 means one run every two weeks)
 	 */
-	@Path("setstartdate/{day}/{hour}/{repeat}") public static String setScheduleTime(@PathParam("day") String startDay,
-			@PathParam("hour") String startHour, @PathParam("repeat") String repeat)
+	@Path("setstartdate/{day}/{hour}/{repeat}") public static String setScheduleTime(@PathParam("day") int startDay,
+			@PathParam("hour") int startHour, @PathParam("repeat") int repeat)
 	{
 		ScheduleTimeHandler.setShutdownRequested(true);
 
@@ -244,7 +244,7 @@ import java.net.URI;
 	/**
 	 * Runs a complete download after a specified period of time and starts converting afterwards.
 	 * To be used for out-of-schedule runs only.
-	 * 
+	 *
 	 * @Param timeTillStart the specified point of time
 	 * @Param unit the unit of time measurement (d for days, min for minutes)
 	 */
@@ -294,7 +294,7 @@ import java.net.URI;
 
 	/**
 	 * Returns a html table which lists all available commands and a description for each of them.
-	 * 
+	 *
 	 * @return html-formatted String
 	 */
 	@GET @Path("listcommands")// @Produces("text/html")

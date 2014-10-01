@@ -1,5 +1,6 @@
 package org.aksw.linkedspending;
 
+import static org.junit.Assert.*;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.glassfish.jersey.client.ClientConfig;
@@ -18,6 +19,7 @@ import javax.ws.rs.core.UriBuilder;
 /** Tests if Scheduler reacts properly to incoming commands via REST-interface */
 public class SchedulerTest
 {
+	private static final int	PAUSE_MILLIS	= 1000;
 	private HttpServer	server;
 	private WebTarget	target;
 	private Client		c;
@@ -39,13 +41,10 @@ public class SchedulerTest
 		 */
 		// todo: edit: might have been caused by doubly starting http server, which is fixed now.
 		// Check tests again.
-		ClientConfig clientConfig = new ClientConfig();
+		//		ClientConfig clientConfig = new ClientConfig();
 		c = ClientBuilder.newClient();
 		target = c.target(UriBuilder.fromUri("http://localhost/").port(10010).build());
-	}
 
-	@Before public void before()
-	{
 		JsonDownloader.setStopRequested(false);
 		JsonDownloader.setPauseRequested(false);
 		Converter.setPauseRequested(false);
@@ -55,10 +54,11 @@ public class SchedulerTest
 	@After public void tearDown() throws Exception
 	{
 		// server.stop();
+		Scheduler.stopDownloader();
 		server.shutdown();
 	}
 
-	@Test public void testRunDownloader()
+	@Test public void testRunDownloader() throws InterruptedException
 	{
 		// Tests REST-functionality
 		// String responseMsg =
@@ -67,13 +67,7 @@ public class SchedulerTest
 		Scheduler.runManually();
 		Scheduler.runDownloader();
 		// checks if files are being downloaded
-		try
-		{
-			Thread.sleep(5000);
-		}
-		catch (InterruptedException e)
-		{}
-
+		Thread.sleep(PAUSE_MILLIS);
 		/*
 		 * File f = new File("/json");
 		 * long totalSpace = f.getTotalSpace();
@@ -84,23 +78,19 @@ public class SchedulerTest
 		 */
 		boolean b = Scheduler.getDownloader().getEventContainer()
 				.checkForEvent(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader);
+		Scheduler.stopDownloader();
 		Assert.assertTrue(b);
 	}
 
-	@Test public void testStopDownloader()
+	@Test public void testStopDownloader() throws InterruptedException
 	{
 		// String responseMsg = target.path("control/stopdownload").request().get(String.class);
 		// Assert.assertEquals("Stopped downloading", responseMsg);
 		Scheduler.runManually();
 		Scheduler.runDownloader();
 		Scheduler.stopDownloader();
-		try
-		{
-			Thread.sleep(5000);
-		}
-		catch (InterruptedException e)
-		{}
 
+		Thread.sleep(PAUSE_MILLIS);
 		/*
 		 * File f = new File("/json");
 		 * long before = f.getTotalSpace();
@@ -111,31 +101,22 @@ public class SchedulerTest
 		 */
 		// if the Downloader was successfully stopped, several DownloadCallables will add
 		// finishedDownloadingDataset (success == false) events after a while.
-		boolean b = Scheduler.getDownloader().getEventContainer()
-				.checkForEvent(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader);
-		Assert.assertTrue(b);
+		assertTrue(Scheduler.getDownloader().getEventContainer()
+				.checkForEvent(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
 	}
 
-	@Test public void testPauseDownloader()
+	@Test public void testPauseDownloader() throws InterruptedException
 	{
 		// String responseMsg = target.path("control/pausedownload").request().get(String.class);
 		// Assert.assertEquals("Paused Downloader", responseMsg);
 		Scheduler.runManually();
 		Scheduler.runDownloader();
-		try
-		{
-			Thread.sleep(8000);
-		}
-		catch (InterruptedException e)
-		{}
+		Thread.sleep(PAUSE_MILLIS);
+
 		Scheduler.pauseDownloader();
 
-		try
-		{
-			Thread.sleep(8000);
-		}
-		catch (InterruptedException e)
-		{}
+		Thread.sleep(PAUSE_MILLIS);
+
 		// Did the size of /json folder change after downloader has been paused?
 		/*
 		 * File f = new File("/json");
@@ -148,6 +129,7 @@ public class SchedulerTest
 		boolean b = Scheduler.getDownloader().getEventContainer()
 				.checkForEvent(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader);
 		Assert.assertTrue(b);
+		Scheduler.stopDownloader();
 	}
 
 	@Test public void testResumeDownloader()
@@ -159,7 +141,7 @@ public class SchedulerTest
 		Scheduler.pauseDownloader();
 		try
 		{
-			Thread.sleep(8000);
+			Thread.sleep(1000);
 		}
 		catch (InterruptedException e)
 		{}
@@ -177,6 +159,7 @@ public class SchedulerTest
 		boolean b = Scheduler.getDownloader().getEventContainer()
 				.checkForEvent(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader);
 		Assert.assertTrue(b);
+		Scheduler.stopDownloader();
 	}
 
 	@Test public void testDownloadDataset()
@@ -188,7 +171,7 @@ public class SchedulerTest
 		Scheduler.downloadDataset("berlin_de");
 		try
 		{
-			Thread.sleep(5000);
+			Thread.sleep(1000);
 		}
 		catch (InterruptedException e)
 		{
@@ -205,6 +188,7 @@ public class SchedulerTest
 		boolean b = Scheduler.getDownloader().getEventContainer()
 				.checkForEvent(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader);
 		Assert.assertTrue(b);
+		Scheduler.stopDownloader();
 	}
 
 	@Test public void testConvertComplete()
@@ -244,7 +228,7 @@ public class SchedulerTest
 
 		try
 		{
-			Thread.sleep(8000);
+			Thread.sleep(9000);
 		}
 		catch (InterruptedException e)
 		{}
@@ -264,7 +248,7 @@ public class SchedulerTest
 
 		try
 		{
-			Thread.sleep(8000);
+			Thread.sleep(PAUSE_MILLIS);
 		}
 		catch (InterruptedException e)
 		{}
@@ -292,7 +276,7 @@ public class SchedulerTest
 		Scheduler.pauseConverter();
 		try
 		{
-			Thread.sleep(8000);
+			Thread.sleep(PAUSE_MILLIS);
 		}
 		catch (InterruptedException e)
 		{}
@@ -302,7 +286,7 @@ public class SchedulerTest
 
 		try
 		{
-			Thread.sleep(8000);
+			Thread.sleep(PAUSE_MILLIS);
 		}
 		catch (InterruptedException e)
 		{}
@@ -313,9 +297,8 @@ public class SchedulerTest
 		 * Assert.assertTrue(after != before);
 		 */
 
-		boolean b = Scheduler.getConverter().getEventContainer()
-				.checkForEvent(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter);
-		Assert.assertTrue(b);
+		assertTrue(Scheduler.getConverter().getEventContainer()
+				.checkForEvent(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter));
 	}
 
 	@Test public void testShutdown()

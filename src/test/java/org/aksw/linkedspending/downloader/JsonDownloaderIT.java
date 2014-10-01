@@ -17,7 +17,7 @@ public class JsonDownloaderIT
 	private File					downloadDir	= new File(PROPERTIES.getProperty("pathJson"));
 	private File					partsDir	= new File(PROPERTIES.getProperty("pathParts"));
 
-	@Test public void downloaderTest()
+	@Test public void downloaderTest() throws InterruptedException
 	{
 		number = fileNumber(downloadDir, false);
 		numberParts = fileNumber(partsDir, true);
@@ -25,14 +25,7 @@ public class JsonDownloaderIT
 		Scheduler.runManually();
 		Scheduler.runDownloader();
 
-		try
-		{
-			Thread.sleep(30000);
-		}
-		catch (InterruptedException e)
-		{
-			fail("Interrupted exception: " + e.getMessage());
-		}
+		Thread.sleep(1000);
 
 		Scheduler.stopDownloader();
 

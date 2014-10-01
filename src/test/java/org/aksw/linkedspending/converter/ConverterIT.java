@@ -51,7 +51,7 @@ public class ConverterIT
 		}
 	}
 
-	@Test public void consistencyCheckRandom()
+	@Test public void consistencyCheckRandom() throws FileNotFoundException, IOException
 	{
 		fileCount = fileNumber(converterDir);
 		int rand = (int) (Math.random() * fileCount);
@@ -60,11 +60,8 @@ public class ConverterIT
 
 		System.out.println(convertPath + randomFile);
 
-		try
+		try(BufferedReader br = new BufferedReader(new FileReader(convertPath + randomFile)))
 		{
-			FileReader fr = new FileReader(convertPath + randomFile);
-			BufferedReader br = new BufferedReader(fr);
-
 			int count = 0;
 			while (br.readLine() != null)
 			{
@@ -75,20 +72,16 @@ public class ConverterIT
 			rand = (int) (Math.random() * count);
 
 			// System.out.println(rand);
+		}
 
-			fr = new FileReader(convertPath + randomFile);
-			br = new LineNumberReader(fr);
-
+		try(BufferedReader br = new BufferedReader(new FileReader(convertPath + randomFile)))
+		{
 			for (int i = 0; i < rand; i++)
 			{
 				line = br.readLine();
 			}
+		}
 
-		}
-		catch (Exception e)
-		{
-			fail("Exception: " + e.getMessage());
-		}
 		// System.out.println(line);
 
 		char[] lineChar = line.toCharArray();
