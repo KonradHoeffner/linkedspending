@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.downloader;
 
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.junit.Before;

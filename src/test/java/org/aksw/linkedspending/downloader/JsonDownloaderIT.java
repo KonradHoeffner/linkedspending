@@ -1,5 +1,6 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.downloader;
 
+import org.aksw.linkedspending.Scheduler;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.junit.Test;
 import java.io.File;
