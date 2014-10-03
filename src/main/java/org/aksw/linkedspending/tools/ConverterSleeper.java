@@ -1,7 +1,7 @@
 package org.aksw.linkedspending.tools;
 
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.Scheduler;
+import org.aksw.linkedspending.scheduler.Scheduler;
 
 /** Puts Converter thread asleep while downloading has not been finished. */
 public class ConverterSleeper extends Scheduler implements Runnable
@@ -9,7 +9,7 @@ public class ConverterSleeper extends Scheduler implements Runnable
 	@Override public void run()
 	{
 		while (!OpenspendingSoftwareModule.getEventContainer().checkForEvent(
-				EventNotification.EventType.finishedDownloadingComplete, EventNotification.EventSource.Downloader))
+				EventNotification.EventType.FINISHED_COMPLETED_OWNLOAD, EventNotification.EventSource.DOWNLOADER))
 		{ // condition might cause bug when multiple events of this type occur
 			try
 			{

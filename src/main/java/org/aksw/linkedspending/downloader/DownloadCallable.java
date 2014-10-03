@@ -1,10 +1,6 @@
 package org.aksw.linkedspending.downloader;
 
-import lombok.extern.java.Log;
-import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.Scheduler;
-import org.aksw.linkedspending.tools.EventNotification;
-import org.eclipse.jdt.annotation.Nullable;
+import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,10 +10,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.Callable;
-import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
+import lombok.extern.java.Log;
+import org.aksw.linkedspending.OpenspendingSoftwareModule;
+import org.aksw.linkedspending.scheduler.Scheduler;
+import org.aksw.linkedspending.tools.EventNotification;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * Implements the logic for downloading a JSON-file within a thread. Is similar to the use of the
@@ -131,8 +129,8 @@ import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnectio
 				Scheduler
 						.getDownloader()
 						.getEventContainer()
-						.add(new EventNotification(EventNotification.EventType.finishedDownloadingDataset,
-								EventNotification.EventSource.DownloadCallable, datasetName, false));
+						.add(new EventNotification(EventNotification.EventType.FINISHED_DOWNLOADING_DATASET,
+								EventNotification.EventSource.DOWNLOAD_CALLABLE, datasetName, false));
 				return false;
 			}
 
@@ -167,8 +165,8 @@ import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnectio
 		Scheduler
 				.getDownloader()
 				.getEventContainer()
-				.add(new EventNotification(EventNotification.EventType.finishedDownloadingDataset,
-						EventNotification.EventSource.DownloadCallable, datasetName, true));
+				.add(new EventNotification(EventNotification.EventType.FINISHED_DOWNLOADING_DATASET,
+						EventNotification.EventSource.DOWNLOAD_CALLABLE, datasetName, true));
 		return true;
 	}
 }

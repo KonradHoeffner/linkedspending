@@ -16,6 +16,10 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
+import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
+
+//
 
 /**
  * Downloads entry files from openspending.org. Provides the input for and thus has to be run before
@@ -50,7 +54,7 @@ import java.util.concurrent.*;
 	static final int					MAX_THREADS			= 10;
 	/**
 	 * the initial page size
-	 * 
+	 *
 	 * @see #pageSize
 	 */
 	static final int					INITIAL_PAGE_SIZE	= 100;
@@ -65,7 +69,7 @@ import java.util.concurrent.*;
 	static final int					pageSize			= INITIAL_PAGE_SIZE;
 	/**
 	 * name of the root-folder, where the downloaded and splitted JSON-files are stored
-	 * 
+	 *
 	 * @see #pageSize "pageSize" for more details
 	 */
 	static File							rootPartsFolder		= new File(PROPERTIES.getProperty("pathParts"));
@@ -121,7 +125,7 @@ import java.util.concurrent.*;
 	/**
 	 * represents all the empty JSON-files in a set; highly interacts with: emptyDatasetFile<br>
 	 * is used for example to remove empty datasets from downloading-process
-	 * 
+	 *
 	 * @see #emptyDatasetFile
 	 */
 	@SuppressWarnings("null") static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
@@ -140,10 +144,8 @@ import java.util.concurrent.*;
 	public static void setPauseRequested(boolean setTo)
 	{
 		pauseRequested = setTo;
-		if (setTo) eventContainer.add(new EventNotification(EventNotification.EventType.downloadPaused,
-				EventNotification.EventSource.Downloader));
-		else eventContainer.add(new EventNotification(EventNotification.EventType.downloadResumed,
-				EventNotification.EventSource.Downloader));
+		if (setTo) eventContainer.add(new EventNotification(DOWNLOAD_PAUSED,DOWNLOADER));
+		else eventContainer.add(new EventNotification(DOWNLOAD_RESUMED,DOWNLOADER));
 	}
 
 	/**
@@ -155,7 +157,7 @@ import java.util.concurrent.*;
 
 	/**
 	 * sets a JSON-file to be downloaded from openspending
-	 * 
+	 *
 	 * @param setTo
 	 *            the filename of the JSON-file
 	 * @see #toBeDownloaded
@@ -167,7 +169,7 @@ import java.util.concurrent.*;
 
 	/**
 	 * sets whether all files are to be downloaded from openspending
-	 * 
+	 *
 	 * @param setTo
 	 *            true if all files are to be downloaded
 	 * @see #completeRun
@@ -183,7 +185,7 @@ import java.util.concurrent.*;
 	 * if #datasetNames already exists, return them<br>
 	 * if cache-file exists, load datasets from cache-file<br>
 	 * if cache-file does not exist, load from openspending and write cache-file
-	 * 
+	 *
 	 * @return a set containing the names of all JSON-files
 	 * @throws IOException
 	 *             - if one of many files can't be read from or written to
@@ -220,7 +222,7 @@ import java.util.concurrent.*;
 
 	/**
 	 * returns a file from the already downloaded datasets
-	 * 
+	 *
 	 * @param datasetName
 	 *            the name of the file
 	 * @return the file to the given dataset
@@ -238,7 +240,7 @@ import java.util.concurrent.*;
 	/**
 	 * Downloads a set of datasets. datasets over a certain size are downloaded in parts.
 	 * Uses multithreading futures to download files.
-	 * 
+	 *
 	 * @param datasets
 	 *            a Collection of all filenames to be downloaded from openspending
 	 * @return returns true if stopped by Scheduler, false otherwise
@@ -281,8 +283,7 @@ import java.util.concurrent.*;
 
 		if (stopRequested)
 		{
-			eventContainer.add(new EventNotification(EventNotification.EventType.downloadStopped,
-					EventNotification.EventSource.Downloader));
+			eventContainer.add(new EventNotification(DOWNLOAD_STOPPED,DOWNLOADER));
 
 			service.shutdown();
 			service.awaitTermination(TERMINATION_WAIT_DAYS, TimeUnit.DAYS);
@@ -309,7 +310,7 @@ import java.util.concurrent.*;
 	 * unfinishedDatasetNames. With the help of this file, unfinished dataset files will be deleted
 	 * before
 	 * another run is started.
-	 * 
+	 *
 	 * @return True, if file has been successfully created. False otherwise.
 	 */
 	protected static boolean writeUnfinishedDatasetNames()
@@ -341,7 +342,7 @@ import java.util.concurrent.*;
 	/**
 	 * Deletes dataset files which have not been marked as finished from their DownloadCallables.
 	 * Called as a clean-up after stop has been requested.
-	 * 
+	 *
 	 * @return true, if files have been deleted successfully. False, if a FileNotFoundException
 	 *         occured.
 	 */
@@ -376,7 +377,7 @@ import java.util.concurrent.*;
 	 * Recursively deletes a given folder which can't be exspected to be empty. Used to delete
 	 * json/parts
 	 * after a stop has been requested.
-	 * 
+	 *
 	 * @return Returns true if parts folder has successfully been deleted, false otherwise.
 	 */
 	protected static boolean deleteNotEmptyFolder(File folderToBeDeleted)
@@ -396,7 +397,7 @@ import java.util.concurrent.*;
 
 	/**
 	 * Collects all parted Datasets from a specific File
-	 * 
+	 *
 	 * @param foldername
 	 *            the Place where the parted Files are found
 	 * @return returns a Hashmap with all Files found in the given Folder.
@@ -522,7 +523,7 @@ import java.util.concurrent.*;
 
 	/**
 	 * merges part-files
-	 * 
+	 *
 	 * @see #mergeJsonParts(java.util.Map)
 	 */
 	protected synchronized static void puzzleTogether()
@@ -533,7 +534,7 @@ import java.util.concurrent.*;
 	/**
 	 * Downloads a single specific dataset-file from openspending.
 	 * Writes the emptyDatasetFile.
-	 * 
+	 *
 	 * @param datasetName
 	 *            the name of the dataset to be downloaded
 	 * @throws IOException
@@ -553,8 +554,8 @@ import java.util.concurrent.*;
 		Future<Boolean> future;
 		// creates a Future for each file that is to be downloaded
 
-		eventContainer.add(new EventNotification(EventNotification.EventType.startedDownloadingSingle,
-				EventNotification.EventSource.Downloader, datasetName));
+		eventContainer.add(new EventNotification(STARTED_SINGLE_DOWNLOAD,
+				DOWNLOADER, datasetName));
 		future = service.submit(new DownloadCallable(datasetName, 0));
 
 		ThreadMonitor monitor = new ThreadMonitor(service);
@@ -582,7 +583,7 @@ import java.util.concurrent.*;
 	/**
 	 * downloads all new datasets which are not marked as empty from a run before. datasets over a
 	 * certain size are downloaded in parts.
-	 * 
+	 *
 	 * @throws JsonProcessingException
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -645,19 +646,19 @@ import java.util.concurrent.*;
 		{
 			if (completeRun)
 			{
-				eventContainer.add(new EventNotification(EventNotification.EventType.startedDownloadingComplete,
-						EventNotification.EventSource.Downloader));
+				eventContainer.add(new EventNotification(STARTED_COMPLETE_DOWNLOAD,
+						DOWNLOADER));
 				downloadAll();
-				eventContainer.add(new EventNotification(EventNotification.EventType.finishedDownloadingComplete,
-						EventNotification.EventSource.Downloader, true));
+				eventContainer.add(new EventNotification(FINISHED_COMPLETED_OWNLOAD,
+						DOWNLOADER, true));
 			}
 			else
 			{
-				eventContainer.add(new EventNotification(EventNotification.EventType.startedDownloadingSingle,
-						EventNotification.EventSource.Downloader));
+				eventContainer.add(new EventNotification(STARTED_SINGLE_DOWNLOAD,
+						DOWNLOADER));
 				downloadSpecific(toBeDownloaded);
-				eventContainer.add(new EventNotification(EventNotification.EventType.finishedDownloadingSingle,
-						EventNotification.EventSource.Downloader, true));
+				eventContainer.add(new EventNotification(FINISHED_SINGLE_DOWNLOAD,
+						DOWNLOADER, true));
 			}
 			if (!stopRequested) puzzleTogether();
 		}

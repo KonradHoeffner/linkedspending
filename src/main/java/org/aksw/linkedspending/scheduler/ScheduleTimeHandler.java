@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.scheduler;
 
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import java.text.SimpleDateFormat;

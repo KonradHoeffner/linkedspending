@@ -1,9 +1,9 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.scheduler;
 
 import static org.junit.Assert.*;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
-import org.glassfish.jersey.client.ClientConfig;
+import org.aksw.linkedspending.scheduler.Scheduler;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -77,7 +77,7 @@ public class SchedulerTest
 		 * Assert.assertTrue(totalSpace < totalSpace2);
 		 */
 		boolean b = Scheduler.getDownloader().getEventContainer()
-				.checkForEvent(EventNotification.EventType.startedDownloadingComplete, EventNotification.EventSource.Downloader);
+				.checkForEvent(EventNotification.EventType.STARTED_COMPLETE_DOWNLOAD, EventNotification.EventSource.DOWNLOADER);
 		Scheduler.stopDownloader();
 		Assert.assertTrue(b);
 	}
@@ -102,7 +102,7 @@ public class SchedulerTest
 		// if the Downloader was successfully stopped, several DownloadCallables will add
 		// finishedDownloadingDataset (success == false) events after a while.
 		assertTrue(Scheduler.getDownloader().getEventContainer()
-				.checkForEvent(EventNotification.EventType.downloadStopped, EventNotification.EventSource.Downloader));
+				.checkForEvent(EventNotification.EventType.DOWNLOAD_STOPPED, EventNotification.EventSource.DOWNLOADER));
 	}
 
 	@Test public void testPauseDownloader() throws InterruptedException
@@ -127,7 +127,7 @@ public class SchedulerTest
 		 * Assert.assertTrue(totalSpace == totalSpace2);
 		 */
 		boolean b = Scheduler.getDownloader().getEventContainer()
-				.checkForEvent(EventNotification.EventType.downloadPaused, EventNotification.EventSource.Downloader);
+				.checkForEvent(EventNotification.EventType.DOWNLOAD_PAUSED, EventNotification.EventSource.DOWNLOADER);
 		Assert.assertTrue(b);
 		Scheduler.stopDownloader();
 	}
@@ -157,7 +157,7 @@ public class SchedulerTest
 		 */
 
 		boolean b = Scheduler.getDownloader().getEventContainer()
-				.checkForEvent(EventNotification.EventType.downloadResumed, EventNotification.EventSource.Downloader);
+				.checkForEvent(EventNotification.EventType.DOWNLOAD_RESUMED, EventNotification.EventSource.DOWNLOADER);
 		Assert.assertTrue(b);
 		Scheduler.stopDownloader();
 	}
@@ -186,7 +186,7 @@ public class SchedulerTest
 		 * not empty?
 		 */
 		boolean b = Scheduler.getDownloader().getEventContainer()
-				.checkForEvent(EventNotification.EventType.startedDownloadingSingle, EventNotification.EventSource.Downloader);
+				.checkForEvent(EventNotification.EventType.STARTED_SINGLE_DOWNLOAD, EventNotification.EventSource.DOWNLOADER);
 		Assert.assertTrue(b);
 		Scheduler.stopDownloader();
 	}
@@ -214,7 +214,7 @@ public class SchedulerTest
 		 */
 
 		boolean b = Scheduler.getConverter().getEventContainer()
-				.checkForEvent(EventNotification.EventType.startedConvertingComplete, EventNotification.EventSource.Converter);
+				.checkForEvent(EventNotification.EventType.STARTED_CONVERTING_COMPLETE, EventNotification.EventSource.CONVERTER);
 		Assert.assertTrue(b);
 	}
 
@@ -228,13 +228,13 @@ public class SchedulerTest
 
 		try
 		{
-			Thread.sleep(9000);
+			Thread.sleep(5000);
 		}
 		catch (InterruptedException e)
 		{}
 
 		boolean b = Scheduler.getConverter().getEventContainer()
-				.checkForEvent(EventNotification.EventType.stoppedConverter, EventNotification.EventSource.Converter);
+				.checkForEvent(EventNotification.EventType.STOPPED_CONVERTER, EventNotification.EventSource.CONVERTER);
 		Assert.assertTrue(b);
 	}
 
@@ -262,7 +262,7 @@ public class SchedulerTest
 		 */
 
 		boolean b = Scheduler.getConverter().getEventContainer()
-				.checkForEvent(EventNotification.EventType.pausedConverter, EventNotification.EventSource.Converter);
+				.checkForEvent(EventNotification.EventType.PAUSED_CONVERTER, EventNotification.EventSource.CONVERTER);
 		Assert.assertTrue(b);
 	}
 
@@ -298,7 +298,7 @@ public class SchedulerTest
 		 */
 
 		assertTrue(Scheduler.getConverter().getEventContainer()
-				.checkForEvent(EventNotification.EventType.resumedConverter, EventNotification.EventSource.Converter));
+				.checkForEvent(EventNotification.EventType.RESUMED_CONVERTER, EventNotification.EventSource.CONVERTER));
 	}
 
 	@Test public void testShutdown()

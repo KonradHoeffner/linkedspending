@@ -28,6 +28,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
+import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 
 @Log @NonNullByDefault public class Converter extends OpenspendingSoftwareModule implements Runnable
 {
@@ -772,8 +774,8 @@ import java.util.logging.Level;
 			e.printStackTrace();
 		}
 
-		eventContainer.add(new EventNotification(EventNotification.EventType.startedConvertingComplete,
-				EventNotification.EventSource.Converter));
+		eventContainer.add(new EventNotification(STARTED_CONVERTING_COMPLETE,
+				CONVERTER));
 		long startTime = System.currentTimeMillis();
 		try
 		{
@@ -795,14 +797,14 @@ import java.util.logging.Level;
 			{
 				if (stopRequested)
 				{
-					eventContainer.add(new EventNotification(EventNotification.EventType.stoppedConverter,
-							EventNotification.EventSource.Converter));
+					eventContainer.add(new EventNotification(STOPPED_CONVERTER,
+							CONVERTER));
 					break;
 				}
 				else if (pauseRequested)
 				{
-					eventContainer.add(new EventNotification(EventNotification.EventType.pausedConverter,
-							EventNotification.EventSource.Converter));
+					eventContainer.add(new EventNotification(PAUSED_CONVERTER,
+							CONVERTER));
 					while (pauseRequested)
 					{
 						try
@@ -815,8 +817,8 @@ import java.util.logging.Level;
 						}
 					}
 
-					eventContainer.add(new EventNotification(EventNotification.EventType.resumedConverter,
-							EventNotification.EventSource.Converter));
+					eventContainer.add(new EventNotification(RESUMED_CONVERTER,
+							CONVERTER));
 				}
 				i++;
 				Model model = DataModel.newModel();
@@ -852,10 +854,10 @@ import java.util.logging.Level;
 						if (exceptions >= minExceptions && ((double) exceptions / (i + 1)) > exceptionStopRatio)
 						{
 							log.severe("Too many exceptions (" + exceptions + " out of " + (i + 1));
-							eventContainer.add(new EventNotification(EventNotification.EventType.tooManyErrors,
-									EventNotification.EventSource.Converter));
-							eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete,
-									EventNotification.EventSource.Converter, false));
+							eventContainer.add(new EventNotification(TOO_MANY_ERRORS,
+									CONVERTER));
+							eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
+									CONVERTER, false));
 							shutdown(1);
 						}
 					}
@@ -874,10 +876,10 @@ import java.util.logging.Level;
 				}
 
 				log.severe("Too many exceptions (" + exceptions + " out of " + (i + 1));
-				eventContainer.add(new EventNotification(EventNotification.EventType.tooManyErrors,
-						EventNotification.EventSource.Converter));
-				eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete,
-						EventNotification.EventSource.Converter, false));
+				eventContainer.add(new EventNotification(TOO_MANY_ERRORS,
+						CONVERTER));
+				eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
+						CONVERTER, false));
 				shutdown(1);
 			}
 
@@ -914,17 +916,17 @@ import java.util.logging.Level;
 		catch (RuntimeException e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			eventContainer.add(new EventNotification(EventNotification.EventType.runTimeError,
-					EventNotification.EventSource.Converter));
-			eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete,
-					EventNotification.EventSource.Converter, false));
+			eventContainer.add(new EventNotification(RUN_TIME_ERROR,
+					CONVERTER));
+			eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
+					CONVERTER, false));
 			eventContainer.printEventsToFile();
 			eventContainer.clear();
 			shutdown(1);
 		}
 
-		eventContainer.add(new EventNotification(EventNotification.EventType.finishedConvertingComplete,
-				EventNotification.EventSource.Converter, true));
+		eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
+				CONVERTER, true));
 		eventContainer.printEventsToFile();
 
 		shutdown(0);

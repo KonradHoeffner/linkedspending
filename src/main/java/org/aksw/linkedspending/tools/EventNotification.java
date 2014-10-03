@@ -12,14 +12,15 @@ public class EventNotification
 	/* Type constants */
 
 	public enum EventType {
-		finishedDownloadingSingle, finishedDownloadingComplete, finishedConvertingSingle, finishedConvertingComplete, fileNotFound, unsupportedFileType, outOfMemory, startedDownloadingSingle, startedDownloadingComplete, startedConvertingSingle, startedConvertingComplete, finishedDownloadingDataset, downloadStopped,
+		FINISHED_SINGLE_DOWNLOAD, FINISHED_COMPLETED_OWNLOAD, FINISHED_CONVERTING_SINGLE, FINISHED_CONVERTING_COMPLETE, FILE_NOT_FOUND, UNSUPPORTED_FILE_TYPE,
+		OUT_OF_MEMORY, STARTED_SINGLE_DOWNLOAD, STARTED_COMPLETE_DOWNLOAD, STARTED_CONVERTING_SINGLE, STARTED_CONVERTING_COMPLETE, FINISHED_DOWNLOADING_DATASET, DOWNLOAD_STOPPED,
 		/** pause requested for downloader */
-		downloadPaused, downloadResumed, tooManyErrors, runTimeError, stoppedConverter, pausedConverter, resumedConverter, IOError
+		DOWNLOAD_PAUSED, DOWNLOAD_RESUMED, TOO_MANY_ERRORS, RUN_TIME_ERROR, STOPPED_CONVERTER, PAUSED_CONVERTER, RESUMED_CONVERTER, IO_ERROR
 	}
 
 	/* source constants */
 	public enum EventSource {
-		Converter, Downloader, DownloadCallable
+		CONVERTER, DOWNLOADER, DOWNLOAD_CALLABLE
 	}
 
 	private long		time;
@@ -35,7 +36,7 @@ public class EventNotification
 
 	/**
 	 * Creates new EventNotification.
-	 * 
+	 *
 	 * @param type
 	 *            the type of Event to be created<br>
 	 *            finishedDownloadingSingle = 0<br>
@@ -67,7 +68,7 @@ public class EventNotification
 
 	/**
 	 * Creates new EventNotification.
-	 * 
+	 *
 	 * @param type
 	 *            the type of Event to be created<br>
 	 *            finishedDownloadingSingle = 0<br>
@@ -100,7 +101,7 @@ public class EventNotification
 
 	/**
 	 * Creates new EventNotification.
-	 * 
+	 *
 	 * @param type
 	 *            the type of Event to be created<br>
 	 *            finishedDownloadingSingle = 0<br>
@@ -135,7 +136,7 @@ public class EventNotification
 
 	/**
 	 * Creates new EventNotification.
-	 * 
+	 *
 	 * @param type
 	 *            the type of Event to be created<br>
 	 *            finishedDownloadingSingle = 0<br>

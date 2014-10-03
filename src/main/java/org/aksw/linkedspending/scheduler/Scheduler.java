@@ -1,5 +1,6 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.scheduler;
 
+import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.ConverterSleeper;
