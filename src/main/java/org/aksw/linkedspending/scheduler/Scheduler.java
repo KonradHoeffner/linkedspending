@@ -1,15 +1,15 @@
 package org.aksw.linkedspending.scheduler;
 
+import java.net.URI;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.UriBuilder;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.ConverterSleeper;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
 
 /**
  * Pre-version of planned scheduler, which can (directly) control the JsonDownloader

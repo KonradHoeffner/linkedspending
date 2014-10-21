@@ -144,7 +144,7 @@ import java.util.logging.LogManager;
 		// default:
 		// log.error("unhandled http response code "+response+". Aborting download of dataset."); //
 		// abort
-		// }
+	 	// }
 		// try(Scanner undelimited = new Scanner(connection.getInputStream(), "UTF-8"))
 		try (Scanner undelimited = new Scanner(url.openStream(), "UTF-8"))
 		{
