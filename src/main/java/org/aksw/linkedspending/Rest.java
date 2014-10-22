@@ -2,12 +2,14 @@ package org.aksw.linkedspending;
 
 import static org.aksw.linkedspending.job.Job.State.RUNNING;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedSet;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.job.TestJob;
 import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
@@ -15,12 +17,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@Path("/")
+@Path("")
 public class Rest
 {
-	static Set<Job> jobs = new HashSet<>();
+	static Map<String,Job> jobs = new HashMap<>();
+	static
 	{
-		jobs.add(new TestJob());
+		jobs.put("orcamento_publico",new TestJob());
 	}
 	static final String PREFIX = "http://localhost:10010/";
 //
@@ -78,20 +81,53 @@ public class Rest
 		ObjectMapper mapper = new ObjectMapper();
 		ArrayNode rootNode = mapper.createArrayNode();
 
-		for(Job job:jobs) {rootNode.add(job.json());}
+		for(Job job:jobs.values()) {rootNode.add(job.json());}
 
 		return rootNode.toString();
 	}
 
-	@GET @Path("") @Produces("application/json")
+	private static String jobLink(String dataset)
+	{
+		Job job = jobs.get(dataset);
+		if(job==null) return "<a href=\""+job.url+"\">create</a>";
+		return "<a href=\""+job.url+"\">manage</a>";
+	}
+
+
+	static String status(String dataset)
+	{
+		if(jobs.containsKey(dataset)) return jobs.get(dataset);
+	}
+
+	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
+	public static String datasets() throws IOException
+	{
+		StringBuffer sb = new StringBuffer("<meta charset=\"UTF-8\"><html><body>");
+
+//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
+		sb.append("<table border=1><tr><th>dataset</th><th>status</th></tr>");
+		SortedSet<String> datasets = JsonDownloader.getDatasetNamesCached();
+		for(String dataset: datasets)
+		{
+			sb.append("<tr><td>"+dataset+"</td>"+status(dataset)+"<td></td><td>"+jobLink(dataset)+"</td></tr>");
+//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
+		}
+
+		sb.append("</table>");
+		sb.append("</body></html>");
+		return sb.toString();
+	}
+
+	@GET @Path("") @Produces(MediaType.APPLICATION_JSON)
 	public static String root() throws IOException
 	{
+//		if(true) throw new RuntimeException();
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode rootNode = mapper.createObjectNode();
 		rootNode.put("doc", "https://github.com/AKSW/openspending2rdf/wiki/REST-API");
 		rootNode.put("jobs", PREFIX+"jobs");
 		boolean busy = false;
-		for(Job job:jobs) {busy^=(job.getState()==RUNNING);}
+		for(Job job:jobs.values()) {busy^=(job.getState()==RUNNING);}
 		rootNode.put("idle", !busy);
 
 		ArrayNode opNode = mapper.createArrayNode();
@@ -102,7 +138,6 @@ public class Rest
 		opNode.add(PREFIX+"process-new");
 
 		rootNode.put("operations",opNode);
-
 
 		return rootNode.toString();
 	}

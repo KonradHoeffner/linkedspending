@@ -34,7 +34,7 @@ import java.util.logging.Level;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.CacheManager;
-import org.aksw.linkedspending.NewsFeedWriter;
+//import org.aksw.linkedspending.NewsFeedWriter;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.tools.DataModel;
@@ -930,7 +930,7 @@ import de.konradhoeffner.commons.TSVReader;
 					String newsTitle = "";
 					if (newlyCreatedDatasets == 1) newsTitle = newlyCreatedDatasets + " new Dataset has been converted.";
 					else newsTitle = newlyCreatedDatasets + " new Datasets have been converted.";
-					NewsFeedWriter.writeNewsFeed(newsTitle, newsDescription);
+//					NewsFeedWriter.writeNewsFeed(newsTitle, newsDescription);
 				}
 			}
 

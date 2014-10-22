@@ -34,7 +34,7 @@ public class JsonDownloaderTest
 
 	@Test public void testGetDatasetNames() throws IOException
 	{
-		Collection<String> names = JsonDownloader.getDatasetNames();
+		Collection<String> names = JsonDownloader.getDatasetNamesCached();
 		assertTrue(names.size() > 300);
 		assertTrue(names.contains(DATASET));
 	}

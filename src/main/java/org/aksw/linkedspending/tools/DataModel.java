@@ -18,7 +18,7 @@ public class DataModel
 
 	/**
 	 * Creates a new apache jena model
-	 * 
+	 *
 	 * @return the model
 	 */
 	static public Model newModel()

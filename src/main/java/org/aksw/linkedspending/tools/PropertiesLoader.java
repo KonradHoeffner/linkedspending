@@ -20,7 +20,7 @@ import java.util.Properties;
 
 	/**
 	 * creates properties from file
-	 * 
+	 *
 	 * @param filename
 	 *            file name
 	 * @return properties
@@ -37,7 +37,7 @@ import java.util.Properties;
 
 	/**
 	 * loads properties from file
-	 * 
+	 *
 	 * @param filename
 	 *            file name
 	 * @return properties

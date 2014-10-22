@@ -13,11 +13,11 @@ public class GrizzlyHttpUtil
 	private static HttpServer	server /* = startThisServer() */;
 
 	/** Creates a new http server */
-	public static/* HttpServer */void startThisServer()
+	public static HttpServer startThisServer()
 	{
 		ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
 		// return GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
-		server = GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
+		return server = GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
 		// URI uri = UriBuilder.fromUri("http://myhost.com").port(10010).build();
 		// server = GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
 		// server = new HttpServer();
@@ -27,13 +27,13 @@ public class GrizzlyHttpUtil
 		// server.addListener(networkListener);
 	}
 
-	/** Creates a new Http running on specified port. */
-	public static HttpServer startServer(int port)
-	{
-		URI uri = UriBuilder.fromUri("http://localhost/").port(port).build();
-		ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
-		return GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
-	}
+//	/** Creates a new Http running on specified port. */
+//	public static HttpServer startServer(int port)
+//	{
+//		URI uri = UriBuilder.fromUri("http://localhost/").port(port).build();
+//		ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
+//		return GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
+//	}
 
 	public static void shutdownGrizzly()
 	{

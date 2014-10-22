@@ -12,19 +12,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.ws.rs.Path;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /** Represents the state of a dataset job, which can be conversion, download or upload. */
+@Path("jobs")
 public class Job
 {
-	static final String PREFIX = "http://localhost:10010/";
+	static final String ROOT_PREFIX = "http://localhost:10010/";
+	final public String url;
+	final String prefix;
 
 	final String datasetName;
 
 	public static enum State {CREATED,RUNNING,PAUSED,FINISHED,FAILED,STOPPED}
 	private State state = CREATED;
+
+//	String errorMessage = "";
+//	public void setErrorMessage(String errorMessage) {this.errorMessage=errorMessage;}
 
 	static final Map<State,EnumSet<State>> transitions;
 	static
@@ -94,6 +101,21 @@ public class Job
 		return true;
 	}
 
+	public boolean start()
+	{
+		if(setState(RUNNING))
+		{
+			startDownload();
+			return true;
+		}
+		return false;
+	}
+
+	private void startDownload()
+	{
+
+	}
+
 	//	public boolean pause()
 	//	{
 	//
@@ -113,6 +135,8 @@ public class Job
 	{
 		this.datasetName = datasetName;
 		this.phase=DOWNLOAD;
+		this.url=ROOT_PREFIX+datasetName;
+		this.prefix=url+'/';
 		history.put(Instant.now().toEpochMilli(), CREATED);
 	}
 
@@ -123,11 +147,12 @@ public class Job
 		rootNode.put("state", state.toString());
 		rootNode.put("phase", phase.toString());
 		rootNode.put("age",Duration.ofMillis(Instant.now().toEpochMilli()-history.firstKey()).toString());
+		rootNode.put("url", url);
 		rootNode.put("seealso", "https://openspending.org/"+datasetName+".json");
 
 		ArrayNode operationsNode = mapper.createArrayNode();
 		rootNode.put("operations", operationsNode);
-		for(String op: operations.get(state)) {operationsNode.add(PREFIX+op);}
+		for(String op: operations.get(state)) {operationsNode.add(prefix+op);}
 
 		ArrayNode historyNode = mapper.createArrayNode();
 		rootNode.put("history", historyNode);

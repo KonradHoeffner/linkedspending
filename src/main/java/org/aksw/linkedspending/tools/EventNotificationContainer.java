@@ -40,7 +40,7 @@ public class EventNotificationContainer
 
 	/**
 	 * Looks up whether a certain event occured or not.
-	 * 
+	 *
 	 * @param type
 	 *            Type of event to be looked up
 	 * @param source
@@ -97,7 +97,7 @@ public class EventNotificationContainer
 
 	/**
 	 * Adds a new EventNotification to notifications vector
-	 * 
+	 *
 	 * @param e
 	 *            EventNotification to be added
 	 */

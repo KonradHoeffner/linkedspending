@@ -179,25 +179,38 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 		completeRun = setTo;
 	}
 
-	// todo does the cache file get updated once in a while? if not functionality is needed
+
 	/**
 	 * loads the names of datasets(JSON-files) <br>
 	 * if #datasetNames already exists, return them<br>
 	 * if cache-file exists, load datasets from cache-file<br>
 	 * if cache-file does not exist, load from openspending and write cache-file
-	 *
+
 	 * @return a set containing the names of all JSON-files
 	 * @throws IOException
-	 *             - if one of many files can't be read from or written to
-	 */
-	public static synchronized SortedSet<String> getDatasetNames() throws IOException
+	 * - if one of many files can't be read from or written to
+	 * @see JsonDownloader.getDatasetNamesFresh() */
+	public static synchronized SortedSet<String> getDatasetNamesCached() throws IOException
+	{
+		return getDatasetNames(false);
+	}
+
+	/** get fresh dataset names from openspending and update the cash.
+	 * @see JsonDownloader.getDatasetNamesCached()*/
+	public static synchronized SortedSet<String> getDatasetNamesFresh() throws IOException
+	{
+		return getDatasetNames(true);
+	}
+
+	// todo does the cache file get updated once in a while? if not functionality is needed
+	 /** @param readCache read datasets from cache (may be outdated but faster) */
+	private static synchronized SortedSet<String> getDatasetNames(boolean readCache) throws IOException
 	{
 		if (!datasetNames.isEmpty()) return datasetNames;
 
 		JsonNode datasets;
 
-		// load from cache
-		if (DATASETS_CACHED.exists())
+		if (readCache&&DATASETS_CACHED.exists())
 		{
 			datasets = m.readTree(DATASETS_CACHED);
 		}
@@ -610,7 +623,8 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 					log.warning("Error reading empty datasets file");
 				}
 			}
-			datasetNames = getDatasetNames();
+			// full download takes very long - refreshing the dataset list is not a problem
+			datasetNames = getDatasetNames(false);
 			datasetNames.removeAll(emptyDatasets);
 		}
 		downloadIfNotExisting(datasetNames);

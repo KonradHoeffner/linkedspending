@@ -28,7 +28,7 @@ public class SchedulerTest
 	{
 		// URI uri = UriBuilder.fromUri("http://localhost/").port(10010).build();
 		// start the server
-		server = GrizzlyHttpUtil.startServer(10010);
+		server = GrizzlyHttpUtil.startThisServer();
 
 		// ResourceConfig resCon = new ResourceConfig().packages("org.aksw.linkedspending");
 		// server = GrizzlyHttpServerFactory.createHttpServer(uri, resCon);
