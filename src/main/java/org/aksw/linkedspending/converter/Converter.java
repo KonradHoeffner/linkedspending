@@ -50,6 +50,7 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
@@ -182,8 +183,8 @@ import de.konradhoeffner.commons.TSVReader;
 		Resource dataSet = model.createResource(url.toString());
 		@NonNull
 		Resource dsd = createDataStructureDefinition(new URL(url + "/model"), model);
-		model.add(dataSet, DataModel.DCMI.source, model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
-		model.add(dataSet, DataModel.DCMI.created, model.createTypedLiteral(Calendar.getInstance()));
+		model.add(dataSet, DCTerms.source, model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
+		model.add(dataSet, DCTerms.created, model.createTypedLiteral(Calendar.getInstance()));
 
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided
 		// to define it for each observation
@@ -283,6 +284,7 @@ import de.konradhoeffner.commons.TSVReader;
 		// model.add(dataSet, RDFS.comment, description,language);
 		model.add(dataSet, RDFS.label, label);
 		model.add(dataSet, RDFS.comment, description);
+		model.add(dataSet,DCTerms.identifier,datasetName);
 		// todo: find out the language
 		// model.createStatement(arg0, arg1, arg2)
 		// System.out.println("Converting dataset "+url);
@@ -540,7 +542,7 @@ import de.konradhoeffner.commons.TSVReader;
 			model.add(observation, RDFS.label, datasetName + " observation " + suffix);
 			model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
 			model.add(observation, RDF.type, DataModel.DataCube.getObservation());
-			model.add(observation, DataModel.DCMI.source, osObservation);
+			model.add(observation, DCTerms.source, osObservation);
 			// boolean dateExists=false;
 			for (ComponentProperty d : componentProperties)
 			{

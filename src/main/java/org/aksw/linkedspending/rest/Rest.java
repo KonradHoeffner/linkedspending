@@ -1,18 +1,18 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.rest;
 
-import static org.aksw.linkedspending.job.Job.State.RUNNING;
 import java.io.IOException;
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.Map;
-import java.util.SortedSet;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeSet;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.aksw.linkedspending.DatasetInfo;
 import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.job.Job;
-import org.aksw.linkedspending.job.TestJob;
-import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,17 +20,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Path("")
 public class Rest
 {
-	static Map<String,Job> jobs = new HashMap<>();
-	static
-	{
-		jobs.put("orcamento_publico",new TestJob());
-	}
+
 	static final String PREFIX = "http://localhost:10010/";
-//
+	//
 	@GET @Path("listcommands")// @Produces("text/html")
 	public static String listCommands()
 	{
-		String tableHead = "<table border=1>";
+		String tableHead = "<table border=14>";
 
 		tableHead += "<th>command</th>";
 		tableHead += "<th>description</th>";
@@ -58,62 +54,88 @@ public class Rest
 
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
+		//		System.out.println(datasets());
 		GrizzlyHttpUtil.startThisServer();
 		Thread.sleep(100000);
-//		root();
+		//		root();
 	}
 
-//	/** Completly shutdowns downloader, converter (if running) and scheduler */
-//	@GET @Path("shutdown") public static void shutdown()
-//	{
-////		shutdownRequested = true;
-////		if (downloaderThread != null) stopDownloader();
-////		if (converterThread != null) stopConverter();
-//		GrizzlyHttpUtil.shutdownGrizzly();
-//		System.exit(0);
-//		return;
-//	}
+	//	/** Completly shutdowns downloader, converter (if running) and scheduler */
+	//	@GET @Path("shutdown") public static void shutdown()
+	//	{
+	////		shutdownRequested = true;
+	////		if (downloaderThread != null) stopDownloader();
+	////		if (converterThread != null) stopConverter();
+	//		GrizzlyHttpUtil.shutdownGrizzly();
+	//		System.exit(0);
+	//		return;
+	//	}
 
-	@GET @Path("jobs") @Produces("application/json")
-	public static String jobs() throws IOException
+	private static String jobLink(String datasetName)
 	{
-//		jobs.add(new Job(""+new Random().nextInt()));
-		ObjectMapper mapper = new ObjectMapper();
-		ArrayNode rootNode = mapper.createArrayNode();
-
-		for(Job job:jobs.values()) {rootNode.add(job.json());}
-
-		return rootNode.toString();
+		Job job = Job.jobs.get(datasetName);
+		return "<a href=\""+Job.uriOf(datasetName)+"\">"+(job==null?"create":job.getState())+"</a>";
 	}
 
-	private static String jobLink(String dataset)
-	{
-		Job job = jobs.get(dataset);
-		if(job==null) return "<a href=\""+job.url+"\">create</a>";
-		return "<a href=\""+job.url+"\">manage</a>";
-	}
-
-
-	static String status(String dataset)
-	{
-		if(jobs.containsKey(dataset)) return jobs.get(dataset);
-	}
+	//	static String state(String dataset)
+	//	{
+	//		if(jobs.containsKey(dataset)) return jobs.get(dataset).getState().toString();
+	//		return "";
+	//	}
 
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
 	public static String datasets() throws IOException
 	{
-		StringBuffer sb = new StringBuffer("<meta charset=\"UTF-8\"><html><body>");
+		Set<String> updateCandidates = new TreeSet<>();
 
-//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
-		sb.append("<table border=1><tr><th>dataset</th><th>status</th></tr>");
-		SortedSet<String> datasets = JsonDownloader.getDatasetNamesCached();
-		for(String dataset: datasets)
+		StringBuffer sb = new StringBuffer("<meta charset=\"UTF-8\"><html><body>");
+		Map<String,Long> sparqlDatasets = Sparql.datasetsByName();
+
+		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
+		StringBuffer tableSb = new StringBuffer();
+		tableSb.append("<table border=1><tr><th>dataset</th><th>converted</th><th>modified</th><th>job</th></tr>\n");
+		SortedMap<String,DatasetInfo> datasetInfos = JsonDownloader.getDatasetInfosCached();
+		for(String dataset: datasetInfos.keySet())
 		{
-			sb.append("<tr><td>"+dataset+"</td>"+status(dataset)+"<td></td><td>"+jobLink(dataset)+"</td></tr>");
-//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
+			DatasetInfo datasetInfo = datasetInfos.get(dataset);
+			String converted;
+			Long time = sparqlDatasets.get(dataset);
+			String color;
+			if(time==null)
+			{
+				converted = "<td bgcolor=\"black\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
+				color = "white";
+			}
+			else
+			{
+				Instant convertedInstant = Instant.ofEpochMilli(time);
+				if(convertedInstant.isBefore(datasetInfo.modified))
+				{
+					color="orange";
+					updateCandidates.add(dataset);
+				}
+				else
+				{
+					color="lightgreen";
+				}
+				converted = "<td bgcolor=\""+color+"\">"+convertedInstant+"</td>";
+			}
+
+			String modified = "<td bgcolor=\""+color+"\">"+datasetInfo.modified+"</td>";
+
+			//			//			String created = ?Instant.ofEpochMilli(sparqlDatasets.get(dataset)).toString():"";
+			tableSb.append("<tr><td>"+dataset+"</td>"+converted+modified+"</td><td>"+jobLink(dataset)+"</td></tr>\n");
+			//			//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
 		}
 
-		sb.append("</table>");
+		tableSb.append("</table>");
+
+		sb.append("... <a href='...'>new datasets</a> on openspending <a href=''>convert them</a></br>\n");
+		sb.append(updateCandidates.size()+" <a href='...'>modified datasets</a> on openspending <a href=''>update them</a></br>\n");
+		sb.append("... <a href='...'>datasets with conversion errors</a> <a href=''>try them again</a></br>\n");
+
+		sb.append(tableSb);
+
 		sb.append("</body></html>");
 		return sb.toString();
 	}
@@ -121,19 +143,17 @@ public class Rest
 	@GET @Path("") @Produces(MediaType.APPLICATION_JSON)
 	public static String root() throws IOException
 	{
-//		if(true) throw new RuntimeException();
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode rootNode = mapper.createObjectNode();
 		rootNode.put("doc", "https://github.com/AKSW/openspending2rdf/wiki/REST-API");
+		rootNode.put("datasets", PREFIX+"datasets");
 		rootNode.put("jobs", PREFIX+"jobs");
-		boolean busy = false;
-		for(Job job:jobs.values()) {busy^=(job.getState()==RUNNING);}
-		rootNode.put("idle", !busy);
+		rootNode.put("idle", Job.allIdle());
 
 		ArrayNode opNode = mapper.createArrayNode();
 		// should shutdown and remove-all should be under admin
-//		opNode.add(PREFIX+"shutdown");
-//		opNode.add(PREFIX+"remove-all");
+		//		opNode.add(PREFIX+"shutdown");
+		//		opNode.add(PREFIX+"remove-all");
 		opNode.add(PREFIX+"process-all");
 		opNode.add(PREFIX+"process-new");
 

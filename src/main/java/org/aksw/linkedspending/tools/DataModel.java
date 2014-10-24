@@ -122,11 +122,11 @@ public class DataModel
 		@Getter static final public Property	currency	= ResourceFactory.createProperty(base, "currency");
 	}
 
-	/** Dublin Core Metadata Initiative */
-	static final public class DCMI
-	{
-		static final String						base	= "http://dublincore.org/documents/2012/06/14/uri-terms/";
-		@Getter static final public Property	source	= ResourceFactory.createProperty(base, "source");
-		@Getter static final public Property	created	= ResourceFactory.createProperty(base, "created");
-	}
+//	/** Dublin Core Metadata Initiative */
+//	static final public class DCMI
+//	{
+//		static final String						base	= "http://dublincore.org/documents/2012/06/14/uri-terms/";
+//		@Getter static final public Property	source	= ResourceFactory.createProperty(base, "source");
+//		@Getter static final public Property	created	= ResourceFactory.createProperty(base, "created");
+//	}
 }

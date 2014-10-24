@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.DatasetInfo;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.PropertiesLoader;
@@ -14,12 +15,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
 import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
-
-//
 
 /**
  * Downloads entry files from openspending.org. Provides the input for and thus has to be run before
@@ -27,7 +27,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
  * Datasets are processed in paralllel. Each dataset with more than {@value #pageSize} entries is
  * split into parts with that many entries.
  **/
-@NonNullByDefault @Log @SuppressWarnings("serial") public class JsonDownloader extends OpenspendingSoftwareModule implements Runnable
+@NonNullByDefault @Log public class JsonDownloader extends OpenspendingSoftwareModule implements Runnable
 {
 	// public static boolean finished = false;
 
@@ -86,16 +86,16 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	/** file that stores reference to all empty datasets */
 	static final File					emptyDatasetFile	= new File("cache/emptydatasets.ser");
 	/** set for the names of already locally saved JSON-files known to the downloader */
-	static protected SortedSet<String>	datasetNames		= new TreeSet<>();
-	static protected SortedSet<String>	unfinishedDatasets	= new TreeSet<>();
-	static protected LinkedList<String>	finishedDatasets	= new LinkedList<>();
+	static protected TreeMap<String,DatasetInfo>	 datasetInfos = new TreeMap<>();
+	static protected Set<String>	unfinishedDatasets	= new HashSet<>();
+	static protected Set<String>	finishedDatasets	= new HashSet<>();
 
-	public LinkedList<String> getFinishedDatasets()
+	public Set<String> getFinishedDatasets()
 	{
 		return finishedDatasets;
 	}
 
-	public SortedSet<String> getUnfinishedDatasets()
+	public Set<String> getUnfinishedDatasets()
 	{
 		return unfinishedDatasets;
 	}
@@ -128,7 +128,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 *
 	 * @see #emptyDatasetFile
 	 */
-	@SuppressWarnings("null") static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
+	static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
 	/** used to provide one statistical value: "the maximum memory used by jvm while downloading */
 	static MemoryBenchmark								memoryBenchmark	= new MemoryBenchmark();
 
@@ -190,47 +190,57 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 * @throws IOException
 	 * - if one of many files can't be read from or written to
 	 * @see JsonDownloader.getDatasetNamesFresh() */
-	public static synchronized SortedSet<String> getDatasetNamesCached() throws IOException
+	public static synchronized SortedMap<String,DatasetInfo> getDatasetInfosCached()
 	{
-		return getDatasetNames(false);
+		return getDatasetInfos(false);
 	}
 
 	/** get fresh dataset names from openspending and update the cash.
 	 * @see JsonDownloader.getDatasetNamesCached()*/
-	public static synchronized SortedSet<String> getDatasetNamesFresh() throws IOException
+	public static synchronized SortedMap<String,DatasetInfo> getDatasetInfosFresh()
 	{
-		return getDatasetNames(true);
+		return getDatasetInfos(true);
 	}
 
 	// todo does the cache file get updated once in a while? if not functionality is needed
-	 /** @param readCache read datasets from cache (may be outdated but faster) */
-	private static synchronized SortedSet<String> getDatasetNames(boolean readCache) throws IOException
+	/** @param readCache read datasets from cache (may be outdated but faster) */
+	private static synchronized SortedMap<String,DatasetInfo> getDatasetInfos(boolean readCache)
 	{
-		if (!datasetNames.isEmpty()) return datasetNames;
-
-		JsonNode datasets;
-
-		if (readCache&&DATASETS_CACHED.exists())
+		try
 		{
-			datasets = m.readTree(DATASETS_CACHED);
-		}
-		// load from openspending and write cache
-		else
-		{
-			datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
-			m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
-		}
 
-		ArrayNode datasetArray = (ArrayNode) datasets.get("datasets");
-		log.info(datasetArray.size() + " datasets available. " + emptyDatasets.size() + " marked as empty, "
-				+ (datasetArray.size() - emptyDatasets.size()) + " remaining.");
-		for (int i = 0; i < datasetArray.size(); i++)
-		{
-			JsonNode dataSetJson = datasetArray.get(i);
-			datasetNames.add(dataSetJson.get("name").textValue());
-		}
+			JsonNode datasets = null;
 
-		return datasetNames;
+			if(readCache)
+			{
+				if (!datasetInfos.isEmpty()) return datasetInfos;
+				if(DATASETS_CACHED.exists()) {	datasets = m.readTree(DATASETS_CACHED);}
+			} else
+			{
+				datasetInfos.clear();
+			}
+			// either caching didn't work or it is disabled
+			if(datasets==null)
+			{
+				datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
+				m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
+			}
+
+			ArrayNode datasetArray = (ArrayNode) datasets.get("datasets");
+			log.info(datasetArray.size() + " datasets available. " + emptyDatasets.size() + " marked as empty, "
+					+ (datasetArray.size() - emptyDatasets.size()) + " remaining.");
+			for (int i = 0; i < datasetArray.size(); i++)
+			{
+				JsonNode datasetJson = datasetArray.get(i);
+				String name  = datasetJson.get("name").textValue();
+				datasetInfos.put(name,new DatasetInfo(
+						name,
+						Instant.parse(datasetJson.get("timestamps").get("created").asText()+'Z'),
+						Instant.parse(datasetJson.get("timestamps").get("last_modified").asText()+'Z')));
+			}
+			return datasetInfos;
+		}
+		catch(IOException e) {throw new RuntimeException(e);}
 	}
 
 	/**
@@ -262,7 +272,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 * @throws ExecutionException
 	 */
 	static boolean downloadIfNotExisting(Collection<String> datasets) throws IOException, InterruptedException,
-			ExecutionException
+	ExecutionException
 	{
 		int successCount = 0;
 		ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);
@@ -328,7 +338,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 */
 	protected static boolean writeUnfinishedDatasetNames()
 	{
-		SortedSet<String> unfinishedDatasets = datasetNames;
+		Set<String> unfinishedDatasets = datasetInfos.keySet();
 		// unfinishedDatasets = datasetNames;
 		unfinishedDatasets.removeAll(finishedDatasets);
 
@@ -604,6 +614,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 */
 	protected static void downloadAll() throws JsonProcessingException, IOException, InterruptedException, ExecutionException
 	{
+		Set<String> datasetNames = new HashSet<>();
 		downloadStopped = false;
 		if (TEST_MODE != null)
 		{
@@ -624,7 +635,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 				}
 			}
 			// full download takes very long - refreshing the dataset list is not a problem
-			datasetNames = getDatasetNames(false);
+			datasetNames = getDatasetInfosFresh().keySet();
 			datasetNames.removeAll(emptyDatasets);
 		}
 		downloadIfNotExisting(datasetNames);
@@ -636,12 +647,12 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	}
 
 	@Override/**
-				 * The main method for the Downloader. Starts Downloader.
-				 */
+	 * The main method for the Downloader. Starts Downloader.
+	 */
 	public void run() /*
-					 * throws JsonProcessingException, IOException, InterruptedException,
-					 * ExecutionException
-					 */
+	 * throws JsonProcessingException, IOException, InterruptedException,
+	 * ExecutionException
+	 */
 	{
 		// finished = false;
 		// cleaning up from previously stopped runs

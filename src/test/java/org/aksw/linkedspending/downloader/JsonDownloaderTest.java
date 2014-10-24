@@ -1,13 +1,13 @@
 package org.aksw.linkedspending.downloader;
 
-import org.aksw.linkedspending.downloader.JsonDownloader;
-import org.junit.Before;
-import org.junit.Test;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import org.aksw.linkedspending.DatasetInfo;
+import org.junit.Before;
+import org.junit.Test;
 
 public class JsonDownloaderTest
 {
@@ -34,8 +34,8 @@ public class JsonDownloaderTest
 
 	@Test public void testGetDatasetNames() throws IOException
 	{
-		Collection<String> names = JsonDownloader.getDatasetNamesCached();
-		assertTrue(names.size() > 300);
-		assertTrue(names.contains(DATASET));
+		Map<String,DatasetInfo> infos = JsonDownloader.getDatasetInfosCached();
+		assertTrue(infos.size() > 300);
+		assertTrue(infos.containsKey(DATASET));
 	}
 }

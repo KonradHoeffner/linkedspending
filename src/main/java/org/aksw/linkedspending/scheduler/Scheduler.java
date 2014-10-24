@@ -8,8 +8,8 @@ import javax.ws.rs.core.UriBuilder;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.converter.Converter;
 import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.aksw.linkedspending.rest.GrizzlyHttpUtil;
 import org.aksw.linkedspending.tools.ConverterSleeper;
-import org.aksw.linkedspending.tools.GrizzlyHttpUtil;
 
 /**
  * Pre-version of planned scheduler, which can (directly) control the JsonDownloader
