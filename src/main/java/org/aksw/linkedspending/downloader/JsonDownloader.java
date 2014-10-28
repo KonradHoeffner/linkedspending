@@ -8,6 +8,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DatasetInfo;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
+import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNull;
@@ -208,7 +209,6 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	{
 		try
 		{
-
 			JsonNode datasets = null;
 
 			if(readCache)
@@ -282,7 +282,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 		for (String dataset : datasets)
 		{
 			{
-				futures.add(service.submit(new DownloadCallable(dataset, i++)));
+				futures.add(service.submit(new DownloadCallableOld(dataset, i++)));
 			}
 		}
 		ThreadMonitor monitor = new ThreadMonitor(service);
@@ -554,6 +554,11 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 		mergeJsonParts(getDataFiles(rootPartsFolder));
 	}
 
+	public static void downloadSpecificOld(String datasetName, Job job)
+	{
+
+	}
+
 	/**
 	 * Downloads a single specific dataset-file from openspending.
 	 * Writes the emptyDatasetFile.
@@ -564,7 +569,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public static void downloadSpecific(String datasetName) throws IOException, InterruptedException, ExecutionException
+	public static void downloadSpecificOld(String datasetName) throws IOException, InterruptedException, ExecutionException
 	{
 		// datasetNames = new TreeSet<>(Collections.singleton(datasetName));
 		// downloadIfNotExisting(datasetNames);
@@ -579,7 +584,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 
 		eventContainer.add(new EventNotification(STARTED_SINGLE_DOWNLOAD,
 				DOWNLOADER, datasetName));
-		future = service.submit(new DownloadCallable(datasetName, 0));
+		future = service.submit(new DownloadCallableOld(datasetName, 0));
 
 		ThreadMonitor monitor = new ThreadMonitor(service);
 		monitor.start();
@@ -681,7 +686,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 			{
 				eventContainer.add(new EventNotification(STARTED_SINGLE_DOWNLOAD,
 						DOWNLOADER));
-				downloadSpecific(toBeDownloaded);
+				downloadSpecificOld(toBeDownloaded);
 				eventContainer.add(new EventNotification(FINISHED_SINGLE_DOWNLOAD,
 						DOWNLOADER, true));
 			}

@@ -11,11 +11,8 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.exception.MissingDataException;
-import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.scheduler.Scheduler;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.eclipse.jdt.annotation.Nullable;
@@ -28,25 +25,43 @@ import org.eclipse.jdt.annotation.Nullable;
  * gets split into parts in the folder json/parts/pagesize/datasetname with filenames datasetname.0,
  * datasetname.1, ... , datasetname.final
  **/
-@Log class DownloadCallable implements Callable<Boolean>
+@Log class DownloadCallableOld implements Callable<Boolean>
 {
-	final Job job;
+
+	/** name of the dataset to be downloaded */
 	final String	datasetName;
-	static AtomicInteger counter = new AtomicInteger();
-	final int nr;
+	// final URL entries;
+	/** id for the Instance */
+	final int		nr;
+
+	// int pageSize;
 
 	/**
+	 * normal constructor
+	 *
 	 * @param datasetName
 	 *            the name of the dataset to be downloaded
+	 * @param nr
+	 *            the id for this instance
+	 * @throws java.net.MalformedURLException
 	 */
-	DownloadCallable(String datasetName, Job job)
+	DownloadCallableOld(String datasetName, int nr) throws MalformedURLException
 	{
-		this.nr=counter.getAndIncrement();
 		this.datasetName = datasetName;
-		this.job = job;
+		this.nr = nr;
+		// this.pageSize=pageSize;
+		// entries = new
+		// URL("http://openspending.org/"+datasetName+"/entries.json?pagesize="+PAGE_SIZE);
 	}
 
-	@Override public @Nullable Boolean call() throws IOException, InterruptedException, MissingDataException
+	/**
+	 * implements the real logic for downloading a file from openspending
+	 *
+	 * @return true if dataset was completely downloaded, false otherwise
+	 * @throws java.io.IOException
+	 * @throws InterruptedException
+	 */
+	@Override public @Nullable Boolean call() throws IOException, InterruptedException
 	{
 //		Path path = Paths.get(OpenspendingSoftwareModule.pathJson.getPath(), datasetName);
 //		File file = path.toFile();
@@ -70,8 +85,7 @@ import org.eclipse.jdt.annotation.Nullable;
 				}
 			}
 			// save as empty file to make it faster? but then it slows down normal use
-			throw new MissingDataException(datasetName, "openspending result empty");
-//			return false;
+			return false;
 		}
 		log.info(nr + " Starting download of " + datasetName + ", " + nrEntries + " entries.");
 		int nrOfPages = (int) (Math.ceil((double) nrEntries / JsonDownloader.pageSize));

@@ -1,13 +1,7 @@
 package org.aksw.linkedspending.converter;
 
 import static org.aksw.linkedspending.tools.EventNotification.EventSource.CONVERTER;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.FINISHED_CONVERTING_COMPLETE;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.PAUSED_CONVERTER;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.RESUMED_CONVERTER;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.RUN_TIME_ERROR;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.STARTED_CONVERTING_COMPLETE;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.STOPPED_CONVERTER;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.TOO_MANY_ERRORS;
+import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,9 +31,13 @@ import net.sf.ehcache.CacheManager;
 //import org.aksw.linkedspending.NewsFeedWriter;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.aksw.linkedspending.exception.DatasetHasNoCurrencyException;
+import org.aksw.linkedspending.exception.MissingDataException;
+import org.aksw.linkedspending.exception.NoCurrencyFoundForCodeException;
+import org.aksw.linkedspending.exception.TooManyMissingValuesException;
+import org.aksw.linkedspending.exception.UnknownMappingTypeException;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.EventNotification;
-import org.aksw.linkedspending.tools.Exceptions;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -164,14 +162,14 @@ import de.konradhoeffner.commons.TSVReader;
 	 * @param model
 	 *            initialized model that the triples will be added to
 	 * @throws java.io.IOException
-	 * @throws org.aksw.linkedspending.tools.Exceptions.NoCurrencyFoundForCodeException
-	 * @throws org.aksw.linkedspending.tools.Exceptions.DatasetHasNoCurrencyException
-	 * @throws org.aksw.linkedspending.tools.Exceptions.UnknownMappingTypeException
-	 * @throws org.aksw.linkedspending.tools.Exceptions.TooManyMissingValuesException
+	 * @throws org.aksw.linkedspending.tools.NoCurrencyFoundForCodeException
+	 * @throws org.aksw.linkedspending.tools.DatasetHasNoCurrencyException
+	 * @throws org.aksw.linkedspending.tools.UnknownMappingTypeException
+	 * @throws org.aksw.linkedspending.tools.TooManyMissingValuesException
 	 */
 	static public void createDataset(String datasetName, Model model, OutputStream out) throws IOException,
-			Exceptions.NoCurrencyFoundForCodeException, Exceptions.DatasetHasNoCurrencyException,
-			Exceptions.MissingDataException, Exceptions.UnknownMappingTypeException, Exceptions.TooManyMissingValuesException
+			NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException,
+			MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException
 	{
 		@NonNull
 		URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName); // linkedspending
@@ -194,7 +192,7 @@ import de.konradhoeffner.commons.TSVReader;
 		{
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
-			if (currency == null) { throw new Exceptions.NoCurrencyFoundForCodeException(datasetName, currencyCode); }
+			if (currency == null) { throw new NoCurrencyFoundForCodeException(datasetName, currencyCode); }
 			model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getCurrencyComponentSpecification());
 
 			// model.add(currencyComponent, DataCube.attribute, SdmxAttribute.currency);
@@ -207,7 +205,7 @@ import de.konradhoeffner.commons.TSVReader;
 		else
 		{
 			log.warning("no currency for dataset " + datasetName + ", skipping");
-			throw new Exceptions.DatasetHasNoCurrencyException(datasetName);
+			throw new DatasetHasNoCurrencyException(datasetName);
 		}
 		final Integer defaultYear;
 		{
@@ -223,7 +221,7 @@ import de.konradhoeffner.commons.TSVReader;
 					readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/model")).get("mapping"), model,
 					datasetName, dataSet, dsd, defaultYear != null);
 		}
-		catch (Exceptions.MissingDataException | Exceptions.UnknownMappingTypeException e)
+		catch (MissingDataException | UnknownMappingTypeException e)
 		{
 			log.severe("Error creating components for dataset " + datasetName);
 			throw e;
@@ -353,11 +351,11 @@ import de.konradhoeffner.commons.TSVReader;
 	/**
 	 * Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
 	 *
-	 * @throws org.aksw.linkedspending.tools.Exceptions.UnknownMappingTypeException
+	 * @throws org.aksw.linkedspending.tools.UnknownMappingTypeException
 	 */
 	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model, String datasetName, Resource dataset,
-			Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, Exceptions.MissingDataException,
-			Exceptions.UnknownMappingTypeException
+			Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException,
+			UnknownMappingTypeException
 	{
 		int attributeCount = 1; // currency is always there and dataset is not created if it is not
 								// found
@@ -478,7 +476,7 @@ import de.konradhoeffner.commons.TSVReader;
 					break;
 				}
 				default:
-					throw new Exceptions.UnknownMappingTypeException("unkown type: " + type + "of mapping element "
+					throw new UnknownMappingTypeException("unkown type: " + type + "of mapping element "
 							+ componentJson);
 			}
 			// backlink
@@ -490,7 +488,7 @@ import de.konradhoeffner.commons.TSVReader;
 		// }
 		// if(!dateExists) {throw new
 		// MissingDataException("No date for dataset "+dataset.getLocalName());}
-		if (attributeCount == 0 || measureCount == 0 || dimensionCount == 0) { throw new Exceptions.MissingDataException("no "
+		if (attributeCount == 0 || measureCount == 0 || dimensionCount == 0) { throw new MissingDataException(datasetName,"no "
 				+ (attributeCount == 0 ? "attributes" : (measureCount == 0 ? "measures" : "dimensions")) + " for dataset "
 				+ dataset.getLocalName()); }
 		return componentProperties;
@@ -522,7 +520,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 	static void createObservations(String datasetName, Model model, OutputStream out, Resource dataSet,
 			Set<ComponentProperty> componentProperties, @Nullable Resource currency, Set<Resource> countries,
-			@Nullable Literal yearLiteral) throws IOException, Exceptions.TooManyMissingValuesException
+			@Nullable Literal yearLiteral) throws IOException, TooManyMissingValuesException
 	{
 		ResultsReader in = new ResultsReader(datasetName);
 		JsonNode result;
@@ -569,7 +567,7 @@ import de.konradhoeffner.commons.TSVReader;
 					if (missingValues >= minMissing && ((double) missingValues / expectedValues >= missingStopRatio))
 					{
 						faultyDatasets.add(datasetName);
-						throw new Exceptions.TooManyMissingValuesException(datasetName, missingValues);
+						throw new TooManyMissingValuesException(datasetName, missingValues);
 					}
 					continue;
 				}

@@ -22,7 +22,7 @@ public class JsonDownloaderTest
 	{
 		try
 		{
-			JsonDownloader.downloadSpecific(DATASET);
+			JsonDownloader.downloadSpecificOld(DATASET);
 		}
 		catch (Exception e)
 		{
