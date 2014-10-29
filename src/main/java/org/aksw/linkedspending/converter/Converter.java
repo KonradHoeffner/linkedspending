@@ -11,31 +11,19 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.sf.ehcache.CacheManager;
-//import org.aksw.linkedspending.NewsFeedWriter;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.downloader.JsonDownloader;
 import org.aksw.linkedspending.exception.DatasetHasNoCurrencyException;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.exception.NoCurrencyFoundForCodeException;
 import org.aksw.linkedspending.exception.TooManyMissingValuesException;
 import org.aksw.linkedspending.exception.UnknownMappingTypeException;
+import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.PropertiesLoader;
@@ -782,7 +770,7 @@ import de.konradhoeffner.commons.TSVReader;
 	{
 		log.info("delete " + datasetName);
 		getDatasetFile(datasetName).delete();
-		JsonDownloader.getFile(datasetName).delete();
+		JsonDownloaderOld.getFile(datasetName).delete();
 	}
 
 	@Override public void run()

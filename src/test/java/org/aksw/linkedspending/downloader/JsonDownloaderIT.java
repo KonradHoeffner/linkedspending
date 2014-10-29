@@ -17,7 +17,7 @@ public class JsonDownloaderIT
 	private File					downloadDir	= new File(PROPERTIES.getProperty("pathJson"));
 	private File					partsDir	= new File(PROPERTIES.getProperty("pathParts"));
 
-	@Test public void downloaderTest() throws InterruptedException
+	/*@Test*/ public void downloaderTest() throws InterruptedException
 	{
 		number = fileNumber(downloadDir, false);
 		numberParts = fileNumber(partsDir, true);

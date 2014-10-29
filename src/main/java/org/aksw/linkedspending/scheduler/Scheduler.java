@@ -7,7 +7,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.UriBuilder;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.converter.Converter;
-import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.rest.GrizzlyHttpUtil;
 import org.aksw.linkedspending.tools.ConverterSleeper;
 
@@ -22,7 +22,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 	private static Thread				scheduleTimeThread;
 	private static Thread				downloaderThread;
 	private static Thread				converterThread;
-	private static JsonDownloader		downloader	= new JsonDownloader();
+	private static JsonDownloaderOld		downloader	= new JsonDownloaderOld();
 	private static Converter			converter	= new Converter();
 	private static ScheduleTimeHandler	scheduleTimeHandler;
 
@@ -41,7 +41,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 		return converterThread;
 	}
 
-	public static JsonDownloader getDownloader()
+	public static JsonDownloaderOld getDownloader()
 	{
 		return downloader;
 	}
@@ -121,8 +121,8 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 		if (manualMode)
 		{
 			OpenspendingSoftwareModule.setStopRequested(false);
-			JsonDownloader.setPauseRequested(false);
-			JsonDownloader.setCompleteRun(true);
+			JsonDownloaderOld.setPauseRequested(false);
+			JsonDownloaderOld.setCompleteRun(true);
 			downloaderThread = new Thread(downloader);
 			downloaderThread.start();
 			return "Started complete download";
@@ -146,7 +146,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 	{
 		if (manualMode)
 		{
-			JsonDownloader.setPauseRequested(true);
+			JsonDownloaderOld.setPauseRequested(true);
 			return "Paused Downloader";
 		}
 		else return "Error: Program not in manual mode!";
@@ -157,7 +157,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 	{
 		if (manualMode)
 		{
-			JsonDownloader.setPauseRequested(false);
+			JsonDownloaderOld.setPauseRequested(false);
 			return "Resumed Downloader";
 		}
 		else return "Error: Program not in manual mode!";
@@ -168,8 +168,8 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 	{
 		if (manualMode)
 		{
-			JsonDownloader.setCompleteRun(false);
-			JsonDownloader.setToBeDownloaded(datasetName);
+			JsonDownloaderOld.setCompleteRun(false);
+			JsonDownloaderOld.setToBeDownloaded(datasetName);
 			downloaderThread = new Thread(downloader);
 			downloaderThread.start();
 			return "Started downloading dataset " + datasetName;

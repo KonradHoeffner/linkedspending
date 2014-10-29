@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.old;
 
 import lombok.extern.java.Log;
 import java.util.concurrent.ThreadPoolExecutor;

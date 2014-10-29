@@ -1,21 +1,21 @@
 package org.aksw.linkedspending.job;
 
-import static org.aksw.linkedspending.job.Job.Operation.*;
-import static org.aksw.linkedspending.job.Job.State.*;
-import static org.aksw.linkedspending.job.Job.Phase.*;
+import static org.aksw.linkedspending.job.Operation.*;
+import static org.aksw.linkedspending.job.Phase.*;
+import static org.aksw.linkedspending.job.State.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import org.aksw.linkedspending.downloader.DownloadCallable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
@@ -23,8 +23,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.aksw.linkedspending.DatasetInfo;
+import org.aksw.linkedspending.DatasetInfos;
 import lombok.extern.java.Log;
-import org.aksw.linkedspending.downloader.JsonDownloader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -97,7 +98,7 @@ public class Job
 
 	private Job(String datasetName)
 	{
-//		future.ex
+		//		future.ex
 		this.datasetName = datasetName;
 		this.phase=DOWNLOAD;
 		this.url=uriOf(datasetName);
@@ -112,7 +113,7 @@ public class Job
 
 	synchronized public static Job forDataset(String datasetName) throws DataSetDoesNotExistException
 	{
-		if(!JsonDownloader.getDatasetInfosCached().keySet().contains(datasetName)) throw new DataSetDoesNotExistException(datasetName);
+		if(!DatasetInfos.getDatasetInfosCached().keySet().contains(datasetName)) throw new DataSetDoesNotExistException(datasetName);
 		synchronized(jobs)
 		{
 			Job job = jobs.get(datasetName);
@@ -128,10 +129,6 @@ public class Job
 
 	final String datasetName;
 
-
-	public static enum Operation {START,STOP,PAUSE,RESUME}
-
-	public static enum State {CREATED,RUNNING,PAUSED,FINISHED,FAILED,STOPPED}
 	private State state = CREATED;
 
 	//	String errorMessage = "";
@@ -145,9 +142,9 @@ public class Job
 		t.put(CREATED,EnumSet.of(RUNNING,STOPPED));
 		t.put(RUNNING,EnumSet.of(PAUSED,FINISHED,FAILED,STOPPED));
 		t.put(PAUSED,EnumSet.of(RUNNING,STOPPED));
-		t.put(FINISHED, EnumSet.noneOf(Job.State.class));
-		t.put(FAILED, EnumSet.noneOf(Job.State.class));
-		t.put(STOPPED, EnumSet.noneOf(Job.State.class));
+		t.put(FINISHED, EnumSet.noneOf(State.class));
+		t.put(FAILED, EnumSet.noneOf(State.class));
+		t.put(STOPPED, EnumSet.noneOf(State.class));
 		transitions = Collections.unmodifiableMap(t);
 	}
 
@@ -176,7 +173,6 @@ public class Job
 
 	public EnumSet getOperations() {return operations.get(state);}
 
-	public enum Phase {DOWNLOAD,CONVERT,UPLOAD}
 	private Phase phase;
 
 	public Phase getPhase() {return phase;}
@@ -216,7 +212,9 @@ public class Job
 		{
 			try
 			{
-//				future = CompletableFuture.runAsync(this:downloadConvertUpload);
+				DownloadCallable downloader = new DownloadCallable(datasetName,this);
+				CompletableFuture.supplyAsync(downloader::call);
+				//				future.
 			}
 			catch (Exception e)
 			{
@@ -229,23 +227,15 @@ public class Job
 		return false;
 	}
 
-	private void downloadConvertUpload() throws IOException, InterruptedException, ExecutionException
-	{
-		JsonDownloader.downloadSpecificOld(datasetName);
-		phase=CONVERT;
-	}
-
-
-
 	//	public boolean pause()
 	//	{
 	//
 	//	}
 	//
-//		public boolean stop()
-//		{
-//
-//		}
+	//		public boolean stop()
+	//		{
+	//
+	//		}
 	//
 	//	public boolean resume()
 	//	{

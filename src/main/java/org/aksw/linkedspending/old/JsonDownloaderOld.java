@@ -1,26 +1,33 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.old;
 
-import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import de.konradhoeffner.commons.MemoryBenchmark;
-import lombok.extern.java.Log;
-import org.aksw.linkedspending.DatasetInfo;
-import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.job.Job;
-import org.aksw.linkedspending.tools.EventNotification;
-import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.NonNullByDefault;
+import static org.aksw.linkedspending.tools.EventNotification.EventSource.DOWNLOADER;
+import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.*;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
-import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.java.Log;
+import org.aksw.linkedspending.DatasetInfo;
+import org.aksw.linkedspending.OpenspendingSoftwareModule;
+import org.aksw.linkedspending.exception.MissingDataException;
+import org.aksw.linkedspending.job.Job;
+import org.aksw.linkedspending.tools.EventNotification;
+import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import de.konradhoeffner.commons.MemoryBenchmark;
 
 /**
  * Downloads entry files from openspending.org. Provides the input for and thus has to be run before
@@ -28,7 +35,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
  * Datasets are processed in paralllel. Each dataset with more than {@value #pageSize} entries is
  * split into parts with that many entries.
  **/
-@NonNullByDefault @Log public class JsonDownloader extends OpenspendingSoftwareModule implements Runnable
+@NonNullByDefault @Log public class JsonDownloaderOld extends OpenspendingSoftwareModule implements Runnable
 {
 	// public static boolean finished = false;
 
@@ -129,10 +136,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 *
 	 * @see #emptyDatasetFile
 	 */
-	static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
-	/** used to provide one statistical value: "the maximum memory used by jvm while downloading */
-	static MemoryBenchmark								memoryBenchmark	= new MemoryBenchmark();
-
+	public static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
 	// todo accessing cache causes NullPointerException (in readJSONString())
 
 	private static boolean								downloadStopped	= false;
@@ -423,140 +427,139 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 	 *
 	 * @param foldername
 	 *            the Place where the parted Files are found
-	 * @return returns a Hashmap with all Files found in the given Folder.
+	 * @return returns a map from datasets to their parts folders
 	 */
-	protected static Map<String, File> getDataFiles(File foldername)
+	protected static Map<String, File> getPartFolders()
 	{
 		Map<String, File> datasetToFolder = new HashMap<>();
-		if (!foldername.exists())
+
+		for (File folder : rootPartsFolder.listFiles())
 		{
-			foldername.mkdirs();
-		}
-		for (File folder : foldername.listFiles())
-		{
-			if (folder.isDirectory())
-			{
-				datasetToFolder.put(folder.getName(), folder);
-			}
+			if (folder.isDirectory()) {datasetToFolder.put(folder.getName(), folder);}
 		}
 		return datasetToFolder;
 	}
 
-	/**
-	 * merges all files collected in partData and writes the targetfile to the other already
-	 * complete ones
-	 *
-	 * @param partData
-	 *            A Hashmap with all Datasets that need to be merged
-	 */
-
-	protected static void mergeJsonParts(Map<String, File> partData)
+	protected static File[] getPartFiles(String datasetName)
 	{
-		// for each pathJson containing parts
-		for (String dataset : partData.keySet())
+		File folder = new File(rootPartsFolder, datasetName);
+		if(!folder.exists()) return new File[0];
+		return folder.listFiles();
+	}
+
+
+	/**
+	 * merges all files for the given dataset and writes the targetfile to the other already
+	 * complete ones
+	 * @throws MissingDataException
+	 *
+	 */
+	protected static void mergeJsonParts(String datasetName) throws MissingDataException
+	{
+//		List<File> partFileNames = getDataFiles(rootPartsFolder).;
+		File[] parts = getPartFiles(datasetName);
+		if(parts.length==0) {throw new MissingDataException(datasetName, "no parts available");}
+//		getDataFiles(rootPartsFolder)
+		File targetFile = new File(pathJson.getPath() + "/" + datasetName);
+		File mergeFile = new File(pathJson.getPath() + "/" + datasetName + ".tmp");
+		if (mergeFile.exists())
 		{
-			File targetFile = new File(pathJson.getPath() + "/" + dataset);
-			File mergeFile = new File(pathJson.getPath() + "/" + dataset + ".tmp");
-			if (mergeFile.exists())
+			mergeFile.delete();
+		}
+
+		try (PrintWriter out = new PrintWriter(mergeFile))
+		{
+			int partNr = 0;
+//			File[] parts = partData.get(datasetName).listFiles();
+			// for each file in the parts pathJson
+			for (File f : parts)
+			{
+				if (f.length() == 0)
+				{
+					log.severe(f + " is existing but empty.");
+				}
+				Position pos = Position.TOP;
+				try (BufferedReader in = new BufferedReader(new FileReader(f)))
+				{
+					String line;
+					// each line in a parts-file
+					while ((line = in.readLine()) != null)
+					{
+						switch (pos)
+						{
+							case TOP:
+								if (partNr == 0) out.println(line);
+								if (line.contains("\"results\": [")) pos = Position.MID;
+								break;
+							case MID:
+								out.println(line);
+								if (line.equals("    }")) pos = Position.BOTTOM;
+								break;
+							case BOTTOM:
+								if (partNr == parts.length - 1) out.println(line);
+								break;
+						}
+					}
+					in.close();
+				}
+				catch (IOException e)
+				{
+					log.severe("could not write read parts file for " + datasetName + ": " + e.getMessage());
+				}
+				if (partNr != parts.length - 1) out.print(",");
+				partNr++;
+			}
+			out.close();
+		}
+		catch (IOException e)
+		{
+			log.severe("could not create merge file for " + datasetName + ": " + e.getMessage());
+		}
+
+		if (targetFile.exists())
+		{
+			boolean equals;
+			try
+			{
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode target = mapper.readTree(new FileInputStream(targetFile));
+				JsonNode merge = mapper.readTree(new FileInputStream(mergeFile));
+				equals = target.equals(merge);
+			}
+			catch (Exception e)
+			{
+				log.severe("could not compare files for " + datasetName + ": " + e.getMessage());
+				equals = false;
+			}
+			if (equals)
 			{
 				mergeFile.delete();
 			}
-
-			try (PrintWriter out = new PrintWriter(mergeFile))
-			{
-				int partNr = 0;
-				File[] parts = partData.get(dataset).listFiles();
-				// for each file in the parts pathJson
-				for (File f : parts)
-				{
-					if (f.length() == 0)
-					{
-						log.severe(f + " is existing but empty.");
-					}
-					Position pos = Position.TOP;
-					try (BufferedReader in = new BufferedReader(new FileReader(f)))
-					{
-						String line;
-						// each line in a parts-file
-						while ((line = in.readLine()) != null)
-						{
-							switch (pos)
-							{
-								case TOP:
-									if (partNr == 0) out.println(line);
-									if (line.contains("\"results\": [")) pos = Position.MID;
-									break;
-								case MID:
-									out.println(line);
-									if (line.equals("    }")) pos = Position.BOTTOM;
-									break;
-								case BOTTOM:
-									if (partNr == parts.length - 1) out.println(line);
-									break;
-							}
-						}
-						in.close();
-					}
-					catch (IOException e)
-					{
-						log.severe("could not write read parts file for " + dataset + ": " + e.getMessage());
-					}
-					if (partNr != parts.length - 1) out.print(",");
-					partNr++;
-				}
-				out.close();
-			}
-			catch (IOException e)
-			{
-				log.severe("could not create merge file for " + dataset + ": " + e.getMessage());
-			}
-
-			if (targetFile.exists())
-			{
-				boolean equals;
-				try
-				{
-					ObjectMapper mapper = new ObjectMapper();
-					JsonNode target = mapper.readTree(new FileInputStream(targetFile));
-					JsonNode merge = mapper.readTree(new FileInputStream(mergeFile));
-					equals = target.equals(merge);
-				}
-				catch (Exception e)
-				{
-					log.severe("could not compare files for " + dataset + ": " + e.getMessage());
-					equals = false;
-				}
-				if (equals)
-				{
-					mergeFile.delete();
-				}
-				else
-				{
-					targetFile.delete();
-					mergeFile.renameTo(targetFile);
-
-				}
-			}
 			else
 			{
+				targetFile.delete();
 				mergeFile.renameTo(targetFile);
+
 			}
+		}
+		else
+		{
+			mergeFile.renameTo(targetFile);
 		}
 	}
 
 	/**
-	 * merges part-files
+	 * merges all part-files
+	 * @throws MissingDataException
 	 *
 	 * @see #mergeJsonParts(java.util.Map)
 	 */
-	protected synchronized static void puzzleTogether()
+	protected synchronized static void puzzleTogetherAll() throws MissingDataException
 	{
-		mergeJsonParts(getDataFiles(rootPartsFolder));
-	}
-
-	public static void downloadSpecificOld(String datasetName, Job job)
-	{
-
+		for (String dataset : getPartFolders().keySet())
+		{
+			mergeJsonParts(dataset);
+		}
 	}
 
 	/**
@@ -690,7 +693,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 				eventContainer.add(new EventNotification(FINISHED_SINGLE_DOWNLOAD,
 						DOWNLOADER, true));
 			}
-			if (!stopRequested) puzzleTogether();
+			if (!stopRequested) puzzleTogetherAll();
 		}
 		catch (Exception e)
 		{
@@ -705,7 +708,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 		eventContainer.printEventsToFile();
 
 		log.info("Processing time: " + (System.currentTimeMillis() - startTime) / 1000 + " seconds. Maximum memory usage of "
-				+ memoryBenchmark.updateAndGetMaxMemoryBytes() / 1000000 + " MB.");
+				+ MemoryBenchmark.updateAndGetMaxMemoryBytes() / 1000000 + " MB.");
 		// System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
 	}
 
@@ -723,7 +726,7 @@ import static org.aksw.linkedspending.tools.EventNotification.EventSource.*;
 		// Scheduler.stopDownloader();
 		// log.info("Processing time: "+(System.currentTimeMillis()-startTime)/1000+" seconds. Maximum memory usage of "+memoryBenchmark.updateAndGetMaxMemoryBytes()/1000000+" MB.");
 		// System.exit(0); // circumvent non-close bug of ObjectMapper.readTree
-		JsonDownloader jdl = new JsonDownloader();
+		JsonDownloaderOld jdl = new JsonDownloaderOld();
 		jdl.run();
 	}
 

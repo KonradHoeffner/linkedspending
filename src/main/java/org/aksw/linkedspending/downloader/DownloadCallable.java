@@ -1,24 +1,37 @@
 package org.aksw.linkedspending.downloader;
 
 import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.job.Job;
+import org.aksw.linkedspending.job.State;
+import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.scheduler.Scheduler;
-import org.aksw.linkedspending.tools.EventNotification;
 import org.eclipse.jdt.annotation.Nullable;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.konradhoeffner.commons.MemoryBenchmark;
 
 /**
  * Implements the logic for downloading a JSON-file within a thread. Is similar to the use of the
@@ -28,132 +41,274 @@ import org.eclipse.jdt.annotation.Nullable;
  * gets split into parts in the folder json/parts/pagesize/datasetname with filenames datasetname.0,
  * datasetname.1, ... , datasetname.final
  **/
-@Log class DownloadCallable implements Callable<Boolean>
+@Log public class DownloadCallable implements Callable<Boolean>
 {
 	final Job job;
-	final String	datasetName;
+	final String datasetName;
 	static AtomicInteger counter = new AtomicInteger();
 	final int nr;
+
+	static final int PAGE_SIZE	= 100;
+	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
+
+	public static final File jsonFolder = new File("json");
+
+	final File partsFolder;
+
+	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
+
+	private volatile boolean pauseRequested = false;
+	private volatile boolean stopRequested = false;
+
+	enum Position {TOP, MID, BOTTOM}
+
+	private static void markAsEmpty(String datasetName) throws FileNotFoundException, IOException
+	{
+		synchronized (emptyDatasets)
+		{
+			if(emptyDatasets.add(datasetName))
+			{
+				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
+				{
+					log.fine("serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to empty dataset list file");
+					out.writeObject(JsonDownloaderOld.emptyDatasets);
+				}
+			}
+		}
+	}
 
 	/**
 	 * @param datasetName
 	 *            the name of the dataset to be downloaded
 	 */
-	DownloadCallable(String datasetName, Job job)
+	public DownloadCallable(String datasetName, Job job)
 	{
 		this.nr=counter.getAndIncrement();
 		this.datasetName = datasetName;
 		this.job = job;
+		this.partsFolder = new File(new File(jsonFolder,"parts"),datasetName);
 	}
 
-	@Override public @Nullable Boolean call() throws IOException, InterruptedException, MissingDataException
-	{
-//		Path path = Paths.get(OpenspendingSoftwareModule.pathJson.getPath(), datasetName);
-//		File file = path.toFile();
-		File partsFolder = new File(OpenspendingSoftwareModule.pathJson.toString() + "/parts/" + datasetName);
-//		File finalPart = new File(partsFolder.toString() + "/" + datasetName + ".final");
-		// Path partsPath = Paths.get(partsFolder.getPath(),datasetName);
-		log.fine(nr + " Fetching number of entries for dataset " + datasetName);
+	public void pause()	{pauseRequested=true;}
+	public void stop()	{pauseRequested=true;}
+	public void resume()	{notify();}
 
-		// here is where all the readJSON... stuff is exclusively used
-		int nrEntries = OpenspendingSoftwareModule.nrEntries(datasetName);
-		if (nrEntries == 0)
+	@Override public @Nullable Boolean call()// throws IOException, InterruptedException, MissingDataException
+	{
+		cleanUp();
+
+		try
 		{
-			log.fine(nr + " No entries for dataset " + datasetName + " skipping download.");
-			JsonDownloader.emptyDatasets.add(datasetName);
-			synchronized (JsonDownloader.emptyDatasets)
+			List<File> parts = new LinkedList<>();
+
+			log.fine(nr + " Fetching number of entries for dataset " + datasetName);
+
+			// here is where all the readJSON... stuff is exclusively used
+			int nrEntries = OpenspendingSoftwareModule.nrEntries(datasetName);
+			if (nrEntries == 0)
 			{
-				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(JsonDownloader.emptyDatasetFile)))
+				log.fine(nr + " No entries for dataset " + datasetName + " skipping download.");
+				markAsEmpty(datasetName);
+				// save as empty file to make it faster? but then it slows down normal use
+				throw new MissingDataException(datasetName, "openspending result empty");
+				//			return false;
+			}
+			log.info(nr + " Starting download of " + datasetName + ", " + nrEntries + " entries.");
+			int nrOfPages = (int) (Math.ceil((double) nrEntries / PAGE_SIZE));
+
+			partsFolder.mkdirs();
+			// starts from beginning when final file already exists
+			File finalFile = new File(partsFolder.toString() + "/" + datasetName + ".final");
+			if (finalFile.exists())
+			{
+				for (File part : partsFolder.listFiles())
 				{
-					log.fine(nr + " serializing " + JsonDownloader.emptyDatasets.size() + " entries to file");
-					out.writeObject(JsonDownloader.emptyDatasets);
+					part.delete();
 				}
 			}
-			// save as empty file to make it faster? but then it slows down normal use
-			throw new MissingDataException(datasetName, "openspending result empty");
-//			return false;
-		}
-		log.info(nr + " Starting download of " + datasetName + ", " + nrEntries + " entries.");
-		int nrOfPages = (int) (Math.ceil((double) nrEntries / JsonDownloader.pageSize));
+			for (int page = 1; page <= nrOfPages; page++)
+			{
+				if(pauseRequested)
+				{
+					job.setState(State.PAUSED);
+					synchronized(this) {while(pauseRequested&&!stopRequested) wait();}
+					if(!stopRequested) job.setState(State.RUNNING);
+				}
+				if(stopRequested)
+				{
+					break;
+				}
 
-		partsFolder.mkdirs();
-		// starts from beginning when final file already exists
-		File finalFile = new File(partsFolder.toString() + "/" + datasetName + ".final");
-		if (finalFile.exists())
-		{
-			for (File part : partsFolder.listFiles())
-			{
-				part.delete();
-			}
-		}
-		for (int page = 1; page <= nrOfPages; page++)
-		{
-			while (Scheduler.getDownloader().getPauseRequested()) // added to make downloader
-																	// pausable
-			{
+				File f;
+				if(nrOfPages==1) {f=new File(jsonFolder,datasetName+".json");}
+				else
+				{
+					f = new File(partsFolder.toString() + "/" + datasetName + "." + (page == nrOfPages ? "final" : page));
+				}
+				//			if (f.exists()) {continue;}
+				log.fine(nr + " page " + page + "/" + nrOfPages);
+				URL entries = new URL("https://openspending.org/" + datasetName + "/entries.json?pagesize=" + PAGE_SIZE
+						+ "&page=" + page);
+				// System.out.println(entries);
+
 				try
 				{
-					Thread.sleep(5000);
+					HttpURLConnection connection = getConnection(entries);
 				}
-				catch (InterruptedException e)
-				{}
-			}
+				catch (HttpConnectionUtil.HttpTimeoutException | HttpConnectionUtil.HttpUnavailableException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
-			File f = new File(partsFolder.toString() + "/" + datasetName + "." + (page == nrOfPages ? "final" : page));
-			if (f.exists())
+				ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
+				try (FileOutputStream fos = new FileOutputStream(f))
+				{
+					fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);
+				}
+				// ideally, memory should be measured during the transfer but thats not easily possible
+				// except
+				// by creating another thread which is overkill. Because it is multithreaded anyways I
+				// hope this value isn't too far from the truth.
+				MemoryBenchmark.updateAndGetMaxMemoryBytes();
+				job.downloadProgressPercent.set(90*page/nrOfPages);
+				if(nrOfPages>1) parts.add(f);
+			}
+			if(!stopRequested&&nrOfPages>1)
 			{
-				continue;
+				mergeJsonParts(parts,job);
 			}
-			log.fine(nr + " page " + page + "/" + nrOfPages);
-			URL entries = new URL("https://openspending.org/" + datasetName + "/entries.json?pagesize=" + JsonDownloader.pageSize
-					+ "&page=" + page);
-			// System.out.println(entries);
-
-			if (Scheduler.getDownloader().getStopRequested())
+			if (stopRequested)
 			{
 				// System.out.println("Aborting DownloadCallable");
 				Scheduler.getDownloader().getUnfinishedDatasets().add(datasetName);
-				Scheduler
-						.getDownloader()
-						.getEventContainer()
-						.add(new EventNotification(EventNotification.EventType.FINISHED_DOWNLOADING_DATASET,
-								EventNotification.EventSource.DOWNLOAD_CALLABLE, datasetName, false));
+				log.warning("Stopped download of dataset "+datasetName);
+				job.setState(State.STOPPED);
+				cleanUp();
 				return false;
 			}
+			// TODO: sometimes at the end "]}" is missing, add it in this case
+			// manually solvable in terminal with cat /tmp/problems | xargs -I @ sh -c
+			// "echo ']}' >> '@'"
+			// where /tmp/problems is the file containing the list of files with the error
+			log.info(nr + " Finished download of " + datasetName + ".");
+			Scheduler.getDownloader().getFinishedDatasets().add(datasetName);
+			//		Scheduler
+			//				.getDownloader()
+			//				.getEventContainer()
+			//				.add(new EventNotification(EventNotification.EventType.FINISHED_DOWNLOADING_DATASET,
+			//						EventNotification.EventSource.DOWNLOAD_CALLABLE, datasetName, true));
+			job.downloadProgressPercent.set(100);
+			return true;
+		}
+		catch(Exception e) {throw new RuntimeException(e);}
+		finally {cleanUp();}
+	}
 
+	private void cleanUp()
+	{
+		if(partsFolder.exists())
+		{
+			for(File f:partsFolder.listFiles()) {f.delete();}
+			partsFolder.delete();
+		}
+	}
+
+	/**
+	 * merges all files for the given dataset and writes the targetfile to the other already
+	 * complete ones
+	 * @param job2
+	 * @throws MissingDataException
+	 * @throws IOException
+	 *
+	 */
+	protected void mergeJsonParts(List<File> parts, Job job) throws MissingDataException, IOException
+	{
+		//		if(parts.length==0) {throw new MissingDataException(datasetName, "no parts available");}
+		//		getDataFiles(rootPartsFolder)
+		File targetFile = new File(jsonFolder,datasetName+".json");
+		File mergeFile = new File(jsonFolder,datasetName+".json.tmp");
+
+		if (targetFile.exists()) {targetFile.delete();}
+		if (mergeFile.exists()) {mergeFile.delete();}
+
+		try (PrintWriter out = new PrintWriter(mergeFile))
+		{
+			int partNr = 0;
+			//			File[] parts = partData.get(datasetName).listFiles();
+			// for each file in the parts pathJson
+			for (File f : parts)
+			{
+				if (f.length() == 0)
+				{
+					log.severe(f + " is existing but empty.");
+				}
+				Position pos = Position.TOP;
+				try (BufferedReader in = new BufferedReader(new FileReader(f)))
+				{
+					String line;
+					// each line in a parts-file
+					// in order to seamlessly merge the jsons, some elements are removed.
+					// Which those are, depends on the position in the part and also whether the part is the first, last, or any other
+					while ((line = in.readLine()) != null)
+					{
+						switch (pos)
+						{
+							case TOP:
+								if (partNr == 0) out.println(line);
+								if (line.contains("\"results\": [")) pos = Position.MID;
+								break;
+							case MID:
+								out.println(line);
+								if (line.equals("    }")) pos = Position.BOTTOM;
+								break;
+							case BOTTOM:
+								if (partNr == parts.size()- 1) out.println(line);
+								break;
+						}
+					}
+					in.close();
+				}
+				if (partNr != parts.size()- 1) out.print(",");
+				partNr++;
+			}
+			out.close();
+		}
+		catch (IOException e)
+		{
+			throw new IOException("could not write parts file for " + datasetName + ": ",e);
+		}
+
+		if (targetFile.exists())
+		{
+			boolean equals;
 			try
 			{
-				HttpURLConnection connection = getConnection(entries);
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode target = mapper.readTree(new FileInputStream(targetFile));
+				JsonNode merge = mapper.readTree(new FileInputStream(mergeFile));
+				equals = target.equals(merge);
 			}
-			catch (HttpConnectionUtil.HttpTimeoutException | HttpConnectionUtil.HttpUnavailableException e)
+			catch (Exception e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.severe("could not compare files for " + datasetName + ": " + e.getMessage());
+				equals = false;
 			}
-
-			ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
-			try (FileOutputStream fos = new FileOutputStream(f))
+			if (equals)
 			{
-				fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);
+				mergeFile.delete();
 			}
-			// ideally, memory should be measured during the transfer but thats not easily possible
-			// except
-			// by creating another thread which is overkill. Because it is multithreaded anyways I
-			// hope this value isn't too far from the truth.
-			JsonDownloader.memoryBenchmark.updateAndGetMaxMemoryBytes();
+			else
+			{
+				targetFile.delete();
+				mergeFile.renameTo(targetFile);
 
+			}
 		}
-		// TODO: sometimes at the end "]}" is missing, add it in this case
-		// manually solvable in terminal with cat /tmp/problems | xargs -I @ sh -c
-		// "echo ']}' >> '@'"
-		// where /tmp/problems is the file containing the list of files with the error
-		log.info(nr + " Finished download of " + datasetName + ".");
-		Scheduler.getDownloader().getFinishedDatasets().add(datasetName);
-		Scheduler
-				.getDownloader()
-				.getEventContainer()
-				.add(new EventNotification(EventNotification.EventType.FINISHED_DOWNLOADING_DATASET,
-						EventNotification.EventSource.DOWNLOAD_CALLABLE, datasetName, true));
-		return true;
+		else
+		{
+			mergeFile.renameTo(targetFile);
+		}
+
 	}
 }

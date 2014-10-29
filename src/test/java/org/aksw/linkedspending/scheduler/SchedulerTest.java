@@ -2,7 +2,7 @@ package org.aksw.linkedspending.scheduler;
 
 import static org.junit.Assert.*;
 import org.aksw.linkedspending.converter.Converter;
-import org.aksw.linkedspending.downloader.JsonDownloader;
+import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.rest.GrizzlyHttpUtil;
 import org.aksw.linkedspending.scheduler.Scheduler;
 import org.aksw.linkedspending.tools.EventNotification;
@@ -45,8 +45,8 @@ public class SchedulerTest
 		c = ClientBuilder.newClient();
 		target = c.target(UriBuilder.fromUri("http://localhost/").port(10010).build());
 
-		JsonDownloader.setStopRequested(false);
-		JsonDownloader.setPauseRequested(false);
+		JsonDownloaderOld.setStopRequested(false);
+		JsonDownloaderOld.setPauseRequested(false);
 		Converter.setPauseRequested(false);
 		Converter.setStopRequested(false);
 	}

@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.old;
 
 import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
 import java.io.File;
@@ -13,9 +13,13 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.Callable;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
+import org.aksw.linkedspending.downloader.HttpConnectionUtil;
+import org.aksw.linkedspending.downloader.HttpConnectionUtil.HttpTimeoutException;
+import org.aksw.linkedspending.downloader.HttpConnectionUtil.HttpUnavailableException;
 import org.aksw.linkedspending.scheduler.Scheduler;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.eclipse.jdt.annotation.Nullable;
+import de.konradhoeffner.commons.MemoryBenchmark;
 
 /**
  * Implements the logic for downloading a JSON-file within a thread. Is similar to the use of the
@@ -75,20 +79,20 @@ import org.eclipse.jdt.annotation.Nullable;
 		if (nrEntries == 0)
 		{
 			log.fine(nr + " No entries for dataset " + datasetName + " skipping download.");
-			JsonDownloader.emptyDatasets.add(datasetName);
-			synchronized (JsonDownloader.emptyDatasets)
+			JsonDownloaderOld.emptyDatasets.add(datasetName);
+			synchronized (JsonDownloaderOld.emptyDatasets)
 			{
-				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(JsonDownloader.emptyDatasetFile)))
+				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(JsonDownloaderOld.emptyDatasetFile)))
 				{
-					log.fine(nr + " serializing " + JsonDownloader.emptyDatasets.size() + " entries to file");
-					out.writeObject(JsonDownloader.emptyDatasets);
+					log.fine(nr + " serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to file");
+					out.writeObject(JsonDownloaderOld.emptyDatasets);
 				}
 			}
 			// save as empty file to make it faster? but then it slows down normal use
 			return false;
 		}
 		log.info(nr + " Starting download of " + datasetName + ", " + nrEntries + " entries.");
-		int nrOfPages = (int) (Math.ceil((double) nrEntries / JsonDownloader.pageSize));
+		int nrOfPages = (int) (Math.ceil((double) nrEntries / JsonDownloaderOld.pageSize));
 
 		partsFolder.mkdirs();
 		// starts from beginning when final file already exists
@@ -119,7 +123,7 @@ import org.eclipse.jdt.annotation.Nullable;
 				continue;
 			}
 			log.fine(nr + " page " + page + "/" + nrOfPages);
-			URL entries = new URL("https://openspending.org/" + datasetName + "/entries.json?pagesize=" + JsonDownloader.pageSize
+			URL entries = new URL("https://openspending.org/" + datasetName + "/entries.json?pagesize=" + JsonDownloaderOld.pageSize
 					+ "&page=" + page);
 			// System.out.println(entries);
 
@@ -154,8 +158,7 @@ import org.eclipse.jdt.annotation.Nullable;
 			// except
 			// by creating another thread which is overkill. Because it is multithreaded anyways I
 			// hope this value isn't too far from the truth.
-			JsonDownloader.memoryBenchmark.updateAndGetMaxMemoryBytes();
-
+			MemoryBenchmark.updateAndGetMaxMemoryBytes();
 		}
 		// TODO: sometimes at the end "]}" is missing, add it in this case
 		// manually solvable in terminal with cat /tmp/problems | xargs -I @ sh -c
