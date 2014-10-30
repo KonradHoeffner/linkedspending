@@ -1,8 +1,8 @@
 package org.aksw.linkedspending.job;
 
 import lombok.AllArgsConstructor;
-import org.aksw.linkedspending.converter.Converter;
-import org.aksw.linkedspending.downloader.DownloadCallable;
+import org.aksw.linkedspending.convert.ConvertWorker;
+import org.aksw.linkedspending.download.DownloadWorker;
 
 @AllArgsConstructor
 public class Processor
@@ -12,10 +12,10 @@ public class Processor
 
 	public void process()
 	{
-		DownloadCallable downloader = new DownloadCallable(datasetName,job);
-		downloader.call();
+		DownloadWorker downloader = new DownloadWorker(datasetName,job,false);
+		downloader.get();
 		downloader=null;
-		Converter converter = new Converter();
+		ConvertWorker converter = new ConvertWorker(datasetName,job,false);
 //		converter.c
 		converter=null;
 

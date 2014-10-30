@@ -1,8 +1,8 @@
-package org.aksw.linkedspending.converter;
+package org.aksw.linkedspending.old;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import lombok.extern.java.Log;
-import org.aksw.linkedspending.converter.Converter;
+import org.aksw.linkedspending.old.ConverterOld;
 import org.aksw.linkedspending.tools.DataModel;
 import org.junit.After;
 import org.junit.Before;
@@ -122,7 +122,7 @@ import static org.junit.Assert.fail;
 		Model model = DataModel.newModel();
 		try
 		{
-			Converter.createDataset(DATASET, model, datasetOut);
+			ConverterOld.createDataset(DATASET, model, datasetOut);
 		}
 		catch (Exception e)
 		{

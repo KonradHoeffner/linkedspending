@@ -1,6 +1,6 @@
 package org.aksw.linkedspending.old;
 
-import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
+import static org.aksw.linkedspending.download.HttpConnectionUtil.getConnection;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,9 +13,9 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.Callable;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.downloader.HttpConnectionUtil;
-import org.aksw.linkedspending.downloader.HttpConnectionUtil.HttpTimeoutException;
-import org.aksw.linkedspending.downloader.HttpConnectionUtil.HttpUnavailableException;
+import org.aksw.linkedspending.download.HttpConnectionUtil;
+import org.aksw.linkedspending.download.HttpConnectionUtil.HttpTimeoutException;
+import org.aksw.linkedspending.download.HttpConnectionUtil.HttpUnavailableException;
 import org.aksw.linkedspending.scheduler.Scheduler;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.eclipse.jdt.annotation.Nullable;

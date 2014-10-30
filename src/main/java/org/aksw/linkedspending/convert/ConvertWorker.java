@@ -1,9 +1,10 @@
-package org.aksw.linkedspending.converter;
+package org.aksw.linkedspending.convert;
 
 import static org.aksw.linkedspending.tools.EventNotification.EventSource.CONVERTER;
 import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,9 +24,13 @@ import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.exception.NoCurrencyFoundForCodeException;
 import org.aksw.linkedspending.exception.TooManyMissingValuesException;
 import org.aksw.linkedspending.exception.UnknownMappingTypeException;
+import org.aksw.linkedspending.job.Job;
+import org.aksw.linkedspending.job.State;
+import org.aksw.linkedspending.job.Worker;
 import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.EventNotification;
+import org.aksw.linkedspending.tools.JsonReader;
 import org.aksw.linkedspending.tools.PropertiesLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -44,22 +49,20 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
 
-@Log @NonNullByDefault public class Converter extends OpenspendingSoftwareModule implements Runnable
+@Log @NonNullByDefault public class ConvertWorker extends Worker
 {
+	public ConvertWorker(String datasetName, Job job, boolean force)
+	{
+		super(datasetName, job, force);
+	}
+
 	static final Map<String, String>		codeToCurrency				= new HashMap<>();
 	static final Map<Pair<String>, String>	datasetPropertyNameToUri	= new HashMap<>();
 	/** properties */
-	private static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
 	static ObjectMapper	m = new ObjectMapper();
 	static List<String>	 faultyDatasets	= new LinkedList<>();
 	static File	statistics	= new File("statistics"	+ (System.currentTimeMillis() / 1000));
-	static
-	{
-		if (!pathRdf.exists())
-		{
-			pathRdf.mkdirs();
-		}
-	}
 
 	/** used to provide one statistical value: "the maximum memory used by jvm while downloading */
 	static MemoryBenchmark					memoryBenchmark				= new MemoryBenchmark();
@@ -68,17 +71,17 @@ import de.konradhoeffner.commons.TSVReader;
 	 */
 	static Map<String, File>				files						= new ConcurrentHashMap<>();
 
-	static
-	{
-		if (USE_CACHE)
-		{
-			CacheManager.getInstance().addCacheIfAbsent("openspending-json");
-		}
-	}
+	//	static
+	//	{
+	//		if (USE_CACHE)
+	//		{
+	//			CacheManager.getInstance().addCacheIfAbsent("openspending-json");
+	//		}
+	//	}
 
 	static
 	{
-		try (TSVReader in = new TSVReader(Converter.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
+		try (TSVReader in = new TSVReader(ConvertWorker.class.getClassLoader().getResourceAsStream("codetocurrency.tsv")))
 		{
 			while (in.hasNextTokens())
 			{
@@ -95,7 +98,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 	static
 	{
-		try (TSVReader in = new TSVReader(Converter.class.getClassLoader().getResourceAsStream("propertymapping.tsv")))
+		try (TSVReader in = new TSVReader(ConvertWorker.class.getClassLoader().getResourceAsStream("propertymapping.tsv")))
 		{
 			while (in.hasNextTokens())
 			{
@@ -115,17 +118,14 @@ import de.konradhoeffner.commons.TSVReader;
 	 *
 	 * @return a sorted set of all filenames
 	 */
-	public static SortedSet<String> getSavedDatasetNames()
+	public static SortedSet<String> getDownloadedDatasetNames()
 	{
-		File path = new File(PROPERTIES.getProperty("pathJson"));
 		try
 		{
-			if (!path.exists())
-			{
-				path.mkdirs();
-			}
+			if (!PropertiesLoader.pathJson.exists()) {PropertiesLoader.pathJson.mkdirs();}
+
 			SortedSet<String> names = new TreeSet<>();
-			for (File f : path.listFiles())
+			for (File f : PropertiesLoader.pathJson.listFiles())
 			{
 				if (f.isFile())
 				{
@@ -154,22 +154,23 @@ import de.konradhoeffner.commons.TSVReader;
 	 * @throws org.aksw.linkedspending.tools.DatasetHasNoCurrencyException
 	 * @throws org.aksw.linkedspending.tools.UnknownMappingTypeException
 	 * @throws org.aksw.linkedspending.tools.TooManyMissingValuesException
+	 * @throws InterruptedException
 	 */
-	static public void createDataset(String datasetName, Model model, OutputStream out) throws IOException,
-			NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException,
-			MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException
+	public boolean createDataset(Model model, OutputStream out) throws IOException,
+	NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException,
+	MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException, InterruptedException
 	{
 		@NonNull
-		URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName); // linkedspending
+		URL url = new URL(PropertiesLoader.urlInstance + datasetName); // linkedspending
 		@NonNull
-		URL sourceUrl = new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + ".json");
+		URL sourceUrl = new URL(PropertiesLoader.urlOpenSpending + datasetName + ".json");
 		@NonNull
-		JsonNode datasetJson = readJSON(sourceUrl);
+		JsonNode datasetJson = JsonReader.read(sourceUrl);
 		@NonNull
 		Resource dataSet = model.createResource(url.toString());
 		@NonNull
 		Resource dsd = createDataStructureDefinition(new URL(url + "/model"), model);
-		model.add(dataSet, DCTerms.source, model.createResource(PROPERTIES.getProperty("urlOpenSpending") + datasetName));
+		model.add(dataSet, DCTerms.source, model.createResource(PropertiesLoader.urlOpenSpending + datasetName));
 		model.add(dataSet, DCTerms.created, model.createTypedLiteral(Calendar.getInstance()));
 
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided
@@ -206,7 +207,7 @@ import de.konradhoeffner.commons.TSVReader;
 		try
 		{
 			componentProperties = createComponents(
-					readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/model")).get("mapping"), model,
+					JsonReader.read(new URL(PropertiesLoader.urlOpenSpending + datasetName + "/model")).get("mapping"), model,
 					datasetName, dataSet, dsd, defaultYear != null);
 		}
 		catch (MissingDataException | UnknownMappingTypeException e)
@@ -245,13 +246,11 @@ import de.konradhoeffner.commons.TSVReader;
 			// URL("http://openspending.org/api/2/search?format=json&pagesize="+MAX_ENTRIES+"&dataset="+dataSetName),true);
 			// log.fine("extracting results");
 			// ArrayNode results = (ArrayNode)entries.get("results");
-			log.fine("creating entries");
-
-			createObservations(datasetName, model, out, dataSet, componentProperties, currency, countries, yearLiteral);
-			log.fine("finished creating entries");
+			log.finer(datasetName+" creating entries");
+			if(!createObservations(model, out, dataSet, componentProperties, currency, countries, yearLiteral)) {return false;} // stop requested
 		}
 		createViews(datasetName, model, dataSet);
-		List<String> languages = ArrayNodeToStringList((ArrayNode) datasetJson.get("languages"));
+		//		List<String> languages = ArrayNodeToStringList((ArrayNode) datasetJson.get("languages"));
 
 		// qb:component [qb:attribute sdmx-attribute:unitMeasure;
 		// qb:componentRequired "true"^^xsd:boolean;
@@ -274,6 +273,7 @@ import de.konradhoeffner.commons.TSVReader;
 		// todo: find out the language
 		// model.createStatement(arg0, arg1, arg2)
 		// System.out.println("Converting dataset "+url);
+		return true;
 	}
 
 	/**
@@ -344,9 +344,9 @@ import de.konradhoeffner.commons.TSVReader;
 	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model, String datasetName, Resource dataset,
 			Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException,
 			UnknownMappingTypeException
-	{
+			{
 		int attributeCount = 1; // currency is always there and dataset is not created if it is not
-								// found
+		// found
 		int dimensionCount = 0;
 		int measureCount = 0;
 		Map<String, Property> componentPropertyByName = new HashMap<>();
@@ -480,7 +480,7 @@ import de.konradhoeffner.commons.TSVReader;
 				+ (attributeCount == 0 ? "attributes" : (measureCount == 0 ? "measures" : "dimensions")) + " for dataset "
 				+ dataset.getLocalName()); }
 		return componentProperties;
-	}
+			}
 
 	public static List<String> ArrayNodeToStringList(ArrayNode ja)
 	{
@@ -504,233 +504,241 @@ import de.konradhoeffner.commons.TSVReader;
 	 *            the dimensions which are expected to be values for in all entries.
 	 * @param datasetName
 	 *            the JSON-file to be read from
+	 * @return returns false iff stopped
+	 * @throws InterruptedException
 	 */
 
-	static void createObservations(String datasetName, Model model, OutputStream out, Resource dataSet,
+	boolean createObservations(Model model, OutputStream out, Resource dataSet,
 			Set<ComponentProperty> componentProperties, @Nullable Resource currency, Set<Resource> countries,
-			@Nullable Literal yearLiteral) throws IOException, TooManyMissingValuesException
+			@Nullable Literal yearLiteral) throws IOException, TooManyMissingValuesException, InterruptedException
 	{
-		ResultsReader in = new ResultsReader(datasetName);
-		JsonNode result;
-		boolean dateExists = false;
-		Set<Integer> years = new HashSet<Integer>();
-		int missingValues = 0;
-		int expectedValues = 0;
-		Map<ComponentProperty, Integer> missingForProperty = new HashMap<>();
-		int observations;
-		for (observations = 0; (result = in.read()) != null; observations++)
+		try(ResultsReader in = new ResultsReader(datasetName))
 		{
-			String osUri = result.get("html_url").asText();
-			Resource osObservation = model.createResource();
-			String suffix = osUri.substring(osUri.lastIndexOf('/') + 1);
-			String lsUri = PROPERTIES.getProperty("urlInstance") + "observation-" + datasetName + "-" + suffix;
-			Resource observation = model.createResource(lsUri);
-			model.add(observation, RDFS.label, datasetName + " observation " + suffix);
-			model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
-			model.add(observation, RDF.type, DataModel.DataCube.getObservation());
-			model.add(observation, DCTerms.source, osObservation);
-			// boolean dateExists=false;
-			for (ComponentProperty d : componentProperties)
+			JsonNode result;
+			boolean dateExists = false;
+			Set<Integer> years = new HashSet<Integer>();
+			int missingValues = 0;
+			int expectedValues = 0;
+			Map<ComponentProperty, Integer> missingForProperty = new HashMap<>();
+			int observations;
+			for (observations = 0; (result = in.read()) != null; observations++)
 			{
-				// if(d.name==null) {throw new
-				// RuntimeException("no name for component property "+d);}
-				expectedValues++;
-				if (!result.has(d.name))
+				pausePoint(this);
+				if(stopRequested) {job.setState(State.STOPPED);return false;}
+				String osUri = result.get("html_url").asText();
+				Resource osObservation = model.createResource();
+				String suffix = osUri.substring(osUri.lastIndexOf('/') + 1);
+				String lsUri = PropertiesLoader.urlInstance + "observation-" + datasetName + "-" + suffix;
+				Resource observation = model.createResource(lsUri);
+				model.add(observation, RDFS.label, datasetName + " observation " + suffix);
+				model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
+				model.add(observation, RDF.type, DataModel.DataCube.getObservation());
+				model.add(observation, DCTerms.source, osObservation);
+				// boolean dateExists=false;
+				for (ComponentProperty d : componentProperties)
 				{
-					Integer missing = missingForProperty.get(d);
-					missing = (missing == null) ? 1 : missing + 1;
-					missingForProperty.put(d, missing);
-					missingValues++;
-					int minMissing = Integer.parseInt(PROPERTIES.getProperty("minValuesMissingForStop"));
-					int maxMissing = Integer.parseInt(PROPERTIES.getProperty("maxValuesMissingLogged"));
-					float missingStopRatio = Float.parseFloat(PROPERTIES.getProperty("datasetMissingStopRatio"));
-					if (missingForProperty.get(d) <= maxMissing)
+					// if(d.name==null) {throw new
+					// RuntimeException("no name for component property "+d);}
+					expectedValues++;
+					if (!result.has(d.name))
 					{
-						log.warning("no entry for property " + d.name + " at entry " + result);
+						Integer missing = missingForProperty.get(d);
+						missing = (missing == null) ? 1 : missing + 1;
+						missingForProperty.put(d, missing);
+						missingValues++;
+						int minMissing = Integer.parseInt(PropertiesLoader.PROPERTIES.getProperty("minValuesMissingForStop"));
+						int maxMissing = Integer.parseInt(PropertiesLoader.PROPERTIES.getProperty("maxValuesMissingLogged"));
+						float missingStopRatio = Float.parseFloat(PropertiesLoader.PROPERTIES.getProperty("datasetMissingStopRatio"));
+						if (missingForProperty.get(d) <= maxMissing)
+						{
+							log.warning("no entry for property " + d.name + " at entry " + result);
+						}
+						if (missingForProperty.get(d) == maxMissing)
+						{
+							log.warning("more missing entries for property " + d.name + ".");
+						}
+						if (missingValues >= minMissing && ((double) missingValues / expectedValues >= missingStopRatio))
+						{
+							faultyDatasets.add(datasetName);
+							throw new TooManyMissingValuesException(datasetName, missingValues);
+						}
+						continue;
 					}
-					if (missingForProperty.get(d) == maxMissing)
+					try
 					{
-						log.warning("more missing entries for property " + d.name + ".");
+						switch (d.type)
+						{
+							case COMPOUND: {
+								JsonNode jsonDim = result.get(d.name);
+								// if(jsonDim==null)
+								// {
+								// errors++;
+								// log.warning("no url for entry "+d.name);
+								// continue;
+								// }
+								if (!jsonDim.has("html_url"))
+								{
+									log.warning("no url for " + jsonDim);
+									missingValues++;
+									continue;
+								}
+								JsonNode urlNode = jsonDim.get("html_url");
+								// todo enhancement: interlinking auf dem label -> besser extern
+								// todo enhancement: ressource nicht mehrfach erzeugen - aber aufpassen
+								// dass der speicher nicht voll wird! wird wohl nur im datenset gehen
+
+								Resource instance = model.createResource(urlNode.asText());
+
+								if (jsonDim.has("label"))
+								{
+									model.addLiteral(instance, RDFS.label, model.createLiteral(jsonDim.get("label").asText()));
+								}
+								else
+								{
+									log.warning("no label for dimension " + d.name + " instance " + instance);
+								}
+								model.add(observation, d.property, instance);
+
+								break;
+							}
+							case ATTRIBUTE: {
+								String s = result.get(d.name).asText();
+								model.addLiteral(observation, d.property, model.createLiteral(s));
+								break;
+							}
+							case MEASURE: {
+								String s = result.get(d.name).asText();
+								Literal l;
+								try
+								{
+									l = model.createTypedLiteral(Integer.parseInt(s));
+								}
+								catch (NumberFormatException e)
+								{
+									l = model.createLiteral(s);
+								}
+								model.addLiteral(observation, d.property, l);
+								break;
+							}
+							case DATE: {
+								dateExists = true;
+								JsonNode jsonDate = result.get(d.name);
+								// String week = date.get("week");
+								int year = jsonDate.get("year").asInt();
+								int month = jsonDate.get("month").asInt();
+								int day = jsonDate.get("day").asInt();
+								model.addLiteral(observation, DataModel.LSOntology.getRefDate(),
+										model.createTypedLiteral(year + "-" + month + "-" + day, XSD.date.getURI()));
+								model.addLiteral(observation, DataModel.LSOntology.getRefYear(),
+										model.createTypedLiteral(year, XSD.gYear.getURI()));
+								years.add(year);
+							}
+						}
+
 					}
-					if (missingValues >= minMissing && ((double) missingValues / expectedValues >= missingStopRatio))
+					catch (Exception e)
 					{
-						faultyDatasets.add(datasetName);
-						throw new TooManyMissingValuesException(datasetName, missingValues);
+						throw new RuntimeException("problem with componentproperty " + d.name + ": " + observation, e);
 					}
-					continue;
 				}
-				try
+				//
+				// String label = result.get("label");
+				//
+				// if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
+				// else
+				// {
+				// label = result.get("name");
+				// if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
+				// }
+				// String description = result.get("description");
+				// if(description!=null&&!description.equals("null"))
+				// {model.add(observation,RDFS.comment,description);}
+				//
+				// String type = result.get("type");
+				// switch(type)
+				// {
+				// case "date":
+				// {
+				// model.add(observation, RDFS.subPropertyOf,SDMXDIMENSION.refPeriod);
+				// // if()
+				// // model.add(dim, RDFS.range,XmlSchema.gYear);
+				// return;
+				// }
+				// case "compound":return;
+				// case "measure":return;
+				// case "attribute":return;
+				// }
+
+				if (currency != null)
 				{
-					switch (d.type)
-					{
-						case COMPOUND: {
-							JsonNode jsonDim = result.get(d.name);
-							// if(jsonDim==null)
-							// {
-							// errors++;
-							// log.warning("no url for entry "+d.name);
-							// continue;
-							// }
-							if (!jsonDim.has("html_url"))
-							{
-								log.warning("no url for " + jsonDim);
-								missingValues++;
-								continue;
-							}
-							JsonNode urlNode = jsonDim.get("html_url");
-							// todo enhancement: interlinking auf dem label -> besser extern
-							// todo enhancement: ressource nicht mehrfach erzeugen - aber aufpassen
-							// dass der speicher nicht voll wird! wird wohl nur im datenset gehen
-
-							Resource instance = model.createResource(urlNode.asText());
-
-							if (jsonDim.has("label"))
-							{
-								model.addLiteral(instance, RDFS.label, model.createLiteral(jsonDim.get("label").asText()));
-							}
-							else
-							{
-								log.warning("no label for dimension " + d.name + " instance " + instance);
-							}
-							model.add(observation, d.property, instance);
-
-							break;
-						}
-						case ATTRIBUTE: {
-							String s = result.get(d.name).asText();
-							model.addLiteral(observation, d.property, model.createLiteral(s));
-							break;
-						}
-						case MEASURE: {
-							String s = result.get(d.name).asText();
-							Literal l;
-							try
-							{
-								l = model.createTypedLiteral(Integer.parseInt(s));
-							}
-							catch (NumberFormatException e)
-							{
-								l = model.createLiteral(s);
-							}
-							model.addLiteral(observation, d.property, l);
-							break;
-						}
-						case DATE: {
-							dateExists = true;
-							JsonNode jsonDate = result.get(d.name);
-							// String week = date.get("week");
-							int year = jsonDate.get("year").asInt();
-							int month = jsonDate.get("month").asInt();
-							int day = jsonDate.get("day").asInt();
-							model.addLiteral(observation, DataModel.LSOntology.getRefDate(),
-									model.createTypedLiteral(year + "-" + month + "-" + day, XSD.date.getURI()));
-							model.addLiteral(observation, DataModel.LSOntology.getRefYear(),
-									model.createTypedLiteral(year, XSD.gYear.getURI()));
-							years.add(year);
-						}
-					}
-
+					model.add(observation, DataModel.DBPOntology.currency, currency);
 				}
-				catch (Exception e)
+
+				if (yearLiteral != null && !dateExists) // fallback, in case entry doesnt have a date
+					// attached we use year of the whole dataset
 				{
-					throw new RuntimeException("problem with componentproperty " + d.name + ": " + observation, e);
+					model.addLiteral(observation, DataModel.LSOntology.getRefYear(), yearLiteral);
+				}
+				for (Resource country : countries)
+				{
+					// add the countries to the observations as well (not just the dataset)
+					model.add(observation, DataModel.SdmxAttribute.getRefArea(), country);
+				}
+				if (model.size() > Integer.parseInt(PropertiesLoader.PROPERTIES.getProperty("maxModelTriples")))
+				{
+					log.finer("writing triples");
+					writeModel(model, out);
 				}
 			}
-			//
-			// String label = result.get("label");
-			//
-			// if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
-			// else
-			// {
-			// label = result.get("name");
-			// if(label!=null&&!label.equals("null")) {model.add(observation,RDFS.label,label);}
-			// }
-			// String description = result.get("description");
-			// if(description!=null&&!description.equals("null"))
-			// {model.add(observation,RDFS.comment,description);}
-			//
-			// String type = result.get("type");
-			// switch(type)
-			// {
-			// case "date":
-			// {
-			// model.add(observation, RDFS.subPropertyOf,SDMXDIMENSION.refPeriod);
-			// // if()
-			// // model.add(dim, RDFS.range,XmlSchema.gYear);
-			// return;
-			// }
-			// case "compound":return;
-			// case "measure":return;
-			// case "attribute":return;
-			// }
 
-			if (currency != null)
+			// completeness statistics
+			if (expectedValues == 0)
 			{
-				model.add(observation, DataModel.DBPOntology.currency, currency);
+				log.warning("no observations for dataset " + datasetName + ".");
 			}
+			else
+			{
+				model.addLiteral(dataSet, DataModel.LSOntology.getCompleteness(), 1 - (double) (missingValues / expectedValues));
+				for (ComponentProperty d : componentProperties)
+				{
+					model.addLiteral(d.property, DataModel.LSOntology.getCompleteness(),
+							1 - (double) (missingValues / expectedValues));
+				}
 
-			if (yearLiteral != null && !dateExists) // fallback, in case entry doesnt have a date
-													// attached we use year of the whole dataset
-			{
-				model.addLiteral(observation, DataModel.LSOntology.getRefYear(), yearLiteral);
-			}
-			for (Resource country : countries)
-			{
-				// add the countries to the observations as well (not just the dataset)
-				model.add(observation, DataModel.SdmxAttribute.getRefArea(), country);
-			}
-			if (model.size() > Integer.parseInt(PROPERTIES.getProperty("maxModelTriples")))
-			{
-				log.fine("writing triples");
+				// in case the dataset goes over several years or doesnt have a default time attached we
+				// want all the years of the observations on the dataset
+				for (int year : years)
+				{
+					model.addLiteral(dataSet, DataModel.LSOntology.getRefYear(), model.createTypedLiteral(year, XSD.gYear.getURI()));
+				}
 				writeModel(model, out);
-			}
-		}
-		// completeness statistics
-		if (expectedValues == 0)
-		{
-			log.warning("no observations for dataset " + datasetName + ".");
-		}
-		else
-		{
-			model.addLiteral(dataSet, DataModel.LSOntology.getCompleteness(), 1 - (double) (missingValues / expectedValues));
-			for (ComponentProperty d : componentProperties)
-			{
-				model.addLiteral(d.property, DataModel.LSOntology.getCompleteness(),
-						1 - (double) (missingValues / expectedValues));
-			}
-
-			// in case the dataset goes over several years or doesnt have a default time attached we
-			// want all the years of the observations on the dataset
-			for (int year : years)
-			{
-				model.addLiteral(dataSet, DataModel.LSOntology.getRefYear(), model.createTypedLiteral(year, XSD.gYear.getURI()));
-			}
-			writeModel(model, out);
-			// write missing statistics
-			try (PrintWriter statisticsOut = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
-			{
-				if (missingForProperty.isEmpty())
+				// write missing statistics
+				try (PrintWriter statisticsOut = new PrintWriter(new BufferedWriter(new FileWriter(statistics, true))))
 				{
-					statisticsOut.println("no missing values");
-				}
-				else
-				{
-					statisticsOut.println(datasetName + '\t' + ((double) missingValues / observations) + '\t'
-							+ (double) Collections.max(missingForProperty.values()) / observations);
+					if (missingForProperty.isEmpty())
+					{
+						statisticsOut.println("no missing values");
+					}
+					else
+					{
+						statisticsOut.println(datasetName + '\t' + ((double) missingValues / observations) + '\t'
+								+ (double) Collections.max(missingForProperty.values()) / observations);
+					}
 				}
 			}
+			log.finer(datasetName+"finished creating entries, "+observations + " observations created.");
 		}
-		log.info(observations + " observations created.");
+		return true;
 	}
 
 	public static void createViews(String datasetName, Model model, Resource dataSet) throws IOException
 	{
-		ArrayNode views = readArrayNode(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/views.json"));
+		ArrayNode views = readArrayNode(new URL(PropertiesLoader.PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/views.json"));
 		for (int i = 0; i < views.size(); i++)
 		{
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
-			Resource view = model.createResource(PROPERTIES.getProperty("urlInstance") + datasetName + "/views/" + name);
+			Resource view = model.createResource(PropertiesLoader.urlInstance + datasetName + "/views/" + name);
 			model.add(view, RDF.type, DataModel.DataCube.getSliceResource());
 			model.add(dataSet, DataModel.DataCube.getSlice(), view);
 			String label = jsonView.get("label").asText();
@@ -740,19 +748,9 @@ import de.konradhoeffner.commons.TSVReader;
 		}
 	}
 
-	static void shutdown(int status)
-	{
-		if (USE_CACHE)
-		{
-			CacheManager.getInstance().shutdown();
-		}
-		// System.exit(status);
-	}
-
-	static void writeModel(Model model, OutputStream out)
+	static void writeModel(Model model, OutputStream out) throws IOException
 	{
 		model.write(out, "N-TRIPLE");
-		// model.write(out,"TURTLE");
 		// assuming that most memory is consumed before model cleaning
 		memoryBenchmark.updateAndGetMaxMemoryBytes();
 		model.removeAll();
@@ -760,190 +758,53 @@ import de.konradhoeffner.commons.TSVReader;
 
 	public static ArrayNode readArrayNode(URL url) throws IOException
 	{
-		return (ArrayNode) m.readTree(readJSONString(url));
+		return (ArrayNode) JsonReader.read(url);
 		// try {return new ArrayNode(readJSONString(url));}
 		// catch(JSONException e) {throw new
 		// IOException("Could not create a JSON array from string "+readJSONString(url),e);}
 	}
 
-	static void deleteDataset(String datasetName)
+	@Override public Boolean get()
 	{
-		log.info("delete " + datasetName);
-		getDatasetFile(datasetName).delete();
-		JsonDownloaderOld.getFile(datasetName).delete();
-	}
+		// observations use saved datasets so we need the saved names, if we only create the
+		// schema we can use the newest dataset names
+		SortedSet<String> datasetNames = getDownloadedDatasetNames();
 
-	@Override public void run()
-	{
-		String newsDescription = "<br>";
-		eventContainer.clear();
-		// Converter starts 5s after it should start, allowing the Scheduler to do schedule a
-		// complete run without pausing itself.
-		try
+		Model model = DataModel.newModel();
+		File ntriples = getDatasetFile(datasetName);
+		File json = new File(PropertiesLoader.PROPERTIES.getProperty("pathJson") + datasetName+".json");
+		// skip some files
+		if (!force&&ntriples.exists() && ntriples.length() > 0 && ntriples.lastModified() >= json.lastModified())
 		{
-			Thread.sleep(5000);
+			log.info("skipping already existing and up to date file: " + ntriples);
+			return true;
 		}
-		catch (InterruptedException e)
+		else
 		{
-			e.printStackTrace();
-		}
-
-		eventContainer.add(new EventNotification(STARTED_CONVERTING_COMPLETE,
-				CONVERTER));
-		long startTime = System.currentTimeMillis();
-		try
-		{
-			int minExceptions = Integer.parseInt(PROPERTIES.getProperty("minExceptionsForStop"));
-			float exceptionStopRatio = Float.parseFloat(PROPERTIES.getProperty("exceptionStopRatio"));
-			// observations use saved datasets so we need the saved names, if we only create the
-			// schema we can use the newest dataset names
-			SortedSet<String> datasetNames = getSavedDatasetNames();
-			// TODO: parallelize
-			// DetectorFactory.loadProfile("languageprofiles");
-
-			// JsonNode datasets = m.readTree(new URL(DATASETS));
-			// ArrayNode datasetArray = (ArrayNode)datasets.get("datasets");
-			int exceptions = 0;
-			int offset = 0;
-			int i = 0;
-			int fileexists = 0;
-			for (final String datasetName : datasetNames)
+			log.info("Starting conversion of "+datasetName);
+			if(ntriples.exists()) {ntriples.delete();}
+			try(OutputStream out = new FileOutputStream(ntriples, true))
 			{
-				if (stopRequested)
+				if(createDataset(model, out))
 				{
-					eventContainer.add(new EventNotification(STOPPED_CONVERTER,
-							CONVERTER));
-					break;
+					writeModel(model, out);
+					log.info("Finished conversion of "+datasetName);
+					return true;
 				}
-				else if (pauseRequested)
+				else
 				{
-					eventContainer.add(new EventNotification(PAUSED_CONVERTER,
-							CONVERTER));
-					while (pauseRequested)
-					{
-						try
-						{
-							Thread.sleep(100);
-						}
-						catch (InterruptedException e)
-						{
-							log.warning(e.getMessage());
-						}
-					}
-
-					eventContainer.add(new EventNotification(RESUMED_CONVERTER,
-							CONVERTER));
-				}
-				i++;
-				Model model = DataModel.newModel();
-				File file = getDatasetFile(datasetName);
-				File json = new File(PROPERTIES.getProperty("pathJson") + datasetName);
-				// skip some files
-				if (file.exists() && file.length() > 0 && file.lastModified() >= json.lastModified())
-				{
-					log.finer("skipping already existing and up to date file nr " + i + ": " + file);
-					fileexists++;
-					continue;
-				}
-
-				try
-				{
-					OutputStream out = new FileOutputStream(file, true);
-
-					URL url = new URL(PROPERTIES.getProperty("urlInstance") + datasetName);
-					log.info("Dataset nr. " + i + "/" + datasetNames.size() + ": " + url);
-					try
-					{
-						createDataset(datasetName, model, out);
-						writeModel(model, out);
-						newsDescription += datasetName + "<br>";
-					}
-					catch (Exception e)
-					{
-						exceptions++;
-						deleteDataset(datasetName);
-						faultyDatasets.add(datasetName);
-						log.severe("Error creating dataset " + datasetName + ". Skipping.");
-						e.printStackTrace();
-						if (exceptions >= minExceptions && ((double) exceptions / (i + 1)) > exceptionStopRatio)
-						{
-							log.severe("Too many exceptions (" + exceptions + " out of " + (i + 1));
-							eventContainer.add(new EventNotification(TOO_MANY_ERRORS,
-									CONVERTER));
-							eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
-									CONVERTER, false));
-							shutdown(1);
-						}
-					}
-					out.close();
-				}
-				catch (IOException e)
-				{
-					log.severe("could not create dataset " + datasetName + ": " + e.getMessage());
+					log.warning("Stopped conversion of "+datasetName);
+					return false;
 				}
 			}
-			if (exceptions >= minExceptions && ((double) exceptions / (i + 1)) > exceptionStopRatio)
+			catch (Exception e) // Supplier interface doesn't allow checked exceptions
 			{
-				if (USE_CACHE)
-				{
-					cache.getCacheManager().shutdown();
-				}
+				log.warning("Exception on conversion of "+datasetName+":\n"+e.getMessage());
 
-				log.severe("Too many exceptions (" + exceptions + " out of " + (i + 1));
-				eventContainer.add(new EventNotification(TOO_MANY_ERRORS,
-						CONVERTER));
-				eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
-						CONVERTER, false));
-				shutdown(1);
+				faultyDatasets.add(datasetName);
+				throw new RuntimeException("could not convert dataset " + datasetName,e);
 			}
-
-			if (stopRequested)
-			{
-				log.info("** CONVERSION STOPPED, STOP REQUESTED: Processed " + (i - offset) + " datasets with " + exceptions
-						+ " exceptions and " + fileexists + " already existing (" + (i - exceptions - fileexists)
-						+ " newly created)." + "Processing time: " + (System.currentTimeMillis() - startTime) / 1000
-						+ " seconds, maximum memory usage of " + memoryBenchmark.updateAndGetMaxMemoryBytes() / 1000000 + " MB.");
-			}
-			else
-			{
-				int newlyCreatedDatasets = i - exceptions - fileexists;
-				log.info("** FINISHED CONVERSION: Processed " + (i - offset) + " datasets with " + exceptions
-						+ " exceptions and " + fileexists + " already existing (" + (newlyCreatedDatasets) + " newly created)."
-						+ "Processing time: " + (System.currentTimeMillis() - startTime) / 1000
-						+ " seconds, maximum memory usage of " + memoryBenchmark.updateAndGetMaxMemoryBytes() / 1000000 + " MB.");
-
-				// write News(new converted Datasets)
-				if (newlyCreatedDatasets >= 1)
-				{
-					String newsTitle = "";
-					if (newlyCreatedDatasets == 1) newsTitle = newlyCreatedDatasets + " new Dataset has been converted.";
-					else newsTitle = newlyCreatedDatasets + " new Datasets have been converted.";
-//					NewsFeedWriter.writeNewsFeed(newsTitle, newsDescription);
-				}
-			}
-
-			if (faultyDatasets.size() > 0) log.warning("Datasets with errors which were not converted: " + faultyDatasets);
 		}
-
-		// we must absolutely make sure that the cache is shut down before we leave the program,
-		// else cache can become corrupt which is a big time waster
-		catch (RuntimeException e)
-		{
-			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			eventContainer.add(new EventNotification(RUN_TIME_ERROR,
-					CONVERTER));
-			eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
-					CONVERTER, false));
-			eventContainer.printEventsToFile();
-			eventContainer.clear();
-			shutdown(1);
-		}
-
-		eventContainer.add(new EventNotification(FINISHED_CONVERTING_COMPLETE,
-				CONVERTER, true));
-		eventContainer.printEventsToFile();
-
-		shutdown(0);
 	}
 
 	/**
@@ -957,12 +818,8 @@ import de.konradhoeffner.commons.TSVReader;
 	static File getDatasetFile(String name)
 	{
 		File file = files.get(name);
-		if (file == null) files.put(name, file = new File(pathRdf + "/" + name + ".nt"));
+		if (file == null) files.put(name, file = new File(PropertiesLoader.pathRdf + "/" + name + ".nt"));
 		return file;
 	}
 
-	public static void main(String[] args)
-	{
-		new Converter().run();
-	}
 }

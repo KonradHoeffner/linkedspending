@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.aksw.linkedspending.downloader.DownloadCallable;
+import org.aksw.linkedspending.download.DownloadWorker;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -212,8 +212,8 @@ public class Job
 		{
 			try
 			{
-				DownloadCallable downloader = new DownloadCallable(datasetName,this);
-				CompletableFuture.supplyAsync(downloader::call);
+				DownloadWorker downloader = new DownloadWorker(datasetName,this,false);
+				CompletableFuture.supplyAsync(downloader);
 				//				future.
 			}
 			catch (Exception e)

@@ -1,11 +1,10 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.old;
 
-import org.aksw.linkedspending.scheduler.Scheduler;
-import org.aksw.linkedspending.tools.PropertiesLoader;
-import org.junit.Test;
+import static org.junit.Assert.fail;
 import java.io.File;
 import java.util.Properties;
-import static org.junit.Assert.fail;
+import org.aksw.linkedspending.scheduler.Scheduler;
+import org.aksw.linkedspending.tools.PropertiesLoader;
 
 /**
  * Integration Test for the downloader class

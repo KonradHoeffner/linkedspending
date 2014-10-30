@@ -1,7 +1,7 @@
 package org.aksw.linkedspending.scheduler;
 
 import static org.junit.Assert.*;
-import org.aksw.linkedspending.converter.Converter;
+import org.aksw.linkedspending.old.ConverterOld;
 import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.rest.GrizzlyHttpUtil;
 import org.aksw.linkedspending.scheduler.Scheduler;
@@ -47,8 +47,8 @@ public class SchedulerTest
 
 		JsonDownloaderOld.setStopRequested(false);
 		JsonDownloaderOld.setPauseRequested(false);
-		Converter.setPauseRequested(false);
-		Converter.setStopRequested(false);
+		ConverterOld.setPauseRequested(false);
+		ConverterOld.setStopRequested(false);
 	}
 
 	@After public void tearDown() throws Exception

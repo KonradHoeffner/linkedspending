@@ -6,7 +6,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.UriBuilder;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
-import org.aksw.linkedspending.converter.Converter;
+import org.aksw.linkedspending.old.ConverterOld;
 import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.rest.GrizzlyHttpUtil;
 import org.aksw.linkedspending.tools.ConverterSleeper;
@@ -23,7 +23,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 	private static Thread				downloaderThread;
 	private static Thread				converterThread;
 	private static JsonDownloaderOld		downloader	= new JsonDownloaderOld();
-	private static Converter			converter	= new Converter();
+	private static ConverterOld			converter	= new ConverterOld();
 	private static ScheduleTimeHandler	scheduleTimeHandler;
 
 	public static URI getBaseURI()
@@ -46,7 +46,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 		return downloader;
 	}
 
-	public static Converter getConverter()
+	public static ConverterOld getConverter()
 	{
 		return converter;
 	}

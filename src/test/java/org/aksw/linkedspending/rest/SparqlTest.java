@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.rest;
 
 import static org.junit.Assert.assertTrue;
 import java.util.Map;

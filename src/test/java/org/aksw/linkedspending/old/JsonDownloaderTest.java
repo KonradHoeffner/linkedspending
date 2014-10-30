@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.old;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;

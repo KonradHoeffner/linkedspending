@@ -1,6 +1,6 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.download;
 
-import static org.aksw.linkedspending.downloader.HttpConnectionUtil.getConnection;
+import static org.aksw.linkedspending.download.HttpConnectionUtil.getConnection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,17 +22,19 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.Files;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.job.State;
+import org.aksw.linkedspending.job.Worker;
 import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.scheduler.Scheduler;
 import org.eclipse.jdt.annotation.Nullable;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.konradhoeffner.commons.MemoryBenchmark;
-
+// TODO always downloads at the moment, keep existing when force is false, maybe under some condition?
 /**
  * Implements the logic for downloading a JSON-file within a thread. Is similar to the use of the
  * Runnable Interface, but its call method can give a return value.
@@ -41,24 +43,17 @@ import de.konradhoeffner.commons.MemoryBenchmark;
  * gets split into parts in the folder json/parts/pagesize/datasetname with filenames datasetname.0,
  * datasetname.1, ... , datasetname.final
  **/
-@Log public class DownloadCallable implements Callable<Boolean>
+@Log public class DownloadWorker extends Worker
 {
-	final Job job;
-	final String datasetName;
 	static AtomicInteger counter = new AtomicInteger();
 	final int nr;
 
 	static final int PAGE_SIZE	= 100;
 	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
 
-	public static final File jsonFolder = new File("json");
-
-	final File partsFolder;
+	final File partsSubFolder;
 
 	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
-
-	private volatile boolean pauseRequested = false;
-	private volatile boolean stopRequested = false;
 
 	enum Position {TOP, MID, BOTTOM}
 
@@ -77,26 +72,17 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 		}
 	}
 
-	/**
-	 * @param datasetName
-	 *            the name of the dataset to be downloaded
-	 */
-	public DownloadCallable(String datasetName, Job job)
+	/** @see Worker() */
+	public DownloadWorker(String datasetName, Job job, boolean force)
 	{
+		super(datasetName,job,force);
 		this.nr=counter.getAndIncrement();
-		this.datasetName = datasetName;
-		this.job = job;
-		this.partsFolder = new File(new File(jsonFolder,"parts"),datasetName);
+		this.partsSubFolder = Files.partsSubFolder(datasetName);
 	}
 
-	public void pause()	{pauseRequested=true;}
-	public void stop()	{pauseRequested=true;}
-	public void resume()	{notify();}
-
-	@Override public @Nullable Boolean call()// throws IOException, InterruptedException, MissingDataException
+	@Override public @Nullable Boolean get()// throws IOException, InterruptedException, MissingDataException
 	{
 		cleanUp();
-
 		try
 		{
 			List<File> parts = new LinkedList<>();
@@ -116,34 +102,26 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			log.info(nr + " Starting download of " + datasetName + ", " + nrEntries + " entries.");
 			int nrOfPages = (int) (Math.ceil((double) nrEntries / PAGE_SIZE));
 
-			partsFolder.mkdirs();
+			partsSubFolder.mkdirs();
 			// starts from beginning when final file already exists
-			File finalFile = new File(partsFolder.toString() + "/" + datasetName + ".final");
+			File finalFile = new File(partsSubFolder.toString() + "/" + datasetName + ".final");
 			if (finalFile.exists())
 			{
-				for (File part : partsFolder.listFiles())
+				for (File part : partsSubFolder.listFiles())
 				{
 					part.delete();
 				}
 			}
 			for (int page = 1; page <= nrOfPages; page++)
 			{
-				if(pauseRequested)
-				{
-					job.setState(State.PAUSED);
-					synchronized(this) {while(pauseRequested&&!stopRequested) wait();}
-					if(!stopRequested) job.setState(State.RUNNING);
-				}
-				if(stopRequested)
-				{
-					break;
-				}
+				pausePoint(this);
+				if(stopRequested) {job.setState(State.STOPPED);break;}
 
 				File f;
-				if(nrOfPages==1) {f=new File(jsonFolder,datasetName+".json");}
+				if(nrOfPages==1) {f=Files.datasetJsonFile(datasetName);}
 				else
 				{
-					f = new File(partsFolder.toString() + "/" + datasetName + "." + (page == nrOfPages ? "final" : page));
+					f = new File(partsSubFolder.toString() + "/" + datasetName + "." + (page == nrOfPages ? "final" : page));
 				}
 				//			if (f.exists()) {continue;}
 				log.fine(nr + " page " + page + "/" + nrOfPages);
@@ -207,10 +185,10 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 
 	private void cleanUp()
 	{
-		if(partsFolder.exists())
+		if(partsSubFolder.exists())
 		{
-			for(File f:partsFolder.listFiles()) {f.delete();}
-			partsFolder.delete();
+			for(File f:partsSubFolder.listFiles()) {f.delete();}
+			partsSubFolder.delete();
 		}
 	}
 
@@ -226,8 +204,8 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 	{
 		//		if(parts.length==0) {throw new MissingDataException(datasetName, "no parts available");}
 		//		getDataFiles(rootPartsFolder)
-		File targetFile = new File(jsonFolder,datasetName+".json");
-		File mergeFile = new File(jsonFolder,datasetName+".json.tmp");
+		File targetFile = Files.datasetJsonFile(datasetName);
+		File mergeFile = new File(targetFile.getAbsolutePath()+".tmp");
 
 		if (targetFile.exists()) {targetFile.delete();}
 		if (mergeFile.exists()) {mergeFile.delete();}

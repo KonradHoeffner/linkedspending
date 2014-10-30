@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.converter;
+package org.aksw.linkedspending.old;
 
 import org.aksw.linkedspending.scheduler.Scheduler;
 import org.aksw.linkedspending.tools.PropertiesLoader;

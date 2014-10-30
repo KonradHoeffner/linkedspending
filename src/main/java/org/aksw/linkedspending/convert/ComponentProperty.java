@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.converter;
+package org.aksw.linkedspending.convert;
 
 import com.hp.hpl.jena.rdf.model.Property;
 import lombok.AllArgsConstructor;

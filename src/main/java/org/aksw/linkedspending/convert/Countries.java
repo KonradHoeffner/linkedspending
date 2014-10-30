@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.converter;
+package org.aksw.linkedspending.convert;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -240,7 +240,7 @@ public class Countries
 		{ "http://linkedgeodata.org/triplify/node424317428", "UZ" },
 		{ "http://linkedgeodata.org/triplify/node432424937", "BD" } };
 
-	static final Map<String, String>	lgdCountryByCode;
+	public static final Map<String, String>	lgdCountryByCode;
 	static
 	{
 		Map<String, String> map = new HashMap<>();

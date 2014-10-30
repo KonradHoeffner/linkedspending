@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.downloader;
+package org.aksw.linkedspending.download;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

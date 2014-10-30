@@ -1,6 +1,7 @@
 package org.aksw.linkedspending.tools;
 
 import lombok.extern.java.Log;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -14,9 +15,7 @@ import java.util.Properties;
 	/** properties */
 	private static HashMap<String, Properties>	propertiesList	= new HashMap<>();
 
-	/** suppression of default constructor */
-	private PropertiesLoader()
-	{}
+	private PropertiesLoader()	{}
 
 	/**
 	 * creates properties from file
@@ -76,4 +75,13 @@ import java.util.Properties;
 		return properties;
 	}
 
+	public static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
+
+	public static final File pathRdf = new File(PROPERTIES.getProperty("pathRdf"));
+	public static final File pathJson = new File(PROPERTIES.getProperty("pathJson"));
+
+	public static final String urlInstance = PROPERTIES.getProperty("urlInstance");
+	public static final String urlOpenSpending = PROPERTIES.getProperty("urlOpenSpending");
+
+	//	minExceptionsForStop
 }
