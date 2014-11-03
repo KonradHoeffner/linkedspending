@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
-import org.aksw.linkedspending.Files;
+import org.aksw.linkedspending.DataSetFiles;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.job.Job;
@@ -77,7 +77,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 	{
 		super(datasetName,job,force);
 		this.nr=counter.getAndIncrement();
-		this.partsSubFolder = Files.partsSubFolder(datasetName);
+		this.partsSubFolder = DataSetFiles.partsSubFolder(datasetName);
 	}
 
 	@Override public @Nullable Boolean get()// throws IOException, InterruptedException, MissingDataException
@@ -118,7 +118,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 				if(stopRequested) {job.setState(State.STOPPED);break;}
 
 				File f;
-				if(nrOfPages==1) {f=Files.datasetJsonFile(datasetName);}
+				if(nrOfPages==1) {f=DataSetFiles.datasetJsonFile(datasetName);}
 				else
 				{
 					f = new File(partsSubFolder.toString() + "/" + datasetName + "." + (page == nrOfPages ? "final" : page));
@@ -204,7 +204,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 	{
 		//		if(parts.length==0) {throw new MissingDataException(datasetName, "no parts available");}
 		//		getDataFiles(rootPartsFolder)
-		File targetFile = Files.datasetJsonFile(datasetName);
+		File targetFile = DataSetFiles.datasetJsonFile(datasetName);
 		File mergeFile = new File(targetFile.getAbsolutePath()+".tmp");
 
 		if (targetFile.exists()) {targetFile.delete();}

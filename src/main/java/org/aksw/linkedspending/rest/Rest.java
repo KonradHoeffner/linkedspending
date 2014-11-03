@@ -1,6 +1,7 @@
 package org.aksw.linkedspending.rest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class Rest
 	{
 		//		System.out.println(datasets());
 		GrizzlyHttpUtil.startThisServer();
-		Thread.sleep(1000000);
+		Thread.sleep(Duration.ofDays(10000).toMillis());
 		//		root();
 	}
 
@@ -150,7 +151,7 @@ public class Rest
 		rootNode.put("datasets", PREFIX+"datasets");
 		rootNode.put("jobs", PREFIX+"jobs");
 		rootNode.put("idle", Job.allIdle());
-		rootNode.put("memory_mb", MemoryBenchmark.updateAndGetMaxMemoryBytes()/1000_000);
+		rootNode.put("memory_mb", MemoryBenchmark.updateAndGetMemoryBytes()/1000_000);
 
 		ArrayNode opNode = mapper.createArrayNode();
 		// should shutdown and remove-all should be under admin

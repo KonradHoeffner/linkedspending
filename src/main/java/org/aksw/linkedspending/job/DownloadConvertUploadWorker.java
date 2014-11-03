@@ -1,0 +1,25 @@
+package org.aksw.linkedspending.job;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import org.aksw.linkedspending.convert.ConvertWorker;
+import org.aksw.linkedspending.download.DownloadWorker;
+import org.aksw.linkedspending.upload.UploadWorker;
+
+public class DownloadConvertUploadWorker extends WorkerSequence
+{
+
+	public DownloadConvertUploadWorker(String datasetName, Job job, boolean force)
+	{
+		super(datasetName, job, true, new LinkedList<WorkerGenerator>
+		(Arrays.asList(DownloadWorker::new,ConvertWorker::new,UploadWorker::new)));
+	}
+
+	@Override public Boolean get()
+	{
+		boolean success = super.get();
+		if(success) {job.setState(State.FINISHED);}
+		return success;
+	}
+
+}

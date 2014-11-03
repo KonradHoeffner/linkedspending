@@ -25,6 +25,7 @@ import org.aksw.linkedspending.exception.NoCurrencyFoundForCodeException;
 import org.aksw.linkedspending.exception.TooManyMissingValuesException;
 import org.aksw.linkedspending.exception.UnknownMappingTypeException;
 import org.aksw.linkedspending.job.Job;
+import org.aksw.linkedspending.job.Phase;
 import org.aksw.linkedspending.job.State;
 import org.aksw.linkedspending.job.Worker;
 import org.aksw.linkedspending.old.JsonDownloaderOld;
@@ -766,6 +767,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 	@Override public Boolean get()
 	{
+		job.setPhase(Phase.CONVERT);
 		// observations use saved datasets so we need the saved names, if we only create the
 		// schema we can use the newest dataset names
 		SortedSet<String> datasetNames = getDownloadedDatasetNames();

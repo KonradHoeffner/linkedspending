@@ -13,4 +13,12 @@ public class MemoryBenchmark
 		return maxMemoryBytes;
 	}
 
+	static public long updateAndGetMemoryBytes()
+	{
+		System.gc();
+		long memoryBytes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		maxMemoryBytes = Math.max(maxMemoryBytes,memoryBytes);
+		return memoryBytes;
+	}
+
 }

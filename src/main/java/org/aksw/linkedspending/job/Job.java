@@ -12,10 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.aksw.linkedspending.download.DownloadWorker;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
@@ -23,9 +20,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import org.aksw.linkedspending.DatasetInfo;
-import org.aksw.linkedspending.DatasetInfos;
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.DatasetInfos;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,6 +35,31 @@ public class Job
 	public AtomicInteger downloadProgressPercent = new AtomicInteger(0);
 	public AtomicInteger convertProgressPercent = new AtomicInteger(0);
 	public AtomicInteger uploadProgressPercent = new AtomicInteger(0);
+
+	static final String ROOT_PREFIX = "http://localhost:10010/";
+	static final String PREFIX = ROOT_PREFIX+"jobs/";
+
+	final public String url;
+	final String datasetName;
+
+	private State state = CREATED;
+	private Phase phase = DOWNLOAD;
+
+	DownloadConvertUploadWorker worker = null;
+
+	SortedMap<Long,Object> history = new TreeMap<>();
+
+	public void addHistory(Object o)
+	{
+		synchronized(history)
+		{
+			long now = Instant.now().toEpochMilli();
+			// We don't value millisecond accuracy that much and messages are not expected to occur so frequently
+			// but dropped messages are really bad.
+			while(history.containsKey(now)) now++;
+			history.put(now, o);
+		}
+	}
 
 	/** dont use it, its for jersey */
 	public Job() {datasetName="dummyForJersey";this.phase=DOWNLOAD;this.url=uriOf(datasetName);}
@@ -85,6 +106,7 @@ public class Job
 				switch(op)
 				{
 					case START:return String.valueOf(job.start());
+					case STOP:job.stop();
 				}
 				return "todo: operation "+op+" on dataset "+datasetName;
 			}
@@ -96,19 +118,19 @@ public class Job
 		catch(DataSetDoesNotExistException e) {return e.getMessage();}
 	}
 
+	private void stop()
+	{
+
+	}
+
 	private Job(String datasetName)
 	{
 		//		future.ex
 		this.datasetName = datasetName;
-		this.phase=DOWNLOAD;
 		this.url=uriOf(datasetName);
 		//		this.prefix=url+'/';
-		history.put(Instant.now().toEpochMilli(), CREATED);
-	}
-
-	static
-	{
-		jobs.put("orcamento_publico",new Job("orcamento_publico"));
+		addHistory(CREATED);
+		addHistory(DOWNLOAD);
 	}
 
 	synchronized public static Job forDataset(String datasetName) throws DataSetDoesNotExistException
@@ -117,22 +139,47 @@ public class Job
 		synchronized(jobs)
 		{
 			Job job = jobs.get(datasetName);
-			if(job==null) {job=new Job(datasetName);}
+			if(job==null)
+			{
+				job=new Job(datasetName);
+				jobs.put(datasetName, job);
+			}
 			return job;
 		}
 	}
 
-	static final String ROOT_PREFIX = "http://localhost:10010/";
-	static final String PREFIX = ROOT_PREFIX+"jobs/";
-	final public String url;
-	//	final String prefix;
+	static final Map<Phase,EnumSet<Phase>> phaseTransitions;
+	static
+	{
+		Map<Phase,EnumSet<Phase>> t = new HashMap<>();
 
-	final String datasetName;
+		t.put(DOWNLOAD,EnumSet.of(CONVERT));
+		t.put(CONVERT,EnumSet.of(UPLOAD));
+		t.put(UPLOAD,EnumSet.noneOf(Phase.class));
+		phaseTransitions = Collections.unmodifiableMap(t);
+	}
 
-	private State state = CREATED;
-
-	//	String errorMessage = "";
-	//	public void setErrorMessage(String errorMessage) {this.errorMessage=errorMessage;}
+	/** @param newPhase the new phase the job shall go into
+	 * @return true iff the job is running and the phase transition is possible
+	 */
+	public boolean setPhase(Phase newPhase)
+	{
+		synchronized(state)
+		{
+			synchronized(phase)
+			{
+				// if stopped, paused, finished or crashed job doesn't move forward so phase can't change
+				if(state!=RUNNING) {return false;}
+				if(phaseTransitions.get(phase).contains(newPhase))
+				{
+					addHistory(newPhase);
+					phase = newPhase;
+					return true;
+				}
+				return false;
+			}
+		}
+	}
 
 	static final Map<State,EnumSet<State>> transitions;
 	static
@@ -148,7 +195,6 @@ public class Job
 		transitions = Collections.unmodifiableMap(t);
 	}
 
-	//	static SortedMap<Pair<State>,String> operationNames = new TreeMap<>();
 	static SortedMap<State,EnumSet<Operation>> operations = new TreeMap<>();
 	static
 	{
@@ -161,24 +207,13 @@ public class Job
 		s.put(FINISHED, EnumSet.noneOf(Operation.class));
 		s.put(PAUSED, EnumSet.noneOf(Operation.class));
 
-		//		SortedMap<Pair<State>,String> s = new TreeMap<>();
-		//		s.put(new Pair<>(CREATED,RUNNING), "start");
-		//		s.put(new Pair<>(CREATED,STOPPED), "stop");
-		//		s.put(new Pair<>(RUNNING,STOPPED), "stop");
-		//		s.put(new Pair<>(PAUSED,STOPPED), "stop");
-		//		s.put(new Pair<>(RUNNING,PAUSED), "pause");
-		//		s.put(new Pair<>(PAUSED,RUNNING), "resume");
 		operations = Collections.unmodifiableSortedMap(s);
 	}
 
 	public EnumSet getOperations() {return operations.get(state);}
 
-	private Phase phase;
-
 	public Phase getPhase() {return phase;}
 	public State getState() {return state;}
-
-	SortedMap<Long,State> history = new TreeMap<>();
 
 	final long created = Instant.now().toEpochMilli();
 
@@ -186,24 +221,16 @@ public class Job
 
 	public boolean setState(State newState)
 	{
-		if(transitions.get(state).contains(newState))
+		synchronized(state)
 		{
-			history.put(Instant.now().toEpochMilli(), newState);
-			state=newState;
-			return true;
+			if(transitions.get(state).contains(newState))
+			{
+				addHistory(newState);
+				state=newState;
+				return true;
+			}
+			return false;
 		}
-		return false;
-	}
-
-	public boolean nextPhase()
-	{
-		if(state!=RUNNING) {return false;}
-		switch(phase)
-		{
-			case DOWNLOAD: phase=CONVERT;break;
-			case CONVERT: phase=UPLOAD;
-		}
-		return true;
 	}
 
 	public synchronized boolean start() throws InterruptedException
@@ -212,35 +239,20 @@ public class Job
 		{
 			try
 			{
-				DownloadWorker downloader = new DownloadWorker(datasetName,this,false);
-				CompletableFuture.supplyAsync(downloader);
-				//				future.
+				DownloadConvertUploadWorker worker = new DownloadConvertUploadWorker (datasetName,this,false);
+				CompletableFuture.supplyAsync(worker);
 			}
 			catch (Exception e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.severe(e.getMessage());
+				addHistory(e.getMessage());
+				setState(FAILED);
 			}
 
 			return true;
 		}
 		return false;
 	}
-
-	//	public boolean pause()
-	//	{
-	//
-	//	}
-	//
-	//		public boolean stop()
-	//		{
-	//
-	//		}
-	//
-	//	public boolean resume()
-	//	{
-	//
-	//	}
 
 	public ObjectNode json()
 	{
@@ -274,11 +286,5 @@ public class Job
 		for(Job job:jobs.values()) {busy^=(job.getState()==RUNNING);}
 		return !busy;
 	}
-
-	//	public static void main(String[] args) throws DataSetDoesNotExistException
-	//	{
-	//		System.out.println(jobs);
-	//		System.out.println(job("berlin_de"));
-	//	}
 
 }

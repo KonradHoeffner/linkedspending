@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
-import org.aksw.linkedspending.Files;
+import org.aksw.linkedspending.DataSetFiles;
 import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.eclipse.jdt.annotation.Nullable;
 import java.io.Closeable;
@@ -22,7 +22,7 @@ public class ResultsReader implements Closeable
 	public ResultsReader(String datasetName) throws IOException
 	{
 		JsonFactory f = new MappingJsonFactory();
-		jp = f.createParser(Files.datasetJsonFile(datasetName));
+		jp = f.createParser(DataSetFiles.datasetJsonFile(datasetName));
 		JsonToken current = jp.nextToken();
 		if (current != JsonToken.START_OBJECT)
 		{

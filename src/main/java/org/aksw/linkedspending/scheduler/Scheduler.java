@@ -329,6 +329,7 @@ import org.aksw.linkedspending.tools.ConverterSleeper;
 
 	public static void main(String[] args)
 	{
+		System.out.println("Scheduler Main");
 		// ScheduleTimeHandler sth = new ScheduleTimeHandler();
 		scheduleTimeHandler = new ScheduleTimeHandler();
 		scheduleTimeThread = new Thread(scheduleTimeHandler);

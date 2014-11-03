@@ -3,7 +3,8 @@ openspending2rdf
 
 Usage
 -----
-Run JsonDownloader first and then Main. Needs a few hours of time and about 20 GB.
+Copy src/main/resources/credentials.properties.dist to ../credentials.properties and fill in your Virtuoso credentials.
+Start org.aksw.linkedspending.Rest and access http://localhost:10010/datasets in your browser.
 propertymapping.tsv is empty right now but can be filled with property mappings which differ from the automatic nameing scheme.
 
 Development
@@ -14,7 +15,7 @@ Uses Project Lombok so you may have to integrate it into your GUI if you develop
 Code Style
 ----------
 - see codeprofile.xml (Eclipse CodeFormatter profile)
-- Java conventions: camel 
+- Java conventions: camel
 - braces on the next line:
 class X
 {
