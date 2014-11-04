@@ -263,7 +263,9 @@ public class Job
 		rootNode.put("age",Duration.ofMillis(Instant.now().toEpochMilli()-history.firstKey()).toString());
 		rootNode.put("url", url);
 		rootNode.put("seealso", "https://openspending.org/"+datasetName+".json");
-
+		rootNode.put("download_progress_percent", downloadProgressPercent.toString());
+		rootNode.put("convert_progress_percent", convertProgressPercent.toString());
+		rootNode.put("upload_progress_percent", uploadProgressPercent.toString());
 		ArrayNode operationsNode = mapper.createArrayNode();
 		rootNode.put("operations", operationsNode);
 		for(Operation op: operations.get(state)) {operationsNode.add(url+'/'+op.name().toLowerCase());}

@@ -626,12 +626,13 @@ import de.konradhoeffner.commons.TSVReader;
 								JsonNode jsonDate = result.get(d.name);
 								// String week = date.get("week");
 								int year = jsonDate.get("year").asInt();
-								int month = jsonDate.get("month").asInt();
-								int day = jsonDate.get("day").asInt();
+								String sYear = String.format("%04d",year);
+								String sMonth = String.format("%02d",jsonDate.get("month").asInt());
+								String sDay = String.format("%02d",jsonDate.get("day").asInt());
 								model.addLiteral(observation, DataModel.LSOntology.getRefDate(),
-										model.createTypedLiteral(year + "-" + month + "-" + day, XSD.date.getURI()));
+										model.createTypedLiteral(sYear + "-" + sMonth + "-" + sDay, XSD.date.getURI()));
 								model.addLiteral(observation, DataModel.LSOntology.getRefYear(),
-										model.createTypedLiteral(year, XSD.gYear.getURI()));
+										model.createTypedLiteral(sYear, XSD.gYear.getURI()));
 								years.add(year);
 							}
 						}
@@ -767,6 +768,9 @@ import de.konradhoeffner.commons.TSVReader;
 
 	@Override public Boolean get()
 	{
+		com.hp.hpl.jena.shared.impl.JenaParameters.enableEagerLiteralValidation=true;
+		com.hp.hpl.jena.shared.impl.JenaParameters.enableSilentAcceptanceOfUnknownDatatypes=false;
+
 		job.setPhase(Phase.CONVERT);
 		// observations use saved datasets so we need the saved names, if we only create the
 		// schema we can use the newest dataset names

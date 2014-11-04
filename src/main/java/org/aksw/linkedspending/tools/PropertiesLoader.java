@@ -78,12 +78,15 @@ import java.util.Properties;
 	public static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
 	public static final Properties UPLOAD = PropertiesLoader.getProperties("upload.properties");
 
+	public static final String urlDatasets = PROPERTIES.getProperty("urlDatasets");
+
 	public static final File pathRdf = new File(PROPERTIES.getProperty("pathRdf"));
 	public static final File pathJson = new File(PROPERTIES.getProperty("pathJson"));
 
 	public static final String urlInstance = PROPERTIES.getProperty("urlInstance");
 	public static final String urlOpenSpending = PROPERTIES.getProperty("urlOpenSpending");
 
+	public static final String virtuosoGraph = UPLOAD.getProperty("graph");
 	public static final String virtuosoUrl = UPLOAD.getProperty("url");
 	public static final String virtuosoUser = UPLOAD.getProperty("user");
 	public static final String virtuosoPassword = UPLOAD.getProperty("password");

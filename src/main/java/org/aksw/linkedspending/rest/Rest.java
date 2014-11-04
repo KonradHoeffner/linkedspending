@@ -96,7 +96,7 @@ public class Rest
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
 		tableSb.append("<table border=1><tr><th>dataset</th><th>converted</th><th>modified</th><th>job</th></tr>\n");
-		SortedMap<String,DatasetInfo> datasetInfos = JsonDownloaderOld.getDatasetInfosCached();
+		SortedMap<String,DatasetInfo> datasetInfos = JsonDownloaderOld.getDatasetInfosFresh();
 		for(String dataset: datasetInfos.keySet())
 		{
 			DatasetInfo datasetInfo = datasetInfos.get(dataset);

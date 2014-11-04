@@ -45,7 +45,6 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 	}
 
 	/** external properties to be used in Project */
-	private static final Properties		PROPERTIES			= PropertiesLoader.getProperties("environmentVariables.properties");
 	/** testmode that makes Downloader only download a specific dataset */
 	static String						TEST_MODE			= null;
 	/**
@@ -226,7 +225,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			// either caching didn't work or it is disabled
 			if(datasets==null)
 			{
-				datasets = m.readTree(new URL(PROPERTIES.getProperty("urlDatasets")));
+				datasets = m.readTree(PropertiesLoader.urlDatasets);
 				m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 			}
 
