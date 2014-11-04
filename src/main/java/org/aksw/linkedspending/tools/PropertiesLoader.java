@@ -76,7 +76,7 @@ import java.util.Properties;
 	}
 
 	public static final Properties PROPERTIES = PropertiesLoader.getProperties("environmentVariables.properties");
-	public static final Properties CREDENTIALS = PropertiesLoader.getProperties("credentials.properties");
+	public static final Properties UPLOAD = PropertiesLoader.getProperties("upload.properties");
 
 	public static final File pathRdf = new File(PROPERTIES.getProperty("pathRdf"));
 	public static final File pathJson = new File(PROPERTIES.getProperty("pathJson"));
@@ -84,7 +84,7 @@ import java.util.Properties;
 	public static final String urlInstance = PROPERTIES.getProperty("urlInstance");
 	public static final String urlOpenSpending = PROPERTIES.getProperty("urlOpenSpending");
 
-	public static final String virtuosoUser = CREDENTIALS.getProperty("user");
-	public static final String virtuosoPassword = CREDENTIALS.getProperty("password");
-
+	public static final String virtuosoUrl = UPLOAD.getProperty("url");
+	public static final String virtuosoUser = UPLOAD.getProperty("user");
+	public static final String virtuosoPassword = UPLOAD.getProperty("password");
 }

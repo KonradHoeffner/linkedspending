@@ -1,3 +1,8 @@
 # Copy this file to credentials.properties and fill in your virtuoso credentials. We make no guarantee of secure transmission of them.
+# Example
+#url=jdbc:virtuoso://localhost:1111
+#user=dba
+#password=dba
+url=
 user=
 password=
