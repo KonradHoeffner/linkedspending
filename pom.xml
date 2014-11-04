@@ -119,10 +119,10 @@
 	</dependencies>
 
 	<repositories>
-		<repository>
+<!--		<repository>
 			<id>m2test</id>
 			<url>http://build.eclipse.org/tools/objectteams/m2test</url>
-		</repository>
+		</repository>-->
 		<repository>
 			<id>maven.aksw.internal</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
