@@ -18,7 +18,8 @@ public class UploadWorker extends Worker
 	// using virt-jena, doesn't work
 	static void uploadDataSet(String datasetName)
 	{
-		VirtGraph graph = new VirtGraph("jdbc:virtuoso://[2001:638:902:2010:0:168:35:119]:1111",
+//		VirtGraph graph = new VirtGraph("jdbc:virtuoso://[2001:638:902:2010:0:168:35:119]:1111",
+		VirtGraph graph = new VirtGraph("jdbc:virtuoso://localhost:1111",
 				PropertiesLoader.virtuosoUser,PropertiesLoader.virtuosoPassword);
 		VirtuosoUpdateRequest request = VirtuosoUpdateFactory.read(new File(DataSetFiles.RDF_FOLDER,datasetName+".nt").getAbsolutePath(),graph);
 	}
