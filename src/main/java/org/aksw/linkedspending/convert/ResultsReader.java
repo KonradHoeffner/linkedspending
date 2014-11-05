@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import org.aksw.linkedspending.DataSetFiles;
-import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.eclipse.jdt.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;

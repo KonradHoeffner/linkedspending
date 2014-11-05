@@ -2,9 +2,9 @@ package org.aksw.linkedspending.downloader;
 
 import java.io.IOException;
 import org.aksw.linkedspending.download.DownloadWorker;
+import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.job.Job;
-import org.aksw.linkedspending.job.Job.DataSetDoesNotExistException;
 import org.junit.Test;
 
 public class DownloadWorkerTest

@@ -2,7 +2,7 @@ package org.aksw.linkedspending.rest;
 
 import static org.junit.Assert.assertTrue;
 import java.util.Map;
-import org.aksw.linkedspending.rest.Sparql;
+import org.aksw.linkedspending.Sparql;
 import org.junit.Test;
 
 public class SparqlTest

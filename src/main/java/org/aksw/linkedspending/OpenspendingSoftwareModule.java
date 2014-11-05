@@ -29,8 +29,7 @@ import java.util.logging.LogManager;
 	/** ???is a cache if USE_CACHE=true, otherwise null */
 	protected static final Cache				cache			= USE_CACHE ? CacheManager.getInstance().getCache("openspending-json") : null;
 	/** external properties to be used in Project */
-	protected static final Properties			PROPERTIES		= PropertiesLoader
-																		.getProperties("environmentVariables.properties");
+
 	/** sets downloader stopable */
 	protected static boolean					stopRequested	= false;
 	/** pauses downloader until set to false again */
@@ -40,9 +39,7 @@ import java.util.logging.LogManager;
 	/** used to convert from JSON-file to Java-object and vice versa */
 	protected static ObjectMapper				m				= new ObjectMapper();
 	/** the name of the folder, where the downloaded JSON-files are stored */
-	public static File							pathJson		= new File(PROPERTIES.getProperty("pathJson"));
-	/** the name of the folder, where the downloaded RDF-files are stored */
-	public static File							pathRdf			= new File(PROPERTIES.getProperty("pathRdf"));
+
 	static
 	{
 		try
@@ -212,7 +209,7 @@ import java.util.logging.LogManager;
 	 */
 	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
-		return readJSON(new URL(PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/entries.json?pagesize=0"))
+		return readJSON(new URL(PropertiesLoader.prefixOpenSpending + datasetName + "/entries.json?pagesize=0"))
 				.get("stats").get("results_count_query").asInt();
 	}
 

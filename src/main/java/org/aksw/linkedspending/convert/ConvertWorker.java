@@ -28,7 +28,6 @@ import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.job.Phase;
 import org.aksw.linkedspending.job.State;
 import org.aksw.linkedspending.job.Worker;
-import org.aksw.linkedspending.old.JsonDownloaderOld;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.JsonReader;
@@ -162,17 +161,21 @@ import de.konradhoeffner.commons.TSVReader;
 	MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException, InterruptedException
 	{
 		@NonNull
-		URL url = new URL(PropertiesLoader.urlInstance + datasetName); // linkedspending
+		URL url = new URL(PropertiesLoader.prefixInstance + datasetName); // linkedspending
 		@NonNull
-		URL sourceUrl = new URL(PropertiesLoader.urlOpenSpending + datasetName + ".json");
+		URL sourceUrl = new URL(PropertiesLoader.prefixOpenSpending + datasetName + ".json");
 		@NonNull
 		JsonNode datasetJson = JsonReader.read(sourceUrl);
 		@NonNull
 		Resource dataSet = model.createResource(url.toString());
 		@NonNull
 		Resource dsd = createDataStructureDefinition(new URL(url + "/model"), model);
-		model.add(dataSet, DCTerms.source, model.createResource(PropertiesLoader.urlOpenSpending + datasetName));
+		model.add(dataSet, DCTerms.source, model.createResource(PropertiesLoader.prefixOpenSpending + datasetName));
+		String modified = Calendar.getInstance().toString();
+
 		model.add(dataSet, DCTerms.created, model.createTypedLiteral(Calendar.getInstance()));
+		model.add(dataSet, DCTerms.modified, model.createTypedLiteral(modified));
+
 
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided
 		// to define it for each observation
@@ -208,7 +211,7 @@ import de.konradhoeffner.commons.TSVReader;
 		try
 		{
 			componentProperties = createComponents(
-					JsonReader.read(new URL(PropertiesLoader.urlOpenSpending + datasetName + "/model")).get("mapping"), model,
+					JsonReader.read(new URL(PropertiesLoader.prefixOpenSpending + datasetName + "/model")).get("mapping"), model,
 					datasetName, dataSet, dsd, defaultYear != null);
 		}
 		catch (MissingDataException | UnknownMappingTypeException e)
@@ -529,7 +532,7 @@ import de.konradhoeffner.commons.TSVReader;
 				String osUri = result.get("html_url").asText();
 				Resource osObservation = model.createResource();
 				String suffix = osUri.substring(osUri.lastIndexOf('/') + 1);
-				String lsUri = PropertiesLoader.urlInstance + "observation-" + datasetName + "-" + suffix;
+				String lsUri = PropertiesLoader.prefixInstance + "observation-" + datasetName + "-" + suffix;
 				Resource observation = model.createResource(lsUri);
 				model.add(observation, RDFS.label, datasetName + " observation " + suffix);
 				model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
@@ -547,9 +550,9 @@ import de.konradhoeffner.commons.TSVReader;
 						missing = (missing == null) ? 1 : missing + 1;
 						missingForProperty.put(d, missing);
 						missingValues++;
-						int minMissing = Integer.parseInt(PropertiesLoader.PROPERTIES.getProperty("minValuesMissingForStop"));
-						int maxMissing = Integer.parseInt(PropertiesLoader.PROPERTIES.getProperty("maxValuesMissingLogged"));
-						float missingStopRatio = Float.parseFloat(PropertiesLoader.PROPERTIES.getProperty("datasetMissingStopRatio"));
+						int minMissing =PropertiesLoader.minValuesMissingForStop;
+						int maxMissing = PropertiesLoader.maxValuesMissingLogged;
+						double missingStopRatio = PropertiesLoader.datasetMissingStopRatio;
 						if (missingForProperty.get(d) <= maxMissing)
 						{
 							log.warning("no entry for property " + d.name + " at entry " + result);
@@ -686,7 +689,7 @@ import de.konradhoeffner.commons.TSVReader;
 					// add the countries to the observations as well (not just the dataset)
 					model.add(observation, DataModel.SdmxAttribute.getRefArea(), country);
 				}
-				if (model.size() > Integer.parseInt(PropertiesLoader.PROPERTIES.getProperty("maxModelTriples")))
+				if (model.size() > PropertiesLoader.maxModelTriples)
 				{
 					log.finer("writing triples");
 					writeModel(model, out);
@@ -735,12 +738,12 @@ import de.konradhoeffner.commons.TSVReader;
 
 	public static void createViews(String datasetName, Model model, Resource dataSet) throws IOException
 	{
-		ArrayNode views = readArrayNode(new URL(PropertiesLoader.PROPERTIES.getProperty("urlOpenSpending") + datasetName + "/views.json"));
+		ArrayNode views = readArrayNode(new URL(PropertiesLoader.prefixOpenSpending + datasetName + "/views.json"));
 		for (int i = 0; i < views.size(); i++)
 		{
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
-			Resource view = model.createResource(PropertiesLoader.urlInstance + datasetName + "/views/" + name);
+			Resource view = model.createResource(PropertiesLoader.prefixInstance + datasetName + "/views/" + name);
 			model.add(view, RDF.type, DataModel.DataCube.getSliceResource());
 			model.add(dataSet, DataModel.DataCube.getSlice(), view);
 			String label = jsonView.get("label").asText();
@@ -778,7 +781,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 		Model model = DataModel.newModel();
 		File ntriples = getDatasetFile(datasetName);
-		File json = new File(PropertiesLoader.PROPERTIES.getProperty("pathJson") + datasetName+".json");
+		File json = new File(PropertiesLoader.pathJson + datasetName+".json");
 		// skip some files
 		if (!force&&ntriples.exists() && ntriples.length() > 0 && ntriples.lastModified() >= json.lastModified())
 		{
