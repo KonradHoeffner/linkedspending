@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,7 +18,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DataSetFiles;
@@ -28,8 +26,6 @@ import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.job.State;
 import org.aksw.linkedspending.job.Worker;
-import org.aksw.linkedspending.old.JsonDownloaderOld;
-import org.aksw.linkedspending.scheduler.Scheduler;
 import org.eclipse.jdt.annotation.Nullable;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,17 +55,17 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 
 	private static void markAsEmpty(String datasetName) throws FileNotFoundException, IOException
 	{
-		synchronized (emptyDatasets)
-		{
-			if(emptyDatasets.add(datasetName))
-			{
-				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
-				{
-					log.fine("serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to empty dataset list file");
-					out.writeObject(JsonDownloaderOld.emptyDatasets);
-				}
-			}
-		}
+//		synchronized (emptyDatasets)
+//		{
+//			if(emptyDatasets.add(datasetName))
+//			{
+//				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
+//				{
+//					log.fine("serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to empty dataset list file");
+//					out.writeObject(JsonDownloaderOld.emptyDatasets);
+//				}
+//			}
+//		}
 	}
 
 	/** @see Worker() */
@@ -159,7 +155,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			if (stopRequested)
 			{
 				// System.out.println("Aborting DownloadCallable");
-				Scheduler.getDownloader().getUnfinishedDatasets().add(datasetName);
+//				JsonDownloaderOld.getUnfinishedDatasets().add(datasetName);
 				log.warning("Stopped download of dataset "+datasetName);
 				job.setState(State.STOPPED);
 				cleanUp();
@@ -170,7 +166,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			// "echo ']}' >> '@'"
 			// where /tmp/problems is the file containing the list of files with the error
 			log.info(nr + " Finished download of " + datasetName + ".");
-			Scheduler.getDownloader().getFinishedDatasets().add(datasetName);
+
 			//		Scheduler
 			//				.getDownloader()
 			//				.getEventContainer()

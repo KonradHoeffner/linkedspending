@@ -21,7 +21,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import lombok.extern.java.Log;
-import org.aksw.linkedspending.DatasetInfos;
+import org.aksw.linkedspending.OpenSpendingDatasetInfo;
+import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -64,14 +65,6 @@ public class Job
 	/** dont use it, its for jersey */
 	public Job() {datasetName="dummyForJersey";this.phase=DOWNLOAD;this.url=uriOf(datasetName);}
 
-	static public class DataSetDoesNotExistException extends Exception
-	{
-		public DataSetDoesNotExistException(String datasetName)
-		{
-			super("dataset \""+datasetName+"\" is not present at OpenSpending (in case of old cache, refresh it).");
-		}
-	}
-
 	static public Map<String,Job> jobs = new HashMap<>();
 
 	@GET @Path("") @Produces("application/json")
@@ -106,7 +99,8 @@ public class Job
 				switch(op)
 				{
 					case START:return String.valueOf(job.start());
-					case STOP:job.stop();
+					case STOP:job.stop();break;
+					default:;
 				}
 				return "todo: operation "+op+" on dataset "+datasetName;
 			}
@@ -135,7 +129,7 @@ public class Job
 
 	synchronized public static Job forDataset(String datasetName) throws DataSetDoesNotExistException
 	{
-		if(!DatasetInfos.getDatasetInfosCached().keySet().contains(datasetName)) throw new DataSetDoesNotExistException(datasetName);
+		if(!OpenSpendingDatasetInfo.getDatasetInfosCached().keySet().contains(datasetName)) throw new DataSetDoesNotExistException(datasetName);
 		synchronized(jobs)
 		{
 			Job job = jobs.get(datasetName);
@@ -210,7 +204,7 @@ public class Job
 		operations = Collections.unmodifiableSortedMap(s);
 	}
 
-	public EnumSet getOperations() {return operations.get(state);}
+	public EnumSet<Operation> getOperations() {return operations.get(state);}
 
 	public Phase getPhase() {return phase;}
 	public State getState() {return state;}

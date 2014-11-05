@@ -11,9 +11,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import org.aksw.linkedspending.DatasetInfo;
+import org.aksw.linkedspending.OpenSpendingDatasetInfo;
+import org.aksw.linkedspending.Sparql;
 import org.aksw.linkedspending.job.Job;
-import org.aksw.linkedspending.old.JsonDownloaderOld;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -96,10 +96,10 @@ public class Rest
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
 		tableSb.append("<table border=1><tr><th>dataset</th><th>converted</th><th>modified</th><th>job</th></tr>\n");
-		SortedMap<String,DatasetInfo> datasetInfos = JsonDownloaderOld.getDatasetInfosFresh();
+		SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
 		for(String dataset: datasetInfos.keySet())
 		{
-			DatasetInfo datasetInfo = datasetInfos.get(dataset);
+			OpenSpendingDatasetInfo datasetInfo = datasetInfos.get(dataset);
 			String converted;
 			Long time = sparqlDatasets.get(dataset);
 			String color;

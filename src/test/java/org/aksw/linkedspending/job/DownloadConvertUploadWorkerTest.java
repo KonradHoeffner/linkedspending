@@ -1,6 +1,6 @@
 package org.aksw.linkedspending.job;
 
-import org.aksw.linkedspending.job.Job.DataSetDoesNotExistException;
+import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.junit.Test;
 
 public class DownloadConvertUploadWorkerTest

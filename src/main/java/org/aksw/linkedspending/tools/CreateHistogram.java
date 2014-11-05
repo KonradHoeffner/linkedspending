@@ -1,4 +1,4 @@
-package org.aksw.linkedspending;
+package org.aksw.linkedspending.tools;
 
 import java.io.File;
 import java.io.IOException;

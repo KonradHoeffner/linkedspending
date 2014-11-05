@@ -1,4 +1,4 @@
-package org.aksw.linkedspending.rest;
+package org.aksw.linkedspending;
 
 import java.time.Instant;
 import java.util.SortedMap;
