@@ -8,7 +8,7 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import org.aksw.linkedspending.tools.EventNotificationContainer;
-import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import java.io.File;
 import java.io.IOException;
@@ -209,7 +209,7 @@ import java.util.logging.LogManager;
 	 */
 	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
-		return readJSON(new URL(PropertiesLoader.prefixOpenSpending + datasetName + "/entries.json?pagesize=0"))
+		return readJSON(new URL(PropertyLoader.prefixOpenSpending + datasetName + "/entries.json?pagesize=0"))
 				.get("stats").get("results_count_query").asInt();
 	}
 

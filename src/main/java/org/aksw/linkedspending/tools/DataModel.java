@@ -21,7 +21,7 @@ public class DataModel
 	{
 		Model model = ModelFactory.createMemModelMaker().createDefaultModel();
 		model.setNsPrefix("qb", "http://purl.org/linked-data/cube#");
-		model.setNsPrefix("ls", PropertiesLoader.prefixInstance);
+		model.setNsPrefix("ls", PropertyLoader.prefixInstance);
 		model.setNsPrefix("lso", LSOntology.uri);
 		model.setNsPrefix("sdmx-subject", "http://purl.org/linked-data/sdmx/2009/subject#");
 		model.setNsPrefix("sdmx-dimension", "http://purl.org/linked-data/sdmx/2009/dimension#");
@@ -96,7 +96,7 @@ public class DataModel
 	/** Linked Spending ontology */
 	static public class LSOntology
 	{
-		@Getter static public final String		uri								= PropertiesLoader.prefixOntology;
+		@Getter static public final String		uri								= PropertyLoader.prefixOntology;
 		@Getter static public final Resource	countryComponent				= ResourceFactory.createResource(uri
 																				+ "CountryComponentSpecification");
 		@Getter static public final Resource	dateComponentSpecification		= ResourceFactory.createResource(uri

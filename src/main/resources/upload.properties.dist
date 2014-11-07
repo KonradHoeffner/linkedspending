@@ -1,6 +1,7 @@
 # Copy this file to credentials.properties and fill in your virtuoso credentials. We make no guarantee of secure transmission of them.
 # Example
-#url=jdbc:virtuoso://localhost:1111
+#jdbcUrl=jdbc:virtuoso://localhost:1111
+#jdbcUser=dba
+#jdbcPassword=dba
 #graph=http://linkedspending.aksw.org/
-#user=dba
-#password=dba
+#endpoint=http://linkedspending.aksw.org/sparql

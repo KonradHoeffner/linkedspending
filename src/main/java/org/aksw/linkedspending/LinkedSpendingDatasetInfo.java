@@ -1,17 +1,23 @@
 package org.aksw.linkedspending;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.java.Log;
-import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 
 @Log
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@ToString
 /** Represents information about RDF datasets on LinkedSpending and offers utility methods to collect it from the SPARQL endpoint.*/
 public class LinkedSpendingDatasetInfo
 {
@@ -26,17 +32,46 @@ public class LinkedSpendingDatasetInfo
 		return Instant.parse(n.asLiteral().getLexicalForm());
 	}
 
-	/** fresh dataset information from OpenSpending about a single dataset	 */
-	public static Optional<LinkedSpendingDatasetInfo> forDataset(String datasetName)
+	/** fresh dataset information from SPARQL endpoint about a single dataset	 */
+	public static Map<String,LinkedSpendingDatasetInfo> all()
 	{
-			String d = "<"+PropertiesLoader.prefixInstance+datasetName+">";
-			ResultSet rs = Sparql.select("select ?c ?m ?sc ?sm {"+d+" dcterms:created ?c. "+d+" dcterms:modified ?modified."
-					+ ""+d+" lso:sourceCreated ?sc. "+d+" lso:sourceModified ?sm}");
-			if(!rs.hasNext()) {return Optional.empty();}
+		Map<String,LinkedSpendingDatasetInfo> infos = new HashMap<>();
+		String query = "select ?name ?c ?m ?sc ?sm {?d a qb:DataSet. ?d dcterms:identifier ?name. ?d dcterms:created ?c. ?d dcterms:modified ?m."
+				+ "?d lso:sourceCreated ?sc. ?d lso:sourceModified ?sm}";
+		ResultSet rs = Sparql.selectPrefixed(query);
+
+		while(rs.hasNext())
+		{
 			QuerySolution qs = rs.next();
-			return Optional.of(new LinkedSpendingDatasetInfo(datasetName, nodeToInstant(qs.get("c")), nodeToInstant(qs.get("m")),
+			String datasetName = qs.get("name").asLiteral().getLexicalForm();
+			infos.put(datasetName,new LinkedSpendingDatasetInfo(datasetName, nodeToInstant(qs.get("c")), nodeToInstant(qs.get("m")),
 					nodeToInstant(qs.get("sc")), nodeToInstant(qs.get("sm"))));
+
+		}
+		return infos;
 	}
 
+	/** fresh dataset information from SPARQL endpoint about a single dataset	 */
+	public static Optional<LinkedSpendingDatasetInfo> forDataset(String datasetName)
+	{
+		String d = "<"+PropertyLoader.prefixInstance+datasetName+">";
+		String query = "select ?c ?m ?sc ?sm {"+d+" dcterms:created ?c. "+d+" dcterms:modified ?m."
+				+ ""+d+" lso:sourceCreated ?sc. "+d+" lso:sourceModified ?sm}";
+		ResultSet rs = Sparql.selectPrefixed(query);
+
+		if(!rs.hasNext()) {return Optional.empty();}
+		QuerySolution qs = rs.next();
+		return Optional.of(new LinkedSpendingDatasetInfo(datasetName, nodeToInstant(qs.get("c")), nodeToInstant(qs.get("m")),
+				nodeToInstant(qs.get("sc")), nodeToInstant(qs.get("sm"))));
+	}
+
+	// name is "primary key"
+	@Override public int hashCode() {return name.hashCode();}
+
+	@Override public boolean equals(Object obj)
+	{
+		if(!(obj instanceof LinkedSpendingDatasetInfo)) return false;
+		return this.name.equals(((LinkedSpendingDatasetInfo)obj).name);
+	}
 
 }

@@ -2,15 +2,17 @@ package org.aksw.linkedspending;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import lombok.ToString;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
-import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /** Represents information about source datasets from OpenSpending and offers utility methods to collect it from the OpenSpending JSON API.*/
 @Log
+@ToString
 public class OpenSpendingDatasetInfo
 {
 	public final String name;
@@ -83,7 +86,7 @@ public class OpenSpendingDatasetInfo
 			// either caching didn't work or it is disabled
 			if(datasets==null)
 			{
-				datasets = m.readTree(PropertiesLoader.urlDatasets);
+				datasets = m.readTree(PropertyLoader.urlDatasets);
 				m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 			}
 
@@ -104,12 +107,18 @@ public class OpenSpendingDatasetInfo
 		catch(IOException e) {throw new RuntimeException(e);}
 	}
 
-	/** fresh dataset information from OpenSpending about a single dataset	 */
-	public static OpenSpendingDatasetInfo osDatasetInfo(String datasetName) throws DataSetDoesNotExistException
+	/** fresh dataset information from OpenSpending about a single dataset
+	 * @param datasetName the identifier of the dataset, such as "2013" or "berlin_de"
+	 * @return a representation of the dataset meta data
+	 * @throws DataSetDoesNotExistException in case the dataset does not exist in OpenSpending.
+	 * This results in an exception while it doesn't for LinkedSpendingDatasetInfo
+	 * because a dataset from the OpenSpending dataset list should always exist at OpenSpending. */
+	public static OpenSpendingDatasetInfo forDataset(String datasetName) throws DataSetDoesNotExistException
 	{
 		try
 		{
-			JsonNode datasetJson = m.readTree(PropertiesLoader.prefixOpenSpending);
+			URL url = new URL(PropertyLoader.prefixOpenSpending+datasetName+".json");
+			JsonNode datasetJson = m.readTree(url);
 			return new OpenSpendingDatasetInfo(datasetName,
 					Instant.parse(datasetJson.get("timestamps").get("created").asText()+'Z'),
 					Instant.parse(datasetJson.get("timestamps").get("last_modified").asText()+'Z'));

@@ -41,7 +41,6 @@ public class TSVReader implements Closeable
 	{
 		if (!hasNextTokens()) return null;
 		String[] tokens = peekLine.split("[\\s\t]+");
-		// System.out.println(Arrays.toString(tokens));
 		peekLine = null;
 		return tokens;
 	}

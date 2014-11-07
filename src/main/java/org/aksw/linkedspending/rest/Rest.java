@@ -4,15 +4,22 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.Sparql;
+import org.aksw.linkedspending.Virtuoso;
+import org.aksw.linkedspending.job.Boss;
 import org.aksw.linkedspending.job.Job;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -22,9 +29,15 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 @Path("")
 public class Rest
 {
-
 	static final String PREFIX = "http://localhost:10010/";
-	//
+
+	/** called by jersey on startup, initializes graph groups
+	 */
+	public Rest()
+	{
+		Virtuoso.createGraphGroup();
+	}
+
 	@GET @Path("listcommands")// @Produces("text/html")
 	public static String listCommands()
 	{
@@ -57,6 +70,8 @@ public class Rest
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
 		//		System.out.println(datasets());
+		Executors.newScheduledThreadPool(10).scheduleAtFixedRate(new Boss(),0,3,TimeUnit.MINUTES);
+
 		GrizzlyHttpUtil.startThisServer();
 		Thread.sleep(Duration.ofDays(10000).toMillis());
 		//		root();
@@ -91,50 +106,59 @@ public class Rest
 		Set<String> updateCandidates = new TreeSet<>();
 
 		StringBuffer sb = new StringBuffer("<meta charset=\"UTF-8\"><html><body>");
-		Map<String,Long> sparqlDatasets = Sparql.datasetsByName();
+		Map<String,LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
 
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
-		tableSb.append("<table border=1><tr><th>dataset</th><th>converted</th><th>modified</th><th>job</th></tr>\n");
+		tableSb.append("<table border=1><tr><th>dataset</th><th>modified</th><th>created</th><th>source modified</th><th> source created</th><th>job</th></tr>\n");
 		SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
 		for(String dataset: datasetInfos.keySet())
 		{
-			OpenSpendingDatasetInfo datasetInfo = datasetInfos.get(dataset);
-			String converted;
-			Long time = sparqlDatasets.get(dataset);
+			OpenSpendingDatasetInfo osInfo = datasetInfos.get(dataset);
+			LinkedSpendingDatasetInfo lsInfo = lsInfos.get(dataset);
+
+			final String tdModified;
+			final String tdCreated;
+
 			String color;
-			if(time==null)
+			if(lsInfo==null)
 			{
-				converted = "<td bgcolor=\"black\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
+				tdModified = "<td bgcolor=\"black\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
+				tdCreated = "<td bgcolor=\"black\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
 				color = "white";
 			}
 			else
 			{
-				Instant convertedInstant = Instant.ofEpochMilli(time);
-				if(convertedInstant.isBefore(datasetInfo.modified))
+				//				Instant modifiedInstant = Instant.ofEpochMilli(modified);
+				if(lsInfo.modified.isBefore(osInfo.modified))
 				{
 					color="orange";
+					// TODO what is this?
 					updateCandidates.add(dataset);
 				}
 				else
 				{
 					color="lightgreen";
 				}
-				converted = "<td bgcolor=\""+color+"\">"+convertedInstant+"</td>";
+				tdModified = "<td bgcolor=\""+color+"\">"+lsInfo.modified+"</td>";
+				tdCreated = "<td>"+lsInfo.created+"</td>";
 			}
 
-			String modified = "<td bgcolor=\""+color+"\">"+datasetInfo.modified+"</td>";
+			// TODO increase performance by doing it all at once together with
+			String tdSourceModified = "<td bgcolor='"+color+"'>"+osInfo.modified+"</td>";
+			String tdSourceCreated = "<td>"+osInfo.modified+"</td>";
 
 			//			//			String created = ?Instant.ofEpochMilli(sparqlDatasets.get(dataset)).toString():"";
-			tableSb.append("<tr><td>"+dataset+"</td>"+converted+modified+"</td><td>"+jobLink(dataset)+"</td></tr>\n");
+			tableSb.append("<tr><td>"+dataset+"</td>"+tdModified+tdCreated+tdSourceModified+tdSourceCreated+"</td><td>"+jobLink(dataset)+"</td></tr>\n");
 			//			//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
 		}
 
 		tableSb.append("</table>");
 
-		sb.append("... <a href='...'>new datasets</a> on openspending <a href=''>convert them</a></br>\n");
-		sb.append(updateCandidates.size()+" <a href='...'>modified datasets</a> on openspending <a href=''>update them</a></br>\n");
-		sb.append("... <a href='...'>datasets with conversion errors</a> <a href=''>try them again</a></br>\n");
+		// TODO implement selective mass operations
+		//		sb.append("... <a href='...'>new datasets</a> on openspending <a href=''>convert them</a></br>\n");
+		//		sb.append(updateCandidates.size()+" <a href='...'>modified datasets</a> on openspending <a href=''>update them</a></br>\n");
+		//		sb.append("... <a href='...'>datasets with conversion errors</a> <a href=''>try them again</a></br>\n");
 
 		sb.append(tableSb);
 

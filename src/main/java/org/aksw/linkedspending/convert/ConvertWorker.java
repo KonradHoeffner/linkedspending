@@ -1,10 +1,7 @@
 package org.aksw.linkedspending.convert;
 
-import static org.aksw.linkedspending.tools.EventNotification.EventSource.CONVERTER;
-import static org.aksw.linkedspending.tools.EventNotification.EventType.*;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,13 +9,14 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import lombok.NonNull;
 import lombok.extern.java.Log;
-import net.sf.ehcache.CacheManager;
-import org.aksw.linkedspending.OpenspendingSoftwareModule;
+import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
+import org.aksw.linkedspending.OpenSpendingDatasetInfo;
+import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.exception.DatasetHasNoCurrencyException;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.exception.NoCurrencyFoundForCodeException;
@@ -29,14 +27,16 @@ import org.aksw.linkedspending.job.Phase;
 import org.aksw.linkedspending.job.State;
 import org.aksw.linkedspending.job.Worker;
 import org.aksw.linkedspending.tools.DataModel;
-import org.aksw.linkedspending.tools.EventNotification;
 import org.aksw.linkedspending.tools.JsonReader;
-import org.aksw.linkedspending.tools.PropertiesLoader;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.hp.hpl.jena.datatypes.RDFDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -49,6 +49,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 import de.konradhoeffner.commons.Pair;
 import de.konradhoeffner.commons.TSVReader;
 
+/** Converts an OpenSpending JSON dataset to RDF Data Cube*/
 @Log @NonNullByDefault public class ConvertWorker extends Worker
 {
 	public ConvertWorker(String datasetName, Job job, boolean force)
@@ -122,10 +123,10 @@ import de.konradhoeffner.commons.TSVReader;
 	{
 		try
 		{
-			if (!PropertiesLoader.pathJson.exists()) {PropertiesLoader.pathJson.mkdirs();}
+			if (!PropertyLoader.pathJson.exists()) {PropertyLoader.pathJson.mkdirs();}
 
 			SortedSet<String> names = new TreeSet<>();
-			for (File f : PropertiesLoader.pathJson.listFiles())
+			for (File f : PropertyLoader.pathJson.listFiles())
 			{
 				if (f.isFile())
 				{
@@ -139,6 +140,11 @@ import de.konradhoeffner.commons.TSVReader;
 			log.severe("could not access dataset files");
 		}
 		return null;
+	}
+
+	private static Literal instantLiteral(Model model, Instant instant)
+	{
+		return model.createTypedLiteral(instant.toString(),XSDDatatype.XSDdateTime);
 	}
 
 	/**
@@ -155,27 +161,35 @@ import de.konradhoeffner.commons.TSVReader;
 	 * @throws org.aksw.linkedspending.tools.UnknownMappingTypeException
 	 * @throws org.aksw.linkedspending.tools.TooManyMissingValuesException
 	 * @throws InterruptedException
+	 * @throws DataSetDoesNotExistException
 	 */
 	public boolean createDataset(Model model, OutputStream out) throws IOException,
 	NoCurrencyFoundForCodeException, DatasetHasNoCurrencyException,
-	MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException, InterruptedException
+	MissingDataException, UnknownMappingTypeException, TooManyMissingValuesException, InterruptedException, DataSetDoesNotExistException
 	{
 		@NonNull
-		URL url = new URL(PropertiesLoader.prefixInstance + datasetName); // linkedspending
+		URL url = new URL(PropertyLoader.prefixInstance + datasetName); // linkedspending
 		@NonNull
-		URL sourceUrl = new URL(PropertiesLoader.prefixOpenSpending + datasetName + ".json");
+		URL sourceUrl = new URL(PropertyLoader.prefixOpenSpending + datasetName + ".json");
 		@NonNull
 		JsonNode datasetJson = JsonReader.read(sourceUrl);
 		@NonNull
 		Resource dataSet = model.createResource(url.toString());
 		@NonNull
 		Resource dsd = createDataStructureDefinition(new URL(url + "/model"), model);
-		model.add(dataSet, DCTerms.source, model.createResource(PropertiesLoader.prefixOpenSpending + datasetName));
-		String modified = Calendar.getInstance().toString();
+		model.add(dataSet, DCTerms.source, model.createResource(PropertyLoader.prefixOpenSpending + datasetName));
+		{
+			Instant modified = Instant.now();
+			Instant created = LinkedSpendingDatasetInfo.forDataset(datasetName).map(LinkedSpendingDatasetInfo::getCreated).orElse(modified);
 
-		model.add(dataSet, DCTerms.created, model.createTypedLiteral(Calendar.getInstance()));
-		model.add(dataSet, DCTerms.modified, model.createTypedLiteral(modified));
-
+			model.add(dataSet, DCTerms.modified, instantLiteral(model,modified));
+			model.add(dataSet, DCTerms.created, instantLiteral(model,created));
+		}
+		{
+						OpenSpendingDatasetInfo osInfo = OpenSpendingDatasetInfo.forDataset(datasetName);
+						model.add(dataSet, DataModel.LSOntology.sourceModified, instantLiteral(model, osInfo.modified));
+						model.add(dataSet, DataModel.LSOntology.sourceCreated, instantLiteral(model, osInfo.created));
+		}
 
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided
 		// to define it for each observation
@@ -211,7 +225,7 @@ import de.konradhoeffner.commons.TSVReader;
 		try
 		{
 			componentProperties = createComponents(
-					JsonReader.read(new URL(PropertiesLoader.prefixOpenSpending + datasetName + "/model")).get("mapping"), model,
+					JsonReader.read(new URL(PropertyLoader.prefixOpenSpending + datasetName + "/model")).get("mapping"), model,
 					datasetName, dataSet, dsd, defaultYear != null);
 		}
 		catch (MissingDataException | UnknownMappingTypeException e)
@@ -276,7 +290,6 @@ import de.konradhoeffner.commons.TSVReader;
 		model.add(dataSet,DCTerms.identifier,datasetName);
 		// todo: find out the language
 		// model.createStatement(arg0, arg1, arg2)
-		// System.out.println("Converting dataset "+url);
 		return true;
 	}
 
@@ -322,7 +335,6 @@ import de.konradhoeffner.commons.TSVReader;
 		// if(description!=null&&!description.equals("null"))
 		// {model.add(dim,RDFS.comment,description);}
 
-		// System.out.println(dimJson);
 		// }
 
 		// if(dsdJson.has("views"))
@@ -330,7 +342,6 @@ import de.konradhoeffner.commons.TSVReader;
 		// ArrayNode views = dsdJson.getArrayNode("views");
 		// }
 
-		// System.out.println("Converting dataset "+url);
 		return dsd;
 	}
 
@@ -532,7 +543,7 @@ import de.konradhoeffner.commons.TSVReader;
 				String osUri = result.get("html_url").asText();
 				Resource osObservation = model.createResource();
 				String suffix = osUri.substring(osUri.lastIndexOf('/') + 1);
-				String lsUri = PropertiesLoader.prefixInstance + "observation-" + datasetName + "-" + suffix;
+				String lsUri = PropertyLoader.prefixInstance + "observation-" + datasetName + "-" + suffix;
 				Resource observation = model.createResource(lsUri);
 				model.add(observation, RDFS.label, datasetName + " observation " + suffix);
 				model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
@@ -550,9 +561,9 @@ import de.konradhoeffner.commons.TSVReader;
 						missing = (missing == null) ? 1 : missing + 1;
 						missingForProperty.put(d, missing);
 						missingValues++;
-						int minMissing =PropertiesLoader.minValuesMissingForStop;
-						int maxMissing = PropertiesLoader.maxValuesMissingLogged;
-						double missingStopRatio = PropertiesLoader.datasetMissingStopRatio;
+						int minMissing =PropertyLoader.minValuesMissingForStop;
+						int maxMissing = PropertyLoader.maxValuesMissingLogged;
+						double missingStopRatio = PropertyLoader.datasetMissingStopRatio;
 						if (missingForProperty.get(d) <= maxMissing)
 						{
 							log.warning("no entry for property " + d.name + " at entry " + result);
@@ -689,7 +700,7 @@ import de.konradhoeffner.commons.TSVReader;
 					// add the countries to the observations as well (not just the dataset)
 					model.add(observation, DataModel.SdmxAttribute.getRefArea(), country);
 				}
-				if (model.size() > PropertiesLoader.maxModelTriples)
+				if (model.size() > PropertyLoader.maxModelTriples)
 				{
 					log.finer("writing triples");
 					writeModel(model, out);
@@ -738,12 +749,12 @@ import de.konradhoeffner.commons.TSVReader;
 
 	public static void createViews(String datasetName, Model model, Resource dataSet) throws IOException
 	{
-		ArrayNode views = readArrayNode(new URL(PropertiesLoader.prefixOpenSpending + datasetName + "/views.json"));
+		ArrayNode views = readArrayNode(new URL(PropertyLoader.prefixOpenSpending + datasetName + "/views.json"));
 		for (int i = 0; i < views.size(); i++)
 		{
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
-			Resource view = model.createResource(PropertiesLoader.prefixInstance + datasetName + "/views/" + name);
+			Resource view = model.createResource(PropertyLoader.prefixInstance + datasetName + "/views/" + name);
 			model.add(view, RDF.type, DataModel.DataCube.getSliceResource());
 			model.add(dataSet, DataModel.DataCube.getSlice(), view);
 			String label = jsonView.get("label").asText();
@@ -781,7 +792,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 		Model model = DataModel.newModel();
 		File ntriples = getDatasetFile(datasetName);
-		File json = new File(PropertiesLoader.pathJson + datasetName+".json");
+		File json = new File(PropertyLoader.pathJson + datasetName+".json");
 		// skip some files
 		if (!force&&ntriples.exists() && ntriples.length() > 0 && ntriples.lastModified() >= json.lastModified())
 		{
@@ -827,7 +838,7 @@ import de.konradhoeffner.commons.TSVReader;
 	static File getDatasetFile(String name)
 	{
 		File file = files.get(name);
-		if (file == null) files.put(name, file = new File(PropertiesLoader.pathRdf + "/" + name + ".nt"));
+		if (file == null) files.put(name, file = new File(PropertyLoader.pathRdf + "/" + name + ".nt"));
 		return file;
 	}
 

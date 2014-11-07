@@ -10,7 +10,7 @@ public class SparqlTest
 
 	@Test public void testDatasets()
 	{
-		Map<Long,String> datasets = Sparql.datasetsByTime();
+		Map<Long,String> datasets = Sparql.datasetsByModified();
 		assertTrue(datasets.size()>500);
 		assertTrue(datasets.size()<5000);
 	}
