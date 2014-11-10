@@ -19,6 +19,7 @@ public class DownloadConvertUploadWorker extends WorkerSequence
 	{
 		boolean success = super.get();
 		if(success) {job.setState(State.FINISHED);}
+		job.worker=null;
 		return success;
 	}
 

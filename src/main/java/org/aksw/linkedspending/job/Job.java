@@ -9,7 +9,10 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
@@ -46,7 +49,7 @@ public class Job
 	private State state = CREATED;
 	private Phase phase = DOWNLOAD;
 
-	DownloadConvertUploadWorker worker = null;
+	Optional<DownloadConvertUploadWorker> worker = Optional.empty();
 
 	SortedMap<Long,Object> history = new TreeMap<>();
 
@@ -66,6 +69,11 @@ public class Job
 	public Job() {datasetName="dummyForJersey";this.phase=DOWNLOAD;this.url=uriOf(datasetName);}
 
 	static public Map<String,Job> jobs = new HashMap<>();
+
+	static public Set<String> all()
+	{
+		return new HashSet<>(jobs.keySet());
+	}
 
 	@GET @Path("") @Produces("application/json")
 	public static String jobs() throws IOException
@@ -96,10 +104,14 @@ public class Job
 			{
 				Operation op = Operation.valueOf(operationName.toUpperCase());
 				if(!job.getOperations().contains(op)) {return "operation \""+operationName+"\" not possible in state \""+job.state+"\". Nothing done.";}
+
 				switch(op)
 				{
 					case START:return String.valueOf(job.start());
-					case STOP:job.stop();break;
+					case STOP:		job.worker.ifPresent(Worker::stop);break;
+					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
+					case RESUME:	job.worker.ifPresent(Worker::resume);break;
+					case REMOVE:	jobs.remove(job);
 					default:;
 				}
 				return "todo: operation "+op+" on dataset "+datasetName;
@@ -110,11 +122,6 @@ public class Job
 			}
 		}
 		catch(DataSetDoesNotExistException e) {return e.getMessage();}
-	}
-
-	private void stop()
-	{
-
 	}
 
 	private Job(String datasetName)
@@ -197,8 +204,9 @@ public class Job
 		s.put(RUNNING, EnumSet.of(STOP,PAUSE));
 		s.put(PAUSED, EnumSet.of(STOP,RESUME));
 
-		s.put(STOPPED, EnumSet.noneOf(Operation.class));
-		s.put(FINISHED, EnumSet.noneOf(Operation.class));
+		s.put(STOPPED, EnumSet.of(REMOVE));
+		s.put(FINISHED, EnumSet.of(REMOVE));
+		s.put(FAILED, EnumSet.of(REMOVE));
 		s.put(PAUSED, EnumSet.noneOf(Operation.class));
 
 		operations = Collections.unmodifiableSortedMap(s);
@@ -233,8 +241,8 @@ public class Job
 		{
 			try
 			{
-				DownloadConvertUploadWorker worker = new DownloadConvertUploadWorker (datasetName,this,false);
-				CompletableFuture.supplyAsync(worker);
+				worker = Optional.of(new DownloadConvertUploadWorker (datasetName,this,false));
+				CompletableFuture.supplyAsync(worker.get());
 			}
 			catch (Exception e)
 			{

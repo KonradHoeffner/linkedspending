@@ -6,6 +6,7 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -42,7 +43,7 @@ public class OpenSpendingDatasetInfo
 	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
 	private static final File emptyDatasetFile	= new File("cache/emptydatasets.ser");
 
-	static protected TreeMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<>();
+	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = Collections.synchronizedSortedMap(new TreeMap<>());
 
 	/**
 	 *

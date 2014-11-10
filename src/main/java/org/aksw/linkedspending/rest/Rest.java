@@ -20,6 +20,7 @@ import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.Sparql;
 import org.aksw.linkedspending.Virtuoso;
+import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.job.Boss;
 import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.tools.PropertyLoader;
@@ -74,7 +75,7 @@ public class Rest
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
 		//		System.out.println(datasets());
-		Executors.newScheduledThreadPool(10).scheduleAtFixedRate(new Boss(),0,3,TimeUnit.MINUTES);
+		Executors.newScheduledThreadPool(10).scheduleAtFixedRate(new Boss(),0,20,TimeUnit.SECONDS);
 
 		GrizzlyHttpUtil.startThisServer();
 		Thread.sleep(Duration.ofDays(10000).toMillis());
@@ -105,7 +106,7 @@ public class Rest
 	//	}
 
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
-	public static String datasets() throws IOException
+	public static String datasets() throws IOException, DataSetDoesNotExistException
 	{
 		Set<String> updateCandidates = new TreeSet<>();
 
@@ -114,7 +115,7 @@ public class Rest
 
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
-		tableSb.append("<table border=1><tr><th>dataset</th><th>modified</th><th>created</th><th>source modified</th><th> source created</th><th>job</th></tr>\n");
+		tableSb.append("<table border=1><tr><th>dataset</th><th>modified</th><th>created</th><th>source modified</th><th> source created</th><th>job</th><th>progress</th></tr>\n");
 		SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
 		for(String dataset: datasetInfos.keySet())
 		{
@@ -152,8 +153,16 @@ public class Rest
 			String tdSourceModified = "<td bgcolor='"+color+"'>"+osInfo.modified+"</td>";
 			String tdSourceCreated = "<td>"+osInfo.modified+"</td>";
 
+			String progress;
+			if(Job.all().contains(dataset))
+			{
+				Job job = Job.forDataset(dataset);
+				progress = job.downloadProgressPercent+"% | "+job.convertProgressPercent+"% | "+job.uploadProgressPercent+"%";
+			}
+			else {progress = "";}
 			//			//			String created = ?Instant.ofEpochMilli(sparqlDatasets.get(dataset)).toString():"";
-			tableSb.append("<tr><td>"+dataset+"</td>"+tdModified+tdCreated+tdSourceModified+tdSourceCreated+"</td><td>"+jobLink(dataset)+"</td></tr>\n");
+			tableSb.append("<tr><td>"+dataset+"</td>"+tdModified+tdCreated+tdSourceModified+tdSourceCreated+"</td><td>"+jobLink(dataset)+"</td><td>"+progress+"</td></tr>\n");
+
 			//			//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
 		}
 

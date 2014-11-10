@@ -1,5 +1,6 @@
 # Copy this file to credentials.properties and fill in your virtuoso credentials. We make no guarantee of secure transmission of them.
 # Example
+#apiUrl=http://linkedspending.aksw.org/api
 #jdbcUrl=jdbc:virtuoso://localhost:1111
 #jdbcUser=dba
 #jdbcPassword=dba

@@ -19,6 +19,8 @@ public class Boss implements Runnable
 		Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
 		// first priority: unconverted datasets
 		Set<String> unconverted = osInfos.keySet();
+		// dont choose one that is already being worked on
+		unconverted.removeAll(Job.all());
 		unconverted.removeAll(lsInfos.keySet());
 
 		String datasetName = null;
