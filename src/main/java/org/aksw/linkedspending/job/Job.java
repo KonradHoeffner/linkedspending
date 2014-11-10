@@ -108,7 +108,7 @@ public class Job
 				switch(op)
 				{
 					case START:return String.valueOf(job.start());
-					case STOP:		job.worker.ifPresent(Worker::stop);break;
+					case STOP:		job.start();break;
 					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
 					case RESUME:	job.worker.ifPresent(Worker::resume);break;
 					case REMOVE:	jobs.remove(job);

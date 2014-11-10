@@ -1,5 +1,6 @@
 package org.aksw.linkedspending.job;
 
+import static org.aksw.linkedspending.job.State.RUNNING;
 import java.util.Arrays;
 import java.util.LinkedList;
 import org.aksw.linkedspending.convert.ConvertWorker;
@@ -17,6 +18,7 @@ public class DownloadConvertUploadWorker extends WorkerSequence
 
 	@Override public Boolean get()
 	{
+		job.setState(RUNNING);
 		boolean success = super.get();
 		if(success) {job.setState(State.FINISHED);}
 		job.worker=null;
