@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,8 +38,7 @@ public class Job
 	public AtomicInteger convertProgressPercent = new AtomicInteger(0);
 	public AtomicInteger uploadProgressPercent = new AtomicInteger(0);
 
-	static final String ROOT_PREFIX = "http://localhost:10010/";
-	static final String PREFIX = ROOT_PREFIX+"jobs/";
+	static final String PREFIX = PropertyLoader.apiUrl+"jobs/";
 
 	final public String url;
 	final String datasetName;

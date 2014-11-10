@@ -3,15 +3,18 @@ package org.aksw.linkedspending.job;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.java.Log;
 import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 
 /** periodically gets called, starts one job if possible and then disappears again*/
+@Log
 public class Boss implements Runnable
 {
 
 	@Override public void run()
 	{
+		log.info("Boss started");
 		Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
 		Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
 		// first priority: unconverted datasets
@@ -23,6 +26,7 @@ public class Boss implements Runnable
 		if(!unconverted.isEmpty())
 		{
 			datasetName = unconverted.iterator().next();
+			log.info("Boss starting unconverted dataset "+datasetName);
 		} else // are there already converted but outdated ones?
 		{
 			Set<String> converted = osInfos.keySet();
@@ -33,6 +37,7 @@ public class Boss implements Runnable
 			if(!outdated.isEmpty())
 			{
 				datasetName = outdated.iterator().next();
+				log.info("Boss starting outdated dataset "+datasetName);
 			}
 		}
 		if(datasetName!=null)
@@ -58,11 +63,13 @@ public class Boss implements Runnable
 					job.addHistory(e.getMessage());
 				}
 			}
+			return;
 		}
 
 		// TODO detect partially uploaded ones, save number of entries?
 		// TODO prevent endless repeats of failed downloads
 		// TODO remove finished jobs
+		log.info("Boss finds nothing to do");
 	}
 
 }

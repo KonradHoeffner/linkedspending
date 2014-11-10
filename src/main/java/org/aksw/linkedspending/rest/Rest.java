@@ -15,26 +15,30 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import lombok.extern.java.Log;
 import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.Sparql;
 import org.aksw.linkedspending.Virtuoso;
 import org.aksw.linkedspending.job.Boss;
 import org.aksw.linkedspending.job.Job;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.konradhoeffner.commons.MemoryBenchmark;
 
 @Path("")
+@Log
 public class Rest
 {
-	static final String PREFIX = "http://localhost:10010/";
+	static final String PREFIX = PropertyLoader.apiUrl;
 
 	/** called by jersey on startup, initializes graph groups
 	 */
 	public Rest()
 	{
+
 		Virtuoso.createGraphGroup();
 	}
 

@@ -94,6 +94,7 @@ import javax.management.RuntimeErrorException;
 	public static final String prefixOntology = PROPERTIES.getProperty("prefixOntology");
 	public static final String prefixOpenSpending = PROPERTIES.getProperty("prefixOpenSpending");
 
+	public static final String apiUrl = UPLOAD.getProperty("apiUrl");
 	public static final String endpoint = UPLOAD.getProperty("endpoint");
 	public static final String graph = UPLOAD.getProperty("graph");
 	public static final String jdbcUrl = UPLOAD.getProperty("jdbcUrl");
