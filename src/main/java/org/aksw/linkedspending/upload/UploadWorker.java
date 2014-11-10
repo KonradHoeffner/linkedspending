@@ -50,8 +50,11 @@ public class UploadWorker extends Worker
 		{
 			// TODO identify whether dataset of same or later creation data already exists
 		}
-		uploadDataSet(datasetName);
 		job.setPhase(Phase.UPLOAD);
+		log.info("Starting upload of "+datasetName);
+		uploadDataSet(datasetName);
+		job.uploadProgressPercent.set(100);
+		log.info("Finished upload of "+datasetName);
 		return true;
 	}
 

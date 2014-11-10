@@ -809,7 +809,7 @@ import de.konradhoeffner.commons.TSVReader;
 				{
 					writeModel(model, out);
 					log.info("Finished conversion of "+datasetName);
-					job.downloadProgressPercent.set(100);
+					job.convertProgressPercent.set(100);
 					return true;
 				}
 				else
