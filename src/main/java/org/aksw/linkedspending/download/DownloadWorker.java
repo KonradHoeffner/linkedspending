@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DataSetFiles;
+import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.OpenspendingSoftwareModule;
 import org.aksw.linkedspending.exception.MissingDataException;
 import org.aksw.linkedspending.job.Job;
@@ -78,9 +80,21 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 
 	@Override public @Nullable Boolean get()// throws IOException, InterruptedException, MissingDataException
 	{
-		cleanUp();
 		try
 		{
+			cleanUpParts();
+			if(!force)
+			{
+				File targetFile = DataSetFiles.datasetJsonFile(datasetName);
+				if(targetFile.exists()&&Instant.ofEpochMilli(targetFile.lastModified())
+						.isAfter(OpenSpendingDatasetInfo.forDataset(datasetName).modified))
+				{
+					String message = "Dataset "+datasetName+" already downloaded and still up to date and force parameter false. Skipping.";
+					job.addHistory(message);
+					log.info(message);
+					return true;
+				}
+			}
 			List<File> parts = new LinkedList<>();
 
 			log.fine(nr + " Fetching number of entries for dataset " + datasetName);
@@ -158,7 +172,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 //				JsonDownloaderOld.getUnfinishedDatasets().add(datasetName);
 				log.warning("Stopped download of dataset "+datasetName);
 				job.setState(State.STOPPED);
-				cleanUp();
+				cleanUpParts();
 				return false;
 			}
 			// TODO: sometimes at the end "]}" is missing, add it in this case
@@ -176,10 +190,10 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			return true;
 		}
 		catch(Exception e) {throw new RuntimeException(e);}
-		finally {cleanUp();}
+		finally {cleanUpParts();}
 	}
 
-	private void cleanUp()
+	private void cleanUpParts()
 	{
 		if(partsSubFolder.exists())
 		{

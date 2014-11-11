@@ -23,6 +23,7 @@ import org.aksw.linkedspending.Virtuoso;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.job.Boss;
 import org.aksw.linkedspending.job.Job;
+import org.aksw.linkedspending.job.State;
 import org.aksw.linkedspending.tools.PropertyLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -93,10 +94,10 @@ public class Rest
 	//		return;
 	//	}
 
-	private static String jobLink(String datasetName)
+	private static String jobLink(String datasetName,boolean exists)
 	{
 		Job job = Job.jobs.get(datasetName);
-		return "<a href=\""+Job.uriOf(datasetName)+"\">"+(job==null?"create":job.getState())+"</a>";
+		return "<a href=\""+Job.uriOf(datasetName)+(exists?"":"/create")+"\">"+(job==null?"create":job.getState())+"</a>";
 	}
 
 	//	static String state(String dataset)
@@ -154,14 +155,27 @@ public class Rest
 			String tdSourceCreated = "<td>"+osInfo.modified+"</td>";
 
 			String progress;
+			String trStyle="";
+			boolean jobExists=false;
 			if(Job.all().contains(dataset))
 			{
-				Job job = Job.forDataset(dataset);
+				jobExists=true;
+				Job job = Job.forDatasetOrCreate(dataset);
 				progress = job.downloadProgressPercent+"% | "+job.convertProgressPercent+"% | "+job.uploadProgressPercent+"%";
+
+				switch(job.getState())
+				{
+					case RUNNING:trStyle="outline: thick solid #FF00FF;";break;
+					case FINISHED:trStyle="outline: thick solid green;";break;
+					case FAILED:trStyle="outline: thick solid red;";break;
+					case PAUSED:trStyle="outline: thick solid yellow;";break;
+					case STOPPED:trStyle="outline: thin solid red;";break;
+					default: trStyle=trStyle="outline: thin solid lightgray;";
+				}
 			}
 			else {progress = "";}
 			//			//			String created = ?Instant.ofEpochMilli(sparqlDatasets.get(dataset)).toString():"";
-			tableSb.append("<tr><td>"+dataset+"</td>"+tdModified+tdCreated+tdSourceModified+tdSourceCreated+"</td><td>"+jobLink(dataset)+"</td><td>"+progress+"</td></tr>\n");
+			tableSb.append("<tr style='"+trStyle+"'><td>"+dataset+"</td>"+tdModified+tdCreated+tdSourceModified+tdSourceCreated+"</td><td>"+jobLink(dataset,jobExists)+"</td><td>"+progress+"</td></tr>\n");
 
 			//			//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
 		}

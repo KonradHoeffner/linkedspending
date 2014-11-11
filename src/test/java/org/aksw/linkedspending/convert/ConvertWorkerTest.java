@@ -10,8 +10,8 @@ public class ConvertWorkerTest
 
 	@Test public void testConvert() throws DataSetDoesNotExistException
 	{
-		new DownloadWorker("2013", Job.forDataset("2013"),false).get();
-		new ConvertWorker("2013", Job.forDataset("2013"),true).get();
+		new DownloadWorker("2013", Job.forDatasetOrCreate("2013"),false).get();
+		new ConvertWorker("2013", Job.forDatasetOrCreate("2013"),true).get();
 	}
 
 }

@@ -6,10 +6,10 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
@@ -43,7 +43,7 @@ public class OpenSpendingDatasetInfo
 	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
 	private static final File emptyDatasetFile	= new File("cache/emptydatasets.ser");
 
-	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = Collections.synchronizedSortedMap(new TreeMap<>());
+	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<String, OpenSpendingDatasetInfo>();
 
 	/**
 	 *
@@ -58,19 +58,19 @@ public class OpenSpendingDatasetInfo
 	 * @see JsonDownloader.getDatasetNamesFresh() */
 	public static synchronized SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosCached()
 	{
-		return getDatasetInfos(false);
+		return new TreeMap<>(getDatasetInfos(false));
 	}
 
 	/** get fresh dataset names from openspending and update the cash.
 	 * @see JsonDownloader.getDatasetNamesCached()*/
 	public static synchronized SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosFresh()
 	{
-		return getDatasetInfos(true);
+		return new TreeMap<>(getDatasetInfos(true));
 	}
 
 	// todo does the cache file get updated once in a while? if not functionality is needed
 	/** @param readCache read datasets from cache (may be outdated but faster) */
-	private static synchronized SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfos(boolean readCache)
+	private static SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfos(boolean readCache)
 	{
 		try
 		{

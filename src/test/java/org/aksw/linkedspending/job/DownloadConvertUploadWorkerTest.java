@@ -8,7 +8,7 @@ public class DownloadConvertUploadWorkerTest
 
 	@Test public void testGet() throws DataSetDoesNotExistException
 	{
-		Job job = Job.forDataset("2013");
+		Job job = Job.forDatasetOrCreate("2013");
 		new DownloadConvertUploadWorker("2013",job,true).get();
 	}
 

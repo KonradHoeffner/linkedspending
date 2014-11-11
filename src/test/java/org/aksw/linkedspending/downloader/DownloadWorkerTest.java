@@ -12,8 +12,8 @@ public class DownloadWorkerTest
 
 	@Test public void testCall() throws IOException, InterruptedException, MissingDataException, DataSetDoesNotExistException
 	{
-		new DownloadWorker("2013", Job.forDataset("2013"),true).get();
-		new DownloadWorker("2012_tax", Job.forDataset("2012_tax"),true).get();
+		new DownloadWorker("2013", Job.forDatasetOrCreate("2013"),true).get();
+		new DownloadWorker("2012_tax", Job.forDatasetOrCreate("2012_tax"),true).get();
 	}
 
 }

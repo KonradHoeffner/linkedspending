@@ -88,40 +88,67 @@ public class Job
 	}
 
 	@GET @Path("/{datasetname}") @Produces(MediaType.APPLICATION_JSON)
-	public static String json(@PathParam("datasetname") String datasetName) //throws DataSetDoesNotExistException
+	public static String jsonForDataset(@PathParam("datasetname") String datasetName) //throws DataSetDoesNotExistException
 	{
-		try{return Job.forDataset(datasetName).json().toString();}
+		try
+		{
+			// TODO if this ever gets used by machines and more time available, error message should be in json content type as well
+			return Job.forDataset(datasetName).map(Job::json).map(ObjectNode::toString)
+					.orElse("Job for dataset "+datasetName+" does not exist. <a href='"+PREFIX+datasetName+"/job/create'>Create?</a>");
+		}
 		catch(DataSetDoesNotExistException e) {return e.getMessage();}
 	}
 
-	@GET @Path("/{datasetname}/{operation}") @Produces(MediaType.TEXT_PLAIN)
+	@GET @Path("/{datasetname}/{operation}") @Produces(MediaType.TEXT_HTML)
 	public static String operation(@PathParam("datasetname") String datasetName,@PathParam("operation") String operationName) throws InterruptedException
 	{
 		try
 		{
-			Job job = Job.forDataset(datasetName);
+			Operation op = Operation.valueOf(operationName.toUpperCase());
 			try
 			{
-				Operation op = Operation.valueOf(operationName.toUpperCase());
+				Optional<Job> jobo = Job.forDataset(datasetName);
+				if(op==Operation.CREATE)
+				{
+					String uri = uriOf(datasetName);
+					String prefix = "job <a href='"+uri+"'>"+uri+"</a> ";
+					if(jobo.isPresent()) return prefix+"already exists";
+					forDatasetOrCreate(datasetName);
+					String startUri=uri+"/start";
+					return prefix+"successfully created (not started yet: <a href='"+startUri+"'>"+startUri+"</a>)";
+				}
+				Job job = jobo.get();
 				if(!job.getOperations().contains(op)) {return "operation \""+operationName+"\" not possible in state \""+job.state+"\". Nothing done.";}
 
 				switch(op)
 				{
 					case START:return String.valueOf(job.start());
-					case STOP:		job.start();break;
+					case STOP:		return String.valueOf(job.start());
 					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
 					case RESUME:	job.worker.ifPresent(Worker::resume);break;
-					case REMOVE:	jobs.remove(job);
-					default:;
+					case REMOVE:
+						synchronized(jobs)
+						{
+							job.terminate();
+							jobs.remove(datasetName);
+							break;
+						}
+					default: return "todo: operation "+op+" on dataset "+datasetName;
 				}
-				return "todo: operation "+op+" on dataset "+datasetName;
+				return "executed operation "+op+" on dataset "+datasetName;
 			}
-			catch(IllegalArgumentException e)
-			{
-				return "operation \""+operationName+"\" does not exist. Nothing done.";
-			}
+			catch(DataSetDoesNotExistException e) {return e.getMessage();}
 		}
-		catch(DataSetDoesNotExistException e) {return e.getMessage();}
+		catch(IllegalArgumentException e)
+		{
+			return "operation \""+operationName+"\" does not exist. Nothing done.";
+		}
+
+	}
+
+	private void terminate()
+	{
+		{worker.ifPresent(Worker::stop);}
 	}
 
 	private Job(String datasetName)
@@ -134,7 +161,7 @@ public class Job
 		addHistory(DOWNLOAD);
 	}
 
-	synchronized public static Job forDataset(String datasetName) throws DataSetDoesNotExistException
+	public static Job forDatasetOrCreate(String datasetName) throws DataSetDoesNotExistException
 	{
 		if(!OpenSpendingDatasetInfo.getDatasetInfosCached().keySet().contains(datasetName)) throw new DataSetDoesNotExistException(datasetName);
 		synchronized(jobs)
@@ -146,6 +173,15 @@ public class Job
 				jobs.put(datasetName, job);
 			}
 			return job;
+		}
+	}
+
+	public static Optional<Job> forDataset(String datasetName) throws DataSetDoesNotExistException
+	{
+		if(!OpenSpendingDatasetInfo.getDatasetInfosCached().keySet().contains(datasetName)) throw new DataSetDoesNotExistException(datasetName);
+		synchronized(jobs)
+		{
+			return Optional.ofNullable(jobs.get(datasetName));
 		}
 	}
 

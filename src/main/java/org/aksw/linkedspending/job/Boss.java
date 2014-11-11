@@ -47,7 +47,7 @@ public class Boss implements Runnable
 			Job job = null;
 			try
 			{
-				job = Job.forDataset(datasetName);
+				job = Job.forDatasetOrCreate(datasetName);
 				boolean finished = new DownloadConvertUploadWorker(datasetName, job, true).get();
 				if(finished)
 				{

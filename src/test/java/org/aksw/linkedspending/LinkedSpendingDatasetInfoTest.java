@@ -21,7 +21,7 @@ public class LinkedSpendingDatasetInfoTest
 	@Test public void testForDataset() throws DataSetDoesNotExistException
 	{
 		// make sure dataset "2013" exists
-		assertTrue(new DownloadConvertUploadWorker(name,Job.forDataset(name),false).get());
+		assertTrue(new DownloadConvertUploadWorker(name,Job.forDatasetOrCreate(name),false).get());
 		LinkedSpendingDatasetInfo info = LinkedSpendingDatasetInfo.forDataset(name).get();
 		assertTrue(info.name.equals(name));
 		assertTrue(info.created.isBefore(Instant.now()));
