@@ -10,10 +10,15 @@ import org.aksw.linkedspending.Virtuoso;
 import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.job.Phase;
 import org.aksw.linkedspending.job.Worker;
+import org.aksw.linkedspending.tools.DataModel;
+import org.aksw.linkedspending.tools.PropertyLoader;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RiotReader;
 import virtuoso.jena.driver.VirtGraph;
+import com.hp.hpl.jena.datatypes.RDFDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.graph.GraphUtil;
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 
 @Log
@@ -31,6 +36,11 @@ public class UploadWorker extends Worker
 			VirtGraph virtGraph = new VirtGraph(graph+datasetName,jdbcUrl,jdbcUser,jdbcPassword);
 			Iterator<Triple> it = RiotReader.createIteratorTriples(in, Lang.NT, "");
 			GraphUtil.add(virtGraph, it);
+			// mark complete upload so that partial uploads can be detected by this missing
+			virtGraph.add(Triple.create(
+					Node.createURI(PropertyLoader.prefixInstance+datasetName),
+					DataModel.LSOntology.uploadComplete.asNode(),
+					Node.createLiteral("true",XSDDatatype.XSDboolean)));
 			virtGraph.close();
 		}
 		catch(Exception e)

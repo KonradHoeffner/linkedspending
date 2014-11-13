@@ -40,7 +40,6 @@ public class Rest
 	 */
 	public Rest()
 	{
-
 		Virtuoso.createGraphGroup();
 	}
 
@@ -109,6 +108,7 @@ public class Rest
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
 	public static String datasets() throws IOException, DataSetDoesNotExistException
 	{
+		// TODO: this takes a long time to load, maybe some synchronization is in the way?
 		Set<String> updateCandidates = new TreeSet<>();
 
 		StringBuffer sb = new StringBuffer("<meta charset=\"UTF-8\"><html><body>");
@@ -205,12 +205,11 @@ public class Rest
 		rootNode.put("memory_mb", MemoryBenchmark.updateAndGetMemoryBytes()/1000_000);
 
 		ArrayNode opNode = mapper.createArrayNode();
-		// should shutdown and remove-all should be under admin
-		//		opNode.add(PREFIX+"shutdown");
-		//		opNode.add(PREFIX+"remove-all");
-		opNode.add(PREFIX+"process-all");
-		opNode.add(PREFIX+"process-new");
-
+//		// should shutdown and remove-all should be under admin
+		opNode.add(PREFIX+"jobs/removeinactive");
+//		//		opNode.add(PREFIX+"remove-all");
+//		opNode.add(PREFIX+"process-all");
+//		opNode.add(PREFIX+"process-new");
 		rootNode.put("operations",opNode);
 
 		return rootNode.toString();

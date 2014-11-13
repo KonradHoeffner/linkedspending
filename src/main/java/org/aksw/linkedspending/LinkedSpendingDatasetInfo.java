@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.java.Log;
+import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
+import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.PropertyLoader;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
@@ -37,7 +39,7 @@ public class LinkedSpendingDatasetInfo
 	{
 		Map<String,LinkedSpendingDatasetInfo> infos = new HashMap<>();
 		String query = "select ?name ?c ?m ?sc ?sm {?d a qb:DataSet. ?d dcterms:identifier ?name. ?d dcterms:created ?c. ?d dcterms:modified ?m."
-				+ "?d lso:sourceCreated ?sc. ?d lso:sourceModified ?sm}";
+				+ "?d lso:sourceCreated ?sc. ?d lso:sourceModified ?sm. ?d lso:uploadComplete \"true\"^^xsd:boolean.}";
 		ResultSet rs = Sparql.selectPrefixed(query);
 
 		while(rs.hasNext())
@@ -72,6 +74,15 @@ public class LinkedSpendingDatasetInfo
 	{
 		if(!(obj instanceof LinkedSpendingDatasetInfo)) return false;
 		return this.name.equals(((LinkedSpendingDatasetInfo)obj).name);
+	}
+
+	public static boolean isUpToDate(String datasetName)
+	{
+		Optional<LinkedSpendingDatasetInfo> lsInfo = forDataset(datasetName);
+		if(!lsInfo.isPresent()) {return false;}
+		OpenSpendingDatasetInfo osInfo;
+		osInfo = OpenSpendingDatasetInfo.forDataset(datasetName);
+		return lsInfo.get().modified.isAfter(osInfo.modified);
 	}
 
 }

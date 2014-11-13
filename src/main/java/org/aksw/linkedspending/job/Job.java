@@ -17,6 +17,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -87,6 +88,18 @@ public class Job
 		return rootNode.toString();
 	}
 
+	@GET @Path("/removeinactive") @Produces(MediaType.TEXT_HTML)
+	public static String removeInactive()
+	{
+		synchronized(jobs)
+		{
+			Set<Job> inactive = jobs.values().stream().filter(j->j.getOperations().contains(Operation.REMOVE)).collect(Collectors.toSet());
+			inactive.stream().forEach(Job::terminate);
+			jobs.values().removeAll(inactive);
+			return String.valueOf(!inactive.isEmpty());
+		}
+	}
+
 	@GET @Path("/{datasetname}") @Produces(MediaType.APPLICATION_JSON)
 	public static String jsonForDataset(@PathParam("datasetname") String datasetName) //throws DataSetDoesNotExistException
 	{
@@ -145,6 +158,7 @@ public class Job
 		}
 
 	}
+
 
 	private void terminate()
 	{
@@ -236,7 +250,7 @@ public class Job
 	static
 	{
 		SortedMap<State,EnumSet<Operation>> s = new TreeMap<>();
-		s.put(CREATED, EnumSet.of(START,STOP));
+		s.put(CREATED, EnumSet.of(START,STOP,REMOVE));
 		s.put(RUNNING, EnumSet.of(STOP,PAUSE));
 		s.put(PAUSED, EnumSet.of(STOP,RESUME));
 
@@ -290,6 +304,11 @@ public class Job
 			return true;
 		}
 		return false;
+	}
+
+	@Override public String toString()
+	{
+		return datasetName;
 	}
 
 	public ObjectNode json()

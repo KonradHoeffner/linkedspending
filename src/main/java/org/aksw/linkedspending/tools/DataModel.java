@@ -1,11 +1,14 @@
 package org.aksw.linkedspending.tools;
 
-import com.hp.hpl.jena.rdf.model.*;
+import lombok.Getter;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
-import lombok.Getter;
-import java.util.Properties;
 
 /**
  * Data Model
@@ -109,6 +112,7 @@ public class DataModel
 		@Getter static public final Property	refDate							= ResourceFactory.createProperty(uri + "refDate");
 		@Getter static public final Property	refYear							= ResourceFactory.createProperty(uri + "refYear");
 		@Getter static public final Property	completeness					= ResourceFactory.createProperty(uri + "completeness");
+		@Getter static public final Property	uploadComplete					= ResourceFactory.createProperty(uri + "uploadComplete");
 
 		@Getter static public final Property	sourceCreated = ResourceFactory.createProperty(uri + "sourceCreated");
 		@Getter static public final Property	sourceModified = ResourceFactory.createProperty(uri + "sourceModified");

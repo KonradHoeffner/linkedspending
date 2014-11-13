@@ -12,10 +12,16 @@ public class LinkedSpendingDatasetInfoTest
 {
 	private static final String	name	= "2013";
 
-	@Test public void testAll()
-	{
-		val infos = LinkedSpendingDatasetInfo.all();
+//	@Test public void testAll()
+//	{
+//		val infos = LinkedSpendingDatasetInfo.all();
+//		System.out.println(infos);
+//	}
 
+	@Test public void testUpToDate() throws DataSetDoesNotExistException
+	{
+		new DownloadConvertUploadWorker(name, Job.forDatasetOrCreate(name), false).get();
+		assertTrue(LinkedSpendingDatasetInfo.isUpToDate(name));
 	}
 
 	@Test public void testForDataset() throws DataSetDoesNotExistException
