@@ -35,6 +35,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 public class Rest
 {
 	static final String PREFIX = PropertyLoader.apiUrl;
+	static final int POOL_SIZE = 4;
 
 	/** called by jersey on startup, initializes graph groups
 	 */
@@ -74,12 +75,13 @@ public class Rest
 
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
-		//		System.out.println(datasets());
-		Executors.newScheduledThreadPool(10).scheduleAtFixedRate(new Boss(),0,20,TimeUnit.SECONDS);
-
+		ScheduledExecutorService pool = Executors.newScheduledThreadPool(POOL_SIZE);
+		for(int i=0;i<POOL_SIZE;i++)
+		{
+			pool.scheduleAtFixedRate(new Boss(),i,20,TimeUnit.SECONDS);
+		}
 		GrizzlyHttpUtil.startThisServer();
 		Thread.sleep(Duration.ofDays(10000).toMillis());
-		//		root();
 	}
 
 	//	/** Completly shutdowns downloader, converter (if running) and scheduler */
@@ -205,11 +207,11 @@ public class Rest
 		rootNode.put("memory_mb", MemoryBenchmark.updateAndGetMemoryBytes()/1000_000);
 
 		ArrayNode opNode = mapper.createArrayNode();
-//		// should shutdown and remove-all should be under admin
+		//		// should shutdown and remove-all should be under admin
 		opNode.add(PREFIX+"jobs/removeinactive");
-//		//		opNode.add(PREFIX+"remove-all");
-//		opNode.add(PREFIX+"process-all");
-//		opNode.add(PREFIX+"process-new");
+		//		//		opNode.add(PREFIX+"remove-all");
+		//		opNode.add(PREFIX+"process-all");
+		//		opNode.add(PREFIX+"process-new");
 		rootNode.put("operations",opNode);
 
 		return rootNode.toString();
