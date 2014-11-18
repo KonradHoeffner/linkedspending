@@ -3,6 +3,8 @@ package org.aksw.linkedspending.upload;
 import static org.aksw.linkedspending.tools.PropertyLoader.*;
 import java.io.File;
 import java.io.FileInputStream;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Iterator;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DataSetFiles;
@@ -15,7 +17,6 @@ import org.aksw.linkedspending.tools.PropertyLoader;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RiotReader;
 import virtuoso.jena.driver.VirtGraph;
-import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.graph.GraphUtil;
 import com.hp.hpl.jena.graph.Node;
@@ -35,7 +36,11 @@ public class UploadWorker extends Worker
 		{
 			VirtGraph virtGraph = new VirtGraph(graph+datasetName,jdbcUrl,jdbcUser,jdbcPassword);
 			Iterator<Triple> it = RiotReader.createIteratorTriples(in, Lang.NT, "");
-			GraphUtil.add(virtGraph, it);
+			Instant start = Instant.now();
+//			GraphUtil.add(virtGraph, it);
+			virtGraph.getBulkUpdateHandler().add(it);
+			System.out.println(Duration.between(start,Instant.now()));
+
 			// mark complete upload so that partial uploads can be detected by this missing
 			virtGraph.add(Triple.create(
 					Node.createURI(PropertyLoader.prefixInstance+datasetName),
