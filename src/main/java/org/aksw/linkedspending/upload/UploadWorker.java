@@ -3,6 +3,7 @@ package org.aksw.linkedspending.upload;
 import static org.aksw.linkedspending.tools.PropertyLoader.*;
 import java.io.File;
 import java.io.FileInputStream;
+import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
@@ -39,6 +40,8 @@ public class UploadWorker extends Worker
 			Instant start = Instant.now();
 //			GraphUtil.add(virtGraph, it);
 			virtGraph.getBulkUpdateHandler().add(it);
+			Statement statement = virtGraph.getConnection().createStatement();
+			statement.execute("");
 			System.out.println(Duration.between(start,Instant.now()));
 
 			// mark complete upload so that partial uploads can be detected by this missing

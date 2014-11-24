@@ -51,19 +51,18 @@ public class OpenSpendingDatasetInfo
 	 * if #datasetNames already exists, return them<br>
 	 * if cache-file exists, load datasets from cache-file<br>
 	 * if cache-file does not exist, load from openspending and write cache-file
-
 	 * @return a set containing the names of all JSON-files
 	 * @throws IOException
 	 * - if one of many files can't be read from or written to
 	 * @see JsonDownloader.getDatasetNamesFresh() */
-	public static synchronized SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosCached()
+	public static SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosCached()
 	{
 		return new TreeMap<>(getDatasetInfos(false));
 	}
 
 	/** get fresh dataset names from openspending and update the cash.
 	 * @see JsonDownloader.getDatasetNamesCached()*/
-	public static synchronized SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosFresh()
+	public static SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosFresh()
 	{
 		return new TreeMap<>(getDatasetInfos(true));
 	}
@@ -72,40 +71,43 @@ public class OpenSpendingDatasetInfo
 	/** @param readCache read datasets from cache (may be outdated but faster) */
 	private static SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfos(boolean readCache)
 	{
-		try
+		synchronized(datasetInfos)
 		{
-			JsonNode datasets = null;
+			try
+			{
+				JsonNode datasets = null;
 
-			if(readCache)
-			{
-				if (!datasetInfos.isEmpty()) return datasetInfos;
-				if(DATASETS_CACHED.exists()) {	datasets = m.readTree(DATASETS_CACHED);}
-			} else
-			{
-				datasetInfos.clear();
-			}
-			// either caching didn't work or it is disabled
-			if(datasets==null)
-			{
-				datasets = m.readTree(PropertyLoader.urlDatasets);
-				m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
-			}
+				if(readCache)
+				{
+					if (!datasetInfos.isEmpty()) return datasetInfos;
+					if(DATASETS_CACHED.exists()) {	datasets = m.readTree(DATASETS_CACHED);}
+				} else
+				{
+					datasetInfos.clear();
+				}
+				// either caching didn't work or it is disabled
+				if(datasets==null)
+				{
+					datasets = m.readTree(PropertyLoader.urlDatasets);
+					m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
+				}
 
-			ArrayNode datasetArray = (ArrayNode) datasets.get("datasets");
-			log.info(datasetArray.size() + " datasets available. " + emptyDatasets.size() + " marked as empty, "
-					+ (datasetArray.size() - emptyDatasets.size()) + " remaining.");
-			for (int i = 0; i < datasetArray.size(); i++)
-			{
-				JsonNode datasetJson = datasetArray.get(i);
-				String name  = datasetJson.get("name").textValue();
-				datasetInfos.put(name,new OpenSpendingDatasetInfo(
-						name,
-						Instant.parse(datasetJson.get("timestamps").get("created").asText()+'Z'),
-						Instant.parse(datasetJson.get("timestamps").get("last_modified").asText()+'Z')));
+				ArrayNode datasetArray = (ArrayNode) datasets.get("datasets");
+				log.info(datasetArray.size() + " datasets available. " + emptyDatasets.size() + " marked as empty, "
+						+ (datasetArray.size() - emptyDatasets.size()) + " remaining.");
+				for (int i = 0; i < datasetArray.size(); i++)
+				{
+					JsonNode datasetJson = datasetArray.get(i);
+					String name  = datasetJson.get("name").textValue();
+					datasetInfos.put(name,new OpenSpendingDatasetInfo(
+							name,
+							Instant.parse(datasetJson.get("timestamps").get("created").asText()+'Z'),
+							Instant.parse(datasetJson.get("timestamps").get("last_modified").asText()+'Z')));
+				}
+				return datasetInfos;
 			}
-			return datasetInfos;
+			catch(IOException e) {throw new RuntimeException(e);}
 		}
-		catch(IOException e) {throw new RuntimeException(e);}
 	}
 
 	/** fresh dataset information from OpenSpending about a single dataset
