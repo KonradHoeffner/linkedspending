@@ -451,6 +451,7 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentSpecification, DataModel.DataCube.getDimension(), componentProperty);
 					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
 					model.add(componentProperty, RDF.type, DataModel.DataCube.getDimensionProperty());
+					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					// assertTrue(); TODO: assert that the "attributes" of the json are always
 					// "name" and "label"
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.COMPOUND));
@@ -462,7 +463,7 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentSpecification, DataModel.DataCube.getMeasure(), componentProperty);
 					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
 					model.add(componentProperty, RDF.type, DataModel.DataCube.getMeasureProperty());
-
+					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.MEASURE));
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
@@ -473,7 +474,7 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentSpecification, DataModel.DataCube.getAttribute(), componentProperty);
 					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
 					model.add(componentProperty, RDF.type, DataModel.DataCube.getAttributeProperty());
-
+					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.ATTRIBUTE));
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
