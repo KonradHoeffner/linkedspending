@@ -1,7 +1,0 @@
-ConverterIT.converterTest()
-Make sure there are files to be converted. Test fails if there are either 0 files in JSON-folder or all files have already been converted. In second case delete some converted files to test.
-
-JsonDownLoaderIT.downloaderTest()
-Could be the same as above(didn't test because too much to download).
-Make sure you have an internet connection.
-Relatively unreliable because it may sometimes fail through external effects even though it's correct.
