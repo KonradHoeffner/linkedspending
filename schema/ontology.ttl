@@ -6,6 +6,22 @@
 @prefix sdmx-attribute:  <http://purl.org/linked-data/sdmx/2009/attribute#> .
 @prefix sdmx-concept:    <http://purl.org/linked-data/sdmx/2009/concept#> .
 
+:transformationVersion a rdf:Property;
+	rdfs:label "transformation version"@en;
+	rdfs:comment "the transformation version is used to detect outdated datasets that must be retransformed because of changes in the modelling."@en; 
+	rdfs:domain qb:DataSet;
+	rdfs:range xsd:positiveInteger.
+
+:sourceCreated a rdf:Property;
+	rdfs:label "source data creation date"@en;
+	rdfs:domain qb:DataSet;
+	rdfs:range xsd:dateTime.
+
+:sourceCreated a rdf:Property;
+	rdfs:label "source data creation date"@en;
+	rdfs:domain qb:DataSet;
+	rdfs:range xsd:dateTime.
+
 :CountryComponentSpecification	a qb:ComponentSpecification;
 				rdfs:label "country";
 				rdfs:comment "The country a dataset references."@en;
