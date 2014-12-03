@@ -38,11 +38,8 @@ public class UploadWorker extends Worker
 			VirtGraph virtGraph = new VirtGraph(graph+datasetName,jdbcUrl,jdbcUser,jdbcPassword);
 			Iterator<Triple> it = RiotReader.createIteratorTriples(in, Lang.NT, "");
 			Instant start = Instant.now();
-//			GraphUtil.add(virtGraph, it);
 			virtGraph.getBulkUpdateHandler().add(it);
-			Statement statement = virtGraph.getConnection().createStatement();
-			statement.execute("");
-			System.out.println(Duration.between(start,Instant.now()));
+//			log.info(Duration.between(start,Instant.now()));
 
 			// mark complete upload so that partial uploads can be detected by this missing
 			virtGraph.add(Triple.create(
