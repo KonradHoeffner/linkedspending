@@ -58,7 +58,7 @@ import de.konradhoeffner.commons.TSVReader;
 	}
 
 	static final Map<String, String>		codeToCurrency				= new HashMap<>();
-	static final Map<Pair<String>, String>	datasetPropertyNameToUri	= new HashMap<>();
+	static final Map<Pair<String>, String>	userDefinedDatasetPropertyNameToUri	= new HashMap<>();
 	/** properties */
 
 	static ObjectMapper	m = new ObjectMapper();
@@ -104,7 +104,7 @@ import de.konradhoeffner.commons.TSVReader;
 			while (in.hasNextTokens())
 			{
 				String[] tokens = in.nextTokens();
-				datasetPropertyNameToUri.put(new Pair<String>(tokens[0], tokens[1]), tokens[2]);
+				userDefinedDatasetPropertyNameToUri.put(new Pair<String>(tokens[0], tokens[1]), tokens[2]);
 			}
 			in.close();
 		}
@@ -186,9 +186,9 @@ import de.konradhoeffner.commons.TSVReader;
 			model.add(dataSet, DCTerms.created, instantLiteral(model,created));
 		}
 		{
-						OpenSpendingDatasetInfo osInfo = OpenSpendingDatasetInfo.forDataset(datasetName);
-						model.add(dataSet, DataModel.LSOntology.sourceModified, instantLiteral(model, osInfo.modified));
-						model.add(dataSet, DataModel.LSOntology.sourceCreated, instantLiteral(model, osInfo.created));
+			OpenSpendingDatasetInfo osInfo = OpenSpendingDatasetInfo.forDataset(datasetName);
+			model.add(dataSet, DataModel.LSOntology.sourceModified, instantLiteral(model, osInfo.modified));
+			model.add(dataSet, DataModel.LSOntology.sourceCreated, instantLiteral(model, osInfo.created));
 		}
 
 		// currency is defined on the dataset level in openspending but in RDF datacube we decided
@@ -200,7 +200,7 @@ import de.konradhoeffner.commons.TSVReader;
 			String currencyCode = datasetJson.get("currency").asText();
 			currency = model.createResource(codeToCurrency.get(currencyCode));
 			if (currency == null) { throw new NoCurrencyFoundForCodeException(datasetName, currencyCode); }
-			model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getCurrencyComponentSpecification());
+			model.add(dsd, DataModel.DataCube.component, DataModel.LSOntology.getCurrencyComponentSpecification());
 
 			// model.add(currencyComponent, DataCube.attribute, SdmxAttribute.currency);
 			// model.addLiteral(SdmxAttribute.currency, RDFS.label,model.createLiteral("currency"));
@@ -234,8 +234,8 @@ import de.konradhoeffner.commons.TSVReader;
 			throw e;
 		}
 
-		model.add(dataSet, RDF.type, DataModel.DataCube.getDataSetResource());
-		model.add(dataSet, DataModel.DataCube.getStructure(), dsd);
+		model.add(dataSet, RDF.type, DataModel.DataCube.DataSet);
+		model.add(dataSet, DataModel.DataCube.structure, dsd);
 		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/') + 1);
 
 		List<String> territories = ArrayNodeToStringList((ArrayNode) datasetJson.get("territories"));
@@ -244,14 +244,14 @@ import de.konradhoeffner.commons.TSVReader;
 		Literal yearLiteral = null;
 		if (defaultYear != null)
 		{
-			model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getYearComponentSpecification());
+			model.add(dsd, DataModel.DataCube.component, DataModel.LSOntology.getYearComponentSpecification());
 			yearLiteral = model.createTypedLiteral(defaultYear, XSD.gYear.getURI());
 			model.add(dataSet, DataModel.LSOntology.getRefYear(), yearLiteral);
 		}
 
 		if (!territories.isEmpty())
 		{
-			model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getCountryComponentSpecification());
+			model.add(dsd, DataModel.DataCube.component, DataModel.LSOntology.getCountryComponentSpecification());
 			for (String territory : territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));
@@ -308,7 +308,7 @@ import de.konradhoeffner.commons.TSVReader;
 	{
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
-		model.add(dsd, RDF.type, DataModel.DataCube.getDataStructureDefinition());
+		model.add(dsd, RDF.type, DataModel.DataCube.DataStructureDefinition);
 		// JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
 		// JsonNode mapping = dsdJson.get("mapping");
@@ -351,8 +351,13 @@ import de.konradhoeffner.commons.TSVReader;
 		return s;
 	}
 
+	private static Resource dimRange(Model model, String uri)
+	{
+		return model.createResource(uri+"Class");
+	}
+
 	/**
-	 * Creates component specifications. Adds backlinks from their parent DataStructureDefinition.
+	 * Creates component specifications and adds them to the model. Adds backlinks from their parent DataStructureDefinition.
 	 *
 	 * @throws org.aksw.linkedspending.tools.UnknownMappingTypeException
 	 */
@@ -364,7 +369,7 @@ import de.konradhoeffner.commons.TSVReader;
 		// found
 		int dimensionCount = 0;
 		int measureCount = 0;
-		Map<String, Property> componentPropertyByName = new HashMap<>();
+		Map<String, Property> propertyByName = new HashMap<>();
 		Set<ComponentProperty> componentProperties = new HashSet<>();
 		// ArrayNode dimensionArray = readArrayNode(url);
 		boolean dateExists = false;
@@ -380,34 +385,53 @@ import de.konradhoeffner.commons.TSVReader;
 			@NonNull
 			String type = cleanString(componentJson.get("type").asText());
 			assert type != null;
-			@Nullable
-			String label = cleanString(componentJson.get("label").asText());
 
 			// String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl;
 
-			String uri = datasetPropertyNameToUri.get(new Pair<String>(datasetName, name));
+			String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<String>(datasetName, name));
 			componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() + name;
 
 			Property componentProperty = model.createProperty(componentPropertyUrl);
-			componentPropertyByName.put(name, componentProperty);
-
 			Resource componentSpecification = model.createResource(componentPropertyUrl + "-spec");
-			model.add(componentSpecification, RDFS.label, "specification of " + label);
-
-			model.add(componentProperty, RDF.type, RDF.Property);
-
-			if (label != null)
+			propertyByName.put(name, componentProperty);
 			{
-				model.add(componentProperty, RDFS.label, label);
-			}
-			else
-			{
-				label = name;
+				@Nullable
+				String label = cleanString(componentJson.get("label").asText());
 				if (label != null)
 				{
 					model.add(componentProperty, RDFS.label, label);
 				}
+				else
+				{
+					label = name;
+					if (label != null)
+					{
+						model.add(componentProperty, RDFS.label, label);
+					}
+				}
+				model.add(componentSpecification, RDFS.label, "specification of " + label);
+			}
+
+			model.add(componentProperty, RDF.type, RDF.Property);
+			model.add(componentProperty, RDF.type, DataModel.DataCube.ComponentProperty);
+
+			JsonNode datatypeNode = componentJson.get("datatype");
+			String datatype = datatypeNode==null?null:cleanString(datatypeNode.asText());
+
+			if((datatype!=null)&&(!"date".equals(type)))
+			{
+				Resource range;
+				switch(datatype)
+				{
+					case "float":range = XSD.xfloat;break;
+					case "double":range = XSD.xdouble;break;
+					case "string":range = XSD.xstring;break;
+					//					case "id":range = ..;
+					default: range = null;
+				}
+				model.add(componentProperty,RDFS.range,range);
+
 			}
 
 			if (componentJson.has("description"))
@@ -448,10 +472,12 @@ import de.konradhoeffner.commons.TSVReader;
 				case "compound": {
 					dimensionCount++;
 					// it's a dimension
-					model.add(componentSpecification, DataModel.DataCube.getDimension(), componentProperty);
-					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
-					model.add(componentProperty, RDF.type, DataModel.DataCube.getDimensionProperty());
+					model.add(componentSpecification, DataModel.DataCube.dimension, componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.ComponentSpecification);
+					model.add(componentProperty, RDF.type, DataModel.DataCube.DimensionProperty);
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
+					// create a range class
+					model.add(componentProperty, RDFS.range, dimRange(model, componentPropertyUrl));
 					// assertTrue(); TODO: assert that the "attributes" of the json are always
 					// "name" and "label"
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.COMPOUND));
@@ -460,9 +486,9 @@ import de.konradhoeffner.commons.TSVReader;
 				}
 				case "measure": {
 					measureCount++;
-					model.add(componentSpecification, DataModel.DataCube.getMeasure(), componentProperty);
-					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
-					model.add(componentProperty, RDF.type, DataModel.DataCube.getMeasureProperty());
+					model.add(componentSpecification, DataModel.DataCube.measure, componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.ComponentSpecification);
+					model.add(componentProperty, RDF.type, DataModel.DataCube.MeasureProperty);
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.MEASURE));
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
@@ -471,9 +497,9 @@ import de.konradhoeffner.commons.TSVReader;
 				case "attribute": {
 					attributeCount++;
 					// TODO: attribute the same meaning as in DataCube?
-					model.add(componentSpecification, DataModel.DataCube.getAttribute(), componentProperty);
-					model.add(componentSpecification, RDF.type, DataModel.DataCube.getComponentSpecification());
-					model.add(componentProperty, RDF.type, DataModel.DataCube.getAttributeProperty());
+					model.add(componentSpecification, DataModel.DataCube.attribute, componentProperty);
+					model.add(componentSpecification, RDF.type, DataModel.DataCube.ComponentSpecification);
+					model.add(componentProperty, RDF.type, DataModel.DataCube.AttributeProperty);
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.ATTRIBUTE));
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
@@ -484,7 +510,7 @@ import de.konradhoeffner.commons.TSVReader;
 							+ componentJson);
 			}
 			// backlink
-			model.add(dsd, DataModel.DataCube.getComponent(), componentSpecification);
+			model.add(dsd, DataModel.DataCube.component, componentSpecification);
 		}
 		// if(dateExists||datasetHasYear)
 		// {
@@ -547,8 +573,8 @@ import de.konradhoeffner.commons.TSVReader;
 				String lsUri = PropertyLoader.prefixInstance + "observation-" + datasetName + "-" + suffix;
 				Resource observation = model.createResource(lsUri);
 				model.add(observation, RDFS.label, datasetName + " observation " + suffix);
-				model.add(observation, DataModel.DataCube.getDataSet(), dataSet);
-				model.add(observation, RDF.type, DataModel.DataCube.getObservation());
+				model.add(observation, DataModel.DataCube.dataSet, dataSet);
+				model.add(observation, RDF.type, DataModel.DataCube.Observation);
 				model.add(observation, DCTerms.source, osObservation);
 				// boolean dateExists=false;
 				for (ComponentProperty d : componentProperties)
@@ -603,18 +629,18 @@ import de.konradhoeffner.commons.TSVReader;
 								// todo enhancement: ressource nicht mehrfach erzeugen - aber aufpassen
 								// dass der speicher nicht voll wird! wird wohl nur im datenset gehen
 
-								Resource instance = model.createResource(urlNode.asText());
+								Resource dimensionValue = model.createResource(urlNode.asText());
 
 								if (jsonDim.has("label"))
 								{
-									model.addLiteral(instance, RDFS.label, model.createLiteral(jsonDim.get("label").asText()));
+									model.addLiteral(dimensionValue, RDFS.label, model.createLiteral(jsonDim.get("label").asText()));
 								}
 								else
 								{
-									log.warning("no label for dimension " + d.name + " instance " + instance);
+									log.warning("no label for dimension " + d.name + " instance " + dimensionValue);
 								}
-								model.add(observation, d.property, instance);
-
+								model.add(observation, d.property, dimensionValue);
+								model.add(dimensionValue,RDF.type,dimRange(model, d.property.getURI()));
 								break;
 							}
 							case ATTRIBUTE: {
@@ -756,8 +782,8 @@ import de.konradhoeffner.commons.TSVReader;
 			JsonNode jsonView = views.get(i);
 			String name = jsonView.get("name").asText();
 			Resource view = model.createResource(PropertyLoader.prefixInstance + datasetName + "/views/" + name);
-			model.add(view, RDF.type, DataModel.DataCube.getSliceResource());
-			model.add(dataSet, DataModel.DataCube.getSlice(), view);
+			model.add(view, RDF.type, DataModel.DataCube.Slice);
+			model.add(dataSet, DataModel.DataCube.slice, view);
 			String label = jsonView.get("label").asText();
 			String description = jsonView.get("description").asText();
 			model.add(view, RDFS.label, label);
@@ -821,7 +847,8 @@ import de.konradhoeffner.commons.TSVReader;
 			}
 			catch (Exception e) // Supplier interface doesn't allow checked exceptions
 			{
-				log.warning("Exception on conversion of "+datasetName+":\n"+e.getMessage());
+				log.warning("Exception on conversion of "+datasetName+":\n"+Arrays.toString(e.getStackTrace()));
+				job.setState(State.FAILED);
 
 				faultyDatasets.add(datasetName);
 				throw new RuntimeException("could not convert dataset " + datasetName,e);

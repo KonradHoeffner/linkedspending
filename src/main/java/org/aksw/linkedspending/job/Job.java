@@ -42,6 +42,9 @@ public class Job
 	public AtomicInteger convertProgressPercent = new AtomicInteger(0);
 	public AtomicInteger uploadProgressPercent = new AtomicInteger(0);
 
+	// convert, download and upload even if already existing
+	static private final boolean	FORCE	= true;
+
 	static final String PREFIX = PropertyLoader.apiUrl+"jobs/";
 
 	final public String url;
@@ -107,7 +110,7 @@ public class Job
 		{
 			// TODO if this ever gets used by machines and more time available, error message should be in json content type as well
 			return Job.forDataset(datasetName).map(Job::json).map(ObjectNode::toString)
-					.orElse("Job for dataset "+datasetName+" does not exist. <a href='"+PREFIX+datasetName+"/job/create'>Create?</a>");
+					.orElse("Job for dataset "+datasetName+" does not exist. <a href='"+PREFIX+datasetName+"/create'>Create?</a>");
 		}
 		catch(DataSetDoesNotExistException e) {return e.getMessage();}
 	}
@@ -234,6 +237,7 @@ public class Job
 	}
 
 	static final Map<State,EnumSet<State>> transitions;
+
 	static
 	{
 		Map<State,EnumSet<State>> t = new HashMap<>();
@@ -292,7 +296,7 @@ public class Job
 		{
 			try
 			{
-				worker = Optional.of(new DownloadConvertUploadWorker (datasetName,this,false));
+				worker = Optional.of(new DownloadConvertUploadWorker (datasetName,this,FORCE));
 				CompletableFuture.supplyAsync(worker.get());
 			}
 			catch (Exception e)

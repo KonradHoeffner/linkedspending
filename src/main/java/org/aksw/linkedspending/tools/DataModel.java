@@ -40,29 +40,30 @@ public class DataModel
 	static public class DataCube
 	{
 		static public final String				base					= "http://purl.org/linked-data/cube#";
-		@Getter static public final Resource	dataStructureDefinition	= ResourceFactory
+		static public final Resource	DataStructureDefinition	= ResourceFactory
 																		.createResource(base + "DataStructureDefinition");
-		@Getter static public final Resource	dataSetResource			= ResourceFactory.createResource(base + "DataSet");
-		@Getter static public final Property	dataSet					= ResourceFactory.createProperty(base + "dataSet");
-		@Getter static public final Property	component				= ResourceFactory.createProperty(base + "component");
-		@Getter static public final Resource	dimensionProperty		= ResourceFactory.createResource(base + "DimensionProperty");
-		@Getter static public final Resource	measureProperty			= ResourceFactory.createResource(base + "MeasureProperty");
-		@Getter static public final Resource	attributeProperty		= ResourceFactory.createResource(base + "AttributeProperty");
-		@Getter static public final Resource	sliceKey				= ResourceFactory.createResource(base + "SliceKey");
-		@Getter static public final Resource	hierarchicalCodeList	= ResourceFactory.createResource(base + "HierarchicalCodeList");
-		@Getter static public final Resource	componentSpecification	= ResourceFactory.createResource(base + "ComponentSpecification");
+		static public final Resource	DataSet			= ResourceFactory.createResource(base + "DataSet");
+		static public final Resource	ComponentProperty		= ResourceFactory.createResource(base + "ComponentProperty");
+		static public final Resource	DimensionProperty		= ResourceFactory.createResource(base + "DimensionProperty");
+		static public final Resource	MeasureProperty			= ResourceFactory.createResource(base + "MeasureProperty");
+		static public final Resource	AttributeProperty		= ResourceFactory.createResource(base + "AttributeProperty");
+		static public final Resource	SliceKey				= ResourceFactory.createResource(base + "SliceKey");
+		static public final Resource	HierarchicalCodeList	= ResourceFactory.createResource(base + "HierarchicalCodeList");
+		static public final Resource	ComponentSpecification	= ResourceFactory.createResource(base + "ComponentSpecification");
+		static public final Resource	Observation				= ResourceFactory.createResource(base + "Observation");
+		static public final Resource	Slice			= ResourceFactory.createResource(base + "Slice");
 
-		@Getter static public final Property	structure				= ResourceFactory.createProperty(base + "structure");
-		@Getter static public final Property	componentProperty		= ResourceFactory.createProperty(base + "componentProperty");
-		@Getter static public final Property	dimension				= ResourceFactory.createProperty(base + "dimension");
-		@Getter static public final Property	measure					= ResourceFactory.createProperty(base + "measure");
-		@Getter static public final Property	attribute				= ResourceFactory.createProperty(base + "attribute");
-		@Getter static public final Property	concept					= ResourceFactory.createProperty(base + "concept");
-		@Getter static public final Resource	observation				= ResourceFactory.createResource(base + "Observation");
-		@Getter static public final Resource	sliceResource			= ResourceFactory.createResource(base + "Slice");
-		@Getter static public final Property	slice					= ResourceFactory.createProperty(base + "slice");
-		@Getter static public final Property	sliceStructure			= ResourceFactory.createProperty(base + "sliceStructure");
-		@Getter static public final Property	parentChildProperty		= ResourceFactory.createProperty(base + "parentChildProperty");
+		static public final Property	component				= ResourceFactory.createProperty(base + "component");
+		static public final Property	dataSet					= ResourceFactory.createProperty(base + "dataSet");
+		static public final Property	structure				= ResourceFactory.createProperty(base + "structure");
+		static public final Property	componentProperty		= ResourceFactory.createProperty(base + "componentProperty");
+		static public final Property	dimension				= ResourceFactory.createProperty(base + "dimension");
+		static public final Property	measure					= ResourceFactory.createProperty(base + "measure");
+		static public final Property	attribute				= ResourceFactory.createProperty(base + "attribute");
+		static public final Property	concept					= ResourceFactory.createProperty(base + "concept");
+		static public final Property	slice					= ResourceFactory.createProperty(base + "slice");
+		static public final Property	sliceStructure			= ResourceFactory.createProperty(base + "sliceStructure");
+		static public final Property	parentChildProperty		= ResourceFactory.createProperty(base + "parentChildProperty");
 	}
 
 	static public class SdmxDimension

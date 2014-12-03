@@ -75,10 +75,19 @@ public class Rest
 
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
-		ScheduledExecutorService pool = Executors.newScheduledThreadPool(POOL_SIZE);
-		for(int i=0;i<POOL_SIZE;i++)
+		boolean manual = args.length>0&&args[0].equals("manual");
+		if(manual)
 		{
-			pool.scheduleAtFixedRate(new Boss(),i,20,TimeUnit.SECONDS);
+			log.info("manual mode");
+		}
+		else
+		{
+			log.info("automatic mode");
+			ScheduledExecutorService pool = Executors.newScheduledThreadPool(POOL_SIZE);
+			for(int i=0;i<POOL_SIZE;i++)
+			{
+				pool.scheduleAtFixedRate(new Boss(),i,20,TimeUnit.SECONDS);
+			}
 		}
 		GrizzlyHttpUtil.startThisServer();
 		Thread.sleep(Duration.ofDays(10000).toMillis());

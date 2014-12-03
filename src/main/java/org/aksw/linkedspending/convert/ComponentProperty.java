@@ -17,4 +17,6 @@ import lombok.ToString;
 	};
 
 	@NonNull public final Type	type;
+
+
 }
