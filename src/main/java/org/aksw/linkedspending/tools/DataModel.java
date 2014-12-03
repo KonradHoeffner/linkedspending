@@ -118,7 +118,7 @@ public class DataModel
 		@Getter static public final Property	refDate							= ResourceFactory.createProperty(uri + "refDate");
 		@Getter static public final Property	refYear							= ResourceFactory.createProperty(uri + "refYear");
 		@Getter static public final Property	completeness					= ResourceFactory.createProperty(uri + "completeness");
-		@Getter static public final Property	uploadComplete					= ResourceFactory.createProperty(uri + "uploadComplete");
+		@Getter static public final Property	transformationVersion					= ResourceFactory.createProperty(uri + "transformationVersion");
 
 		@Getter static public final Property	sourceCreated = ResourceFactory.createProperty(uri + "sourceCreated");
 		@Getter static public final Property	sourceModified = ResourceFactory.createProperty(uri + "sourceModified");

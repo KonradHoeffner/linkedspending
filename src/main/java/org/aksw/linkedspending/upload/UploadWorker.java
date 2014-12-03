@@ -26,6 +26,8 @@ import com.hp.hpl.jena.graph.Triple;
 @Log
 public class UploadWorker extends Worker
 {
+	/** increment when the transformation has changed and you want to recreate all datasets*/
+	static public final int TRANSFORMATION_VERSION = 1;
 
 	static void uploadDataSet(String datasetName)
 	{
@@ -44,8 +46,8 @@ public class UploadWorker extends Worker
 			// mark complete upload so that partial uploads can be detected by this missing
 			virtGraph.add(Triple.create(
 					Node.createURI(PropertyLoader.prefixInstance+datasetName),
-					DataModel.LSOntology.uploadComplete.asNode(),
-					Node.createLiteral("true",XSDDatatype.XSDboolean)));
+					DataModel.LSOntology.transformationVersion.asNode(),
+					Node.createLiteral(String.valueOf(TRANSFORMATION_VERSION),XSDDatatype.XSDpositiveInteger)));
 			virtGraph.close();
 		}
 		catch(Exception e)
