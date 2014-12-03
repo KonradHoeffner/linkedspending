@@ -17,8 +17,8 @@
 	rdfs:domain qb:DataSet;
 	rdfs:range xsd:dateTime.
 
-:sourceCreated a rdf:Property;
-	rdfs:label "source data creation date"@en;
+:sourceModified a rdf:Property;
+	rdfs:label "source data modification date"@en;
 	rdfs:domain qb:DataSet;
 	rdfs:range xsd:dateTime.
 
