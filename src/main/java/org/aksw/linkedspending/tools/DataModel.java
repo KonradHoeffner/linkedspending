@@ -65,6 +65,12 @@ public class DataModel
 		@Getter static public final Property	parentChildProperty		= ResourceFactory.createProperty(base + "parentChildProperty");
 	}
 
+	static public class SdmxDimension
+	{
+		static public final String				base		= "http://purl.org/linked-data/sdmx/2009/dimension#";
+		@Getter static public final Property	obsValue	= ResourceFactory.createProperty(base + "obsValue");
+	}
+
 	/** SDMX Measure */
 	static public class SdmxMeasure
 	{
@@ -84,8 +90,7 @@ public class DataModel
 	static public class SdmxConcept
 	{
 		static public final String				base		= "http://purl.org/linked-data/sdmx/2009/concept#";
-		@Getter static public final Property	obsValue	= ResourceFactory.createProperty(base + "obsValue");
-		@Getter static public final Property	refPeriod	= ResourceFactory.createProperty(base + "refPeriod");
+		@Getter static public final Property	refPeriod	= 	ResourceFactory.createProperty(base + "refPeriod");
 		@Getter static public final Property	timePeriod	= ResourceFactory.createProperty(base + "timePeriod");
 	}
 
@@ -100,7 +105,7 @@ public class DataModel
 	static public class LSOntology
 	{
 		@Getter static public final String		uri								= PropertyLoader.prefixOntology;
-		@Getter static public final Resource	countryComponent				= ResourceFactory.createResource(uri
+		@Getter static public final Resource	countryComponentSpecification				= ResourceFactory.createResource(uri
 																				+ "CountryComponentSpecification");
 		@Getter static public final Resource	dateComponentSpecification		= ResourceFactory.createResource(uri
 																				+ "DateComponentSpecification");

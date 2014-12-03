@@ -251,7 +251,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 		if (!territories.isEmpty())
 		{
-			model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getCountryComponent());
+			model.add(dsd, DataModel.DataCube.getComponent(), DataModel.LSOntology.getCountryComponentSpecification());
 			for (String territory : territories)
 			{
 				Resource country = model.createResource(Countries.lgdCountryByCode.get(territory));

@@ -21,6 +21,7 @@ public class WorkerSequence extends Worker
 	{
 		while(!workerGenerators.isEmpty())
 		{
+			if(stopRequested) {job.setState(State.STOPPED); return false;}
 			Worker w = workerGenerators.poll().apply(datasetName, job, force);
 			workers.add(w);
 			if(!w.get()) {return false;}

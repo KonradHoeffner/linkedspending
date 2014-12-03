@@ -136,7 +136,7 @@ public class Job
 				switch(op)
 				{
 					case START:return String.valueOf(job.start());
-					case STOP:		return String.valueOf(job.start());
+					case STOP:		job.worker.ifPresent(Worker::stop);break;
 					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
 					case RESUME:	job.worker.ifPresent(Worker::resume);break;
 					case REMOVE:
@@ -162,7 +162,8 @@ public class Job
 
 	private void terminate()
 	{
-		{worker.ifPresent(Worker::stop);}
+		worker.ifPresent(Worker::stop);
+		worker=Optional.empty();
 	}
 
 	private Job(String datasetName)
