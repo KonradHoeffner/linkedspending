@@ -27,7 +27,7 @@ import com.hp.hpl.jena.graph.Triple;
 public class UploadWorker extends Worker
 {
 	/** increment when the transformation has changed and you want to recreate all datasets*/
-	static public final int TRANSFORMATION_VERSION = 1;
+	static public final int TRANSFORMATION_VERSION = 2;
 
 	static void uploadDataSet(String datasetName)
 	{
