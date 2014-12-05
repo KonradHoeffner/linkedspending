@@ -430,7 +430,10 @@ import de.konradhoeffner.commons.TSVReader;
 					//					case "id":range = ..;
 					default: range = null;
 				}
-				model.add(componentProperty,RDFS.range,range);
+				if(range!=null)
+				{
+					model.add(componentProperty,RDFS.range,range);
+				}
 
 			}
 
