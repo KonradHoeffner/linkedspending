@@ -1,0 +1,30 @@
+# upload to http://localhost/OntoWiki/Config/
+<http://linkedspending.aksw.org/>     <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology>.
+<http://linkedspending.aksw.org/>     <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ns.ontowiki.net/SysOnt/Model>.
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "qb=http://purl.org/linked-data/cube#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "rdf=http://www.w3.org/1999/02/22-rdf-syntax-ns#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "rdfs=http://www.w3.org/2000/01/rdf-schema#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "ls=http://linkedspending.aksw.org/instance/".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "lso=http://linkedspending.aksw.org/ontology/".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "dcterms=http://purl.org/dc/terms/".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "sdmxa=http://purl.org/linked-data/sdmx/2009/attribute#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "sdmxd=http://purl.org/linked-data/sdmx/2009/dimension#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "sdmxm=http://purl.org/linked-data/sdmx/2009/measure#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "xsd=http://www.w3.org/2001/XMLSchema#".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "os=http://openspending.org/".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "dbpedia=http://dbpedia.org/resource/".
+<http://linkedspending.aksw.org/>     <http://ns.ontowiki.net/SysOnt/prefix>    "dbp=http://dbpedia.org/property/".
+
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "qb=http://purl.org/linked-data/cube#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "rdf=http://www.w3.org/1999/02/22-rdf-syntax-ns#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "rdfs=http://www.w3.org/2000/01/rdf-schema#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "ls=hhttp://localhost/OntoWiki/Config/instance/".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "lso=hhttp://localhost/OntoWiki/Config/ontology/".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "dcterms=http://purl.org/dc/terms/".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "sdmxa=http://purl.org/linked-data/sdmx/2009/attribute#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "sdmxd=http://purl.org/linked-data/sdmx/2009/dimension#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "sdmxm=http://purl.org/linked-data/sdmx/2009/measure#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "xsd=http://www.w3.org/2001/XMLSchema#".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "os=http://openspending.org/".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "dbpedia=http://dbpedia.org/resource/".
+<hhttp://localhost/OntoWiki/Config/>     <http://ns.ontowiki.net/SysOnt/prefix>    "dbp=http://dbpedia.org/property/".
