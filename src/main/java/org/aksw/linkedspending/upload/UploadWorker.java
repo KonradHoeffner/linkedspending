@@ -38,6 +38,7 @@ public class UploadWorker extends Worker
 		try(FileInputStream in = new FileInputStream(new File(DataSetFiles.RDF_FOLDER,datasetName+".nt").getAbsolutePath()))
 		{
 			VirtGraph virtGraph = new VirtGraph(graph+datasetName,jdbcUrl,jdbcUser,jdbcPassword);
+			virtGraph.getConnection().createStatement().execute("log_enable(2,1)");
 			Iterator<Triple> it = RiotReader.createIteratorTriples(in, Lang.NT, "");
 			Instant start = Instant.now();
 			virtGraph.getBulkUpdateHandler().add(it);
