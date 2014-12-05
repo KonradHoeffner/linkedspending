@@ -3,13 +3,17 @@ package org.aksw.linkedspending;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.TimeUnit;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
@@ -44,6 +48,9 @@ public class OpenSpendingDatasetInfo
 	private static final File emptyDatasetFile	= new File("cache/emptydatasets.ser");
 
 	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<String, OpenSpendingDatasetInfo>();
+
+	static Instant lastCacheRefresh = Instant.ofEpochMilli(0);
+	static private long CACHE_TTL_MINUTES = 10;
 
 	/**
 	 *
@@ -84,7 +91,7 @@ public class OpenSpendingDatasetInfo
 		{
 			JsonNode datasets = null;
 
-			if(readCache)
+			if(readCache&&(Duration.between(lastCacheRefresh, Instant.now()).compareTo(Duration.of(CACHE_TTL_MINUTES, ChronoUnit.MINUTES))>1))
 			{
 				if (!datasetInfos.isEmpty()) return datasetInfos;
 				if(DATASETS_CACHED.exists()) {	datasets = m.readTree(DATASETS_CACHED);}
@@ -95,6 +102,7 @@ public class OpenSpendingDatasetInfo
 			// either caching didn't work or it is disabled
 			if(datasets==null)
 			{
+				lastCacheRefresh = Instant.now();
 				datasets = m.readTree(PropertyLoader.urlDatasets);
 				m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 			}

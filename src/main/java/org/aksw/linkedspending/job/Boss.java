@@ -16,7 +16,7 @@ public class Boss implements Runnable
 	{
 		log.info("Boss started");
 		Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
-		Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
+		Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
 		// first priority: unconverted datasets
 		Set<String> unconverted = osInfos.keySet();
 		// dont choose one that is already being worked on
