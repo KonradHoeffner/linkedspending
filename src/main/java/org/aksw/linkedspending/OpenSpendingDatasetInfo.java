@@ -50,7 +50,7 @@ public class OpenSpendingDatasetInfo
 	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<String, OpenSpendingDatasetInfo>();
 
 	static Instant lastCacheRefresh = Instant.ofEpochMilli(0);
-	static private long CACHE_TTL_MINUTES = 10;
+	static private long CACHE_TTL_MINUTES = 15;
 
 	/**
 	 *
@@ -90,7 +90,7 @@ public class OpenSpendingDatasetInfo
 		try
 		{
 			JsonNode datasets = null;
-
+			boolean fresh = false;
 			if(readCache&&(Duration.between(lastCacheRefresh, Instant.now()).compareTo(Duration.of(CACHE_TTL_MINUTES, ChronoUnit.MINUTES))>1))
 			{
 				if (!datasetInfos.isEmpty()) return datasetInfos;
@@ -104,12 +104,13 @@ public class OpenSpendingDatasetInfo
 			{
 				lastCacheRefresh = Instant.now();
 				datasets = m.readTree(PropertyLoader.urlDatasets);
+				fresh = true;
 				m.writeTree(new JsonFactory().createGenerator(DATASETS_CACHED, JsonEncoding.UTF8), datasets);
 			}
 
 			ArrayNode datasetArray = (ArrayNode) datasets.get("datasets");
-			log.info(datasetArray.size() + " datasets available. " + emptyDatasets.size() + " marked as empty, "
-					+ (datasetArray.size() - emptyDatasets.size()) + " remaining.");
+			if(fresh) {log.info("Fetched datasets from OpenSpending ("+Duration.between(lastCacheRefresh, Instant.now())+"): "+datasetArray.size() + " datasets available. ");}
+			// emptyDatasets.size() + " marked as empty, "	+ (datasetArray.size() - emptyDatasets.size()) + " remaining.");
 			for (int i = 0; i < datasetArray.size(); i++)
 			{
 				JsonNode datasetJson = datasetArray.get(i);

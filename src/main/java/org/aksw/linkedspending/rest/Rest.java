@@ -128,7 +128,7 @@ public class Rest
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
 		tableSb.append("<table border=1><tr><th>dataset</th><th>modified</th><th>created</th><th>source modified</th><th> source created</th><th>job</th><th>progress</th></tr>\n");
-		SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = OpenSpendingDatasetInfo.getDatasetInfosFresh();
+		SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
 		for(String dataset: datasetInfos.keySet())
 		{
 			OpenSpendingDatasetInfo osInfo = datasetInfos.get(dataset);
