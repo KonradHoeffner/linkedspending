@@ -14,6 +14,9 @@ public class Boss implements Runnable
 
 	@Override public void run()
 	{
+		// must not throw any exception because ScheduledExecutorService.scheduleAtFixedRate does not schedule any more after exceptions
+		try
+		{
 		log.info("Boss started");
 		Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
 		Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
@@ -62,6 +65,7 @@ public class Boss implements Runnable
 					// TODO allow restarting of failed state
 					job.setState(State.FAILED);
 					job.addHistory(e.getMessage());
+					e.printStackTrace();
 				}
 			}
 			return;
@@ -71,6 +75,11 @@ public class Boss implements Runnable
 		// TODO prevent endless repeats of failed downloads
 		// TODO remove finished jobs
 		log.info("Boss finds nothing to do");
+		} catch(Exception e)
+		{
+			log.severe("Unexpected exception: "+e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 }
