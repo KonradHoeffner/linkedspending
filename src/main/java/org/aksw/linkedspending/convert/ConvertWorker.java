@@ -1,17 +1,13 @@
 package org.aksw.linkedspending.convert;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
@@ -29,14 +25,13 @@ import org.aksw.linkedspending.job.Worker;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.JsonReader;
 import org.aksw.linkedspending.tools.PropertyLoader;
+import org.aksw.linkedspending.upload.UploadWorker;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -56,6 +51,8 @@ import de.konradhoeffner.commons.TSVReader;
 	{
 		super(datasetName, job, force);
 	}
+
+	static private Pattern versionPattern = Pattern.compile("\"(\\d*)\"\\^\\^<http://www.w3.org/2001/XMLSchema#int>");
 
 	static final Map<String, String>		codeToCurrency				= new HashMap<>();
 	static final Map<Pair<String>, String>	userDefinedDatasetPropertyNameToUri	= new HashMap<>();
@@ -823,39 +820,106 @@ import de.konradhoeffner.commons.TSVReader;
 		Model model = DataModel.newModel();
 		File ntriples = getDatasetFile(datasetName);
 		File json = new File(PropertyLoader.pathJson + datasetName+".json");
-		// skip some files
-		if (!force&&ntriples.exists() && ntriples.length() > 0 && ntriples.lastModified() >= json.lastModified())
+		boolean skip = false;
+		String message = "";
+		if(force)
 		{
-			log.info("skipping already existing and up to date file: " + ntriples);
-			return true;
+			message = "force is set, not checking for skipping possibility.";
 		}
+		else if(!(ntriples.exists())) {message = "ntriples file does not exist.";}
+		else if(ntriples.length() == 0) {message = "ntriples file is empty.";}
+		else if(ntriples.lastModified() <= json.lastModified()) {message = "ntriples file is outdated.";}
 		else
 		{
-			log.info("Starting conversion of "+datasetName);
-			if(ntriples.exists()) {ntriples.delete();}
-			try(OutputStream out = new FileOutputStream(ntriples, true))
+			// lsInfo up to date isn't enough because converted data may also be used for dump etc. so we need to inspect the file
+			// low tech because we don't want to load a potentially huge model
+			try(BufferedReader in = new BufferedReader(new FileReader(ntriples)))
 			{
-				if(createDataset(model, out))
+				String line;
+				String versionUri = DataModel.LSOntology.transformationVersion.getURI();
+				Optional<Integer> version = Optional.empty();
+				while((line = in.readLine())!=null)
 				{
-					writeModel(model, out);
-					log.info("Finished conversion of "+datasetName);
-					job.convertProgressPercent.set(100);
-					return true;
+					if(line.contains(versionUri))
+					{
+						Matcher m = versionPattern.matcher(line);
+						if(m.find())
+						{
+							version = Optional.of(Integer.valueOf(m.group(1)));
+							break;
+						}
+					}
 				}
-				else
+				if(version.isPresent())
 				{
-					log.warning("Stopped conversion of "+datasetName);
-					return false;
+					if(version.get()==UploadWorker.TRANSFORMATION_VERSION)
+					{
+						skip = true;
+						message = "ntriples transformation version of "+version.get()+" is newest one.";
+					} else
+					{
+						message = "ntriples transformation version of "+version.get()
+								+" not equal to target version "+UploadWorker.TRANSFORMATION_VERSION+".";
+					}
+				} else
+				{
+					message = "no ntriples transformation version found.";
 				}
 			}
-			catch (Exception e) // Supplier interface doesn't allow checked exceptions
+			catch (IOException e)
 			{
-				log.warning("Exception on conversion of "+datasetName+":\n"+Arrays.toString(e.getStackTrace()));
-				job.setState(State.FAILED);
+				String errorMessage = "error when checking whether conversion can be skipped, not skipping: "+Arrays.toString(e.getStackTrace());
+				log.severe(errorMessage);
+				job.addHistory(errorMessage);
+			}
+		}
+		message = "conversion: "+message+(skip?" Skipping.":" Can't skip -> going ahead with the conversion.");
+		log.info(message);
+		job.addHistory(message);
+		if(skip) {return true;}
+		//
+		//
+		////				message = "Converter would like to skip the already existing and up to date file " + ntriples+" but can't because it is not published on LinkedSpending "
+		////						+ "and thus we can't be sure that it conforms to the newest transformation.";
+		////
+		////			} else if(!lsInfo.get().newestTransformation(datasetName))
+		////			{
+		////				message = "Converter wants to skip already existing and up to date file " + ntriples+" but can't because the transformation version has changed.";
+		//			}
+		//
+		//			log.info(message);
+		//			log.info("skipping already existing and up to date file: " + ntriples);
+		//			return true;
+		//		}
 
-				faultyDatasets.add(datasetName);
-				throw new RuntimeException("could not convert dataset " + datasetName,e);
+		log.info("Starting conversion of "+datasetName);
+		if(ntriples.exists()) {ntriples.delete();}
+		try(OutputStream out = new FileOutputStream(ntriples, true))
+		{
+			if(createDataset(model, out))
+			{
+				model.add(model.createResource(PropertyLoader.prefixInstance+datasetName),
+						DataModel.LSOntology.transformationVersion,
+						model.createTypedLiteral(UploadWorker.TRANSFORMATION_VERSION));
+
+				writeModel(model, out);
+				log.info("Finished conversion of "+datasetName);
+				job.convertProgressPercent.set(100);
+				return true;
 			}
+			else
+			{
+				log.warning("Stopped conversion of "+datasetName);
+				return false;
+			}
+		}
+		catch (Exception e) // Supplier interface doesn't allow checked exceptions
+		{
+			log.warning("Exception on conversion of "+datasetName+":\n"+Arrays.toString(e.getStackTrace()));
+			job.setState(State.FAILED);
+
+			faultyDatasets.add(datasetName);
+			throw new RuntimeException("could not convert dataset " + datasetName,e);
 		}
 	}
 

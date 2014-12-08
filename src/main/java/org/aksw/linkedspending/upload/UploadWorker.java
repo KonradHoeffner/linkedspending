@@ -7,8 +7,10 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.Optional;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DataSetFiles;
+import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.Virtuoso;
 import org.aksw.linkedspending.job.Job;
 import org.aksw.linkedspending.job.Phase;
@@ -44,13 +46,14 @@ public class UploadWorker extends Worker
 			Iterator<Triple> it = RiotReader.createIteratorTriples(in, Lang.NT, "");
 			Instant start = Instant.now();
 			virtGraph.getBulkUpdateHandler().add(it);
-//			log.info(Duration.between(start,Instant.now()));
+			//			log.info(Duration.between(start,Instant.now()));
 
 			// mark complete upload so that partial uploads can be detected by this missing
 			virtGraph.add(Triple.create(
 					Node.createURI(PropertyLoader.prefixInstance+datasetName),
-					DataModel.LSOntology.transformationVersion.asNode(),
-					Node.createLiteral(String.valueOf(TRANSFORMATION_VERSION),XSDDatatype.XSDpositiveInteger)));
+					DataModel.LSOntology.uploadComplete.asNode(),
+					Node.createLiteral("true",XSDDatatype.XSDboolean)));
+
 			virtGraph.close();
 		}
 		catch(Exception e)
@@ -68,7 +71,13 @@ public class UploadWorker extends Worker
 	{
 		if(!force)
 		{
-			// TODO identify whether dataset of same or later creation data already exists
+			if(LinkedSpendingDatasetInfo.newestTransformation(datasetName)&&LinkedSpendingDatasetInfo.upToDate(datasetName))
+			{
+				String message = "newest dataset with newest transformation method already online. Skipping upload.";
+				log.info(message);
+				job.addHistory(message);
+				return true;
+			}
 		}
 		job.setPhase(Phase.UPLOAD);
 		log.info("Starting upload of "+datasetName);

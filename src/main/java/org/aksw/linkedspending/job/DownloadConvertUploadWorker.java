@@ -21,13 +21,14 @@ public class DownloadConvertUploadWorker extends WorkerSequence
 	{
 		job.setState(RUNNING);
 		boolean success;
-		// don't do anything if already on SPARQL endpoint and no new data available
-		if(!force&&LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(datasetName))
-		{
-			success=true;
-			job.addHistory("Dataset already on endpoint and up to date, force is not set -> skipped.");
-		}
-		else
+// each component should decide for itself
+//		 don't do anything if already on SPARQL endpoint and no new data available
+//		if(!force&&LinkedSpendingDatasetInfo.upToDate(datasetName)&&LinkedSpendingDatasetInfo.newestTransformation(datasetName))
+//		{
+//			success=true;
+//			job.addHistory("Dataset already on endpoint, up to date and with newest transformation version, force is not set -> skipping Download, Conversion & Upload.");
+//		}
+//		else
 		{
 			success = super.get();
 		}

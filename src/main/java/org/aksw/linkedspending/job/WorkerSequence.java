@@ -12,7 +12,7 @@ public class WorkerSequence extends Worker
 
 	public WorkerSequence(String datasetName, Job job, boolean force, Queue<WorkerGenerator> workerGenerators)
 	{
-		super(datasetName, job, true);
+		super(datasetName, job, force);
 		if(workerGenerators.isEmpty()) {throw new IllegalArgumentException("no worker generators provided");}
 		this.workerGenerators = workerGenerators;
 	}

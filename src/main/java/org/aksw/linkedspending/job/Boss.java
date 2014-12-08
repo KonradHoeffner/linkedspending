@@ -25,23 +25,22 @@ public class Boss implements Runnable
 			Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
 			// first priority: unconverted datasets
 			Set<String> unconverted = osInfos.keySet();
-			// dont choose one that is already being worked on
-			unconverted.removeAll(Job.all());
 			unconverted.removeAll(lsInfos.keySet());
+			// don't choose one that is already being worked on or was worked on in the past (stopped or failed)
+			unconverted.removeAll(Job.all());
 
 			if(!unconverted.isEmpty())
 			{
 				datasetName = unconverted.iterator().next();
 				log.info("Boss starting unconverted dataset "+datasetName);
-			} else // are there already converted but outdated ones?
+			} else // are there already converted but outdated ones or ones with an old transformation?
 			{
-				Set<String> converted = osInfos.keySet();
-				converted.removeAll(unconverted);
-				Set<String> outdated = converted.stream().filter(s->LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(s)).collect(Collectors.toSet());
+				Set<String> needRefresh = osInfos.keySet().stream().filter(s->LinkedSpendingDatasetInfo.upToDate(s)&&LinkedSpendingDatasetInfo.newestTransformation(s))
+						.collect(Collectors.toSet());
 
-				if(!outdated.isEmpty())
+				if(!needRefresh.isEmpty())
 				{
-					datasetName = outdated.iterator().next();
+					datasetName = needRefresh.iterator().next();
 					log.info("Boss starting outdated dataset "+datasetName);
 				}
 			}

@@ -153,7 +153,7 @@ public class Rest
 			else
 			{
 				//				Instant modifiedInstant = Instant.ofEpochMilli(modified);
-				if(LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(lsInfo.name))
+				if(LinkedSpendingDatasetInfo.upToDate(lsInfo.name)&&LinkedSpendingDatasetInfo.newestTransformation(lsInfo.name))
 				{
 					color="lightgreen";
 				}

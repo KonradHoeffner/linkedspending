@@ -41,7 +41,7 @@ public class LinkedSpendingDatasetInfo
 	{
 		Map<String,LinkedSpendingDatasetInfo> infos = new HashMap<>();
 		String query = "select ?name ?c ?m ?sc ?sm ?tv {?d a qb:DataSet. ?d dcterms:identifier ?name. ?d dcterms:created ?c. ?d dcterms:modified ?m."
-				+ "?d lso:sourceCreated ?sc. ?d lso:sourceModified ?sm. ?d lso:transformationVersion ?tv.}";
+				+ "?d lso:sourceCreated ?sc. ?d lso:sourceModified ?sm. ?d lso:transformationVersion ?tv. ?d lso:uploadComplete \"true\"^^xsd:boolean.}";
 		ResultSet rs = Sparql.selectPrefixed(query);
 
 		while(rs.hasNext())
@@ -60,7 +60,7 @@ public class LinkedSpendingDatasetInfo
 	{
 		String d = "<"+PropertyLoader.prefixInstance+datasetName+">";
 		String query = "select ?c ?m ?sc ?sm ?tv {"+d+" dcterms:created ?c. "+d+" dcterms:modified ?m."
-				+ ""+d+" lso:sourceCreated ?sc. "+d+" lso:sourceModified ?sm. "+d+" lso:transformationVersion ?tv}";
+				+ ""+d+" lso:sourceCreated ?sc. "+d+" lso:sourceModified ?sm. "+d+" lso:transformationVersion ?tv. "+d+" lso:uploadComplete \"true\"^^xsd:boolean.}";
 		ResultSet rs = Sparql.selectPrefixed(query);
 
 		if(!rs.hasNext()) {return Optional.empty();}
@@ -78,11 +78,18 @@ public class LinkedSpendingDatasetInfo
 		return this.name.equals(((LinkedSpendingDatasetInfo)obj).name);
 	}
 
-	public static boolean upToDateAndNewestTransformation(String datasetName)
+	public static boolean newestTransformation(String datasetName)
 	{
 		Optional<LinkedSpendingDatasetInfo> lsInfo = forDataset(datasetName);
 		if(!lsInfo.isPresent()) {return false;}
-		if(lsInfo.get().transformationVersion<UploadWorker.TRANSFORMATION_VERSION) {return false;}
+		return lsInfo.get().transformationVersion>=UploadWorker.TRANSFORMATION_VERSION;
+	}
+
+
+	public static boolean upToDate(String datasetName)
+	{
+		Optional<LinkedSpendingDatasetInfo> lsInfo = forDataset(datasetName);
+		if(!lsInfo.isPresent()) {return false;}
 		OpenSpendingDatasetInfo osInfo;
 		osInfo = OpenSpendingDatasetInfo.forDataset(datasetName);
 		return lsInfo.get().modified.isAfter(osInfo.modified);

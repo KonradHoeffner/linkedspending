@@ -28,6 +28,7 @@ import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.tools.PropertyLoader;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -43,7 +44,7 @@ public class Job
 	public AtomicInteger uploadProgressPercent = new AtomicInteger(0);
 
 	// convert, download and upload even if already existing
-	static private final boolean	FORCE	= true;
+	static private final boolean	FORCE	= false;
 
 	static final String PREFIX = PropertyLoader.apiUrl+"jobs/";
 
@@ -103,6 +104,20 @@ public class Job
 		}
 	}
 
+	private static String jsonMessage(String message,String... links)
+	{
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode node = mapper.createObjectNode();
+		node.put("message", message);
+		if(links.length>0)
+		{
+			ArrayNode linkNode = mapper.createArrayNode();
+			node.put("links", linkNode);
+			for(String link: links) {linkNode.add(link);}
+		}
+		return node.toString();
+	}
+
 	@GET @Path("/{datasetname}") @Produces(MediaType.APPLICATION_JSON)
 	public static String jsonForDataset(@PathParam("datasetname") String datasetName) //throws DataSetDoesNotExistException
 	{
@@ -110,14 +125,15 @@ public class Job
 		{
 			// TODO if this ever gets used by machines and more time available, error message should be in json content type as well
 			return Job.forDataset(datasetName).map(Job::json).map(ObjectNode::toString)
-					.orElse("Job for dataset "+datasetName+" does not exist. <a href='"+PREFIX+datasetName+"/create'>Create?</a>");
+					.orElse(jsonMessage("Job for dataset "+datasetName+" does not exist.",PREFIX+datasetName+"/create"));
 		}
 		catch(DataSetDoesNotExistException e) {return e.getMessage();}
 	}
 
-	@GET @Path("/{datasetname}/{operation}") @Produces(MediaType.TEXT_HTML)
+	@GET @Path("/{datasetname}/{operation}") @Produces(MediaType.APPLICATION_JSON)
 	public static String operation(@PathParam("datasetname") String datasetName,@PathParam("operation") String operationName) throws InterruptedException
 	{
+		String jobLink = PREFIX+datasetName;
 		try
 		{
 			Operation op = Operation.valueOf(operationName.toUpperCase());
@@ -127,18 +143,19 @@ public class Job
 				if(op==Operation.CREATE)
 				{
 					String uri = uriOf(datasetName);
-					String prefix = "job <a href='"+uri+"'>"+uri+"</a> ";
-					if(jobo.isPresent()) return prefix+"already exists";
+					String messagePrefix = "job for dataset "+datasetName;
+					if(jobo.isPresent()) return jsonMessage(messagePrefix+" already exists",jobLink);
 					forDatasetOrCreate(datasetName);
 					String startUri=uri+"/start";
-					return prefix+"successfully created (not started yet: <a href='"+startUri+"'>"+startUri+"</a>)";
+					return jsonMessage(messagePrefix+" successfully created, but not started yet",jobLink,jobLink+"/start");
 				}
 				Job job = jobo.get();
-				if(!job.getOperations().contains(op)) {return "operation \""+operationName+"\" not possible in state \""+job.state+"\". Nothing done.";}
+				if(!job.getOperations().contains(op))
+				{return jsonMessage("operation \""+operationName+"\" not possible in state \""+job.state+"\". Nothing done.",jobLink);}
 
 				switch(op)
 				{
-					case START:return String.valueOf(job.start());
+					case START:return jsonMessage("Starting successful: "+String.valueOf(job.start()),jobLink);
 					case STOP:		job.worker.ifPresent(Worker::stop);break;
 					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
 					case RESUME:	job.worker.ifPresent(Worker::resume);break;
@@ -149,17 +166,16 @@ public class Job
 							jobs.remove(datasetName);
 							break;
 						}
-					default: return "todo: operation "+op+" on dataset "+datasetName;
+					default: return jsonMessage("todo: operation "+op+" on dataset "+datasetName,jobLink);
 				}
-				return "executed operation "+op+" on dataset "+datasetName;
+				return jsonMessage("executed operation "+op+" on job for dataset "+datasetName,jobLink);
 			}
-			catch(DataSetDoesNotExistException e) {return e.getMessage();}
+			catch(DataSetDoesNotExistException e) {return jsonMessage(e.getMessage(),jobLink);}
 		}
 		catch(IllegalArgumentException e)
 		{
-			return "operation \""+operationName+"\" does not exist. Nothing done.";
+			return jsonMessage("operation \""+operationName+"\" does not exist. Nothing done.",jobLink);
 		}
-
 	}
 
 

@@ -18,10 +18,10 @@ public class LinkedSpendingDatasetInfoTest
 //		System.out.println(infos);
 //	}
 
-	@Test public void testUpToDate() throws DataSetDoesNotExistException
+	@Test public void testUpToDateAndNewestTransformation() throws DataSetDoesNotExistException
 	{
 		new DownloadConvertUploadWorker(name, Job.forDatasetOrCreate(name), false).get();
-		assertTrue(LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(name));
+		assertTrue(LinkedSpendingDatasetInfo.upToDate(name)&&LinkedSpendingDatasetInfo.newestTransformation(name));
 	}
 
 	@Test public void testForDataset() throws DataSetDoesNotExistException
