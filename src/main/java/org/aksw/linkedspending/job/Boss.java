@@ -12,6 +12,7 @@ import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 @Log
 public class Boss implements Runnable
 {
+	static private boolean FORCE = false;
 
 	@Override public void run()
 	{
@@ -47,7 +48,7 @@ public class Boss implements Runnable
 			if(datasetName!=null)
 			{
 				job = Job.forDatasetOrCreate(datasetName);
-				boolean finished = new DownloadConvertUploadWorker(datasetName, job, true).get();
+				boolean finished = new DownloadConvertUploadWorker(datasetName, job, FORCE).get();
 				if(finished)
 				{
 					// TODO check for memory leaks (references)
