@@ -29,7 +29,6 @@ public class Boss implements Runnable
 			unconverted.removeAll(Job.all());
 			unconverted.removeAll(lsInfos.keySet());
 
-
 			if(!unconverted.isEmpty())
 			{
 				datasetName = unconverted.iterator().next();
@@ -55,12 +54,7 @@ public class Boss implements Runnable
 					// TODO check for memory leaks (references)
 					Job.jobs.remove(job);
 				}
-
 			}
-			// TODO detect partially uploaded ones, save number of entries?
-			// TODO prevent endless repeats of failed downloads
-			// TODO remove finished jobs
-			log.info("Boss finds nothing to do");
 		}
 		catch(Exception e)
 		{
