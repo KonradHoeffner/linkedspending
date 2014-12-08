@@ -37,7 +37,7 @@ public class Boss implements Runnable
 			{
 				Set<String> converted = osInfos.keySet();
 				converted.removeAll(unconverted);
-				Set<String> outdated = converted.stream().filter(s->LinkedSpendingDatasetInfo.isUpToDate(s)).collect(Collectors.toSet());
+				Set<String> outdated = converted.stream().filter(s->LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(s)).collect(Collectors.toSet());
 
 				if(!outdated.isEmpty())
 				{

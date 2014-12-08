@@ -390,7 +390,7 @@ import de.konradhoeffner.commons.TSVReader;
 			String componentPropertyUrl;
 
 			String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<String>(datasetName, name));
-			componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() + name;
+			componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() +datasetName+"-"+name;
 
 			Property componentProperty = model.createProperty(componentPropertyUrl);
 			Resource componentSpecification = model.createResource(componentPropertyUrl + "-spec");

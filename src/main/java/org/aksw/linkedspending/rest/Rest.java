@@ -127,6 +127,12 @@ public class Rest
 
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
+		tableSb.append("Color Code Legend: ");
+		tableSb.append("<span style='background-color:lightgreen'>converted and up to date</span> ");
+		tableSb.append("<span style='background-color:lightblue'>converted and up to date but uses an old transformation model</span> ");
+		tableSb.append("<span style='background-color:orange'>converted but outdated</span> ");
+		tableSb.append("<span style='background-color:white'>not converted</span>");
+
 		tableSb.append("<table border=1><tr><th>dataset</th><th>modified</th><th>created</th><th>source modified</th><th> source created</th><th>job</th><th>progress</th></tr>\n");
 		SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
 		for(String dataset: datasetInfos.keySet())
@@ -147,15 +153,18 @@ public class Rest
 			else
 			{
 				//				Instant modifiedInstant = Instant.ofEpochMilli(modified);
-				if(lsInfo.modified.isBefore(osInfo.modified))
+				if(LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(lsInfo.name))
 				{
-					color="orange";
-					// TODO what is this?
-					updateCandidates.add(dataset);
+					color="lightgreen";
 				}
 				else
 				{
-					color="lightgreen";
+					if(lsInfo.modified.isBefore(osInfo.modified)) {color="orange";}
+					// transformation version changed
+					else {color="lightblue";}
+
+					// TODO what is this?
+					updateCandidates.add(dataset);
 				}
 				tdModified = "<td bgcolor=\""+color+"\">"+lsInfo.modified+"</td>";
 				tdCreated = "<td>"+lsInfo.created+"</td>";

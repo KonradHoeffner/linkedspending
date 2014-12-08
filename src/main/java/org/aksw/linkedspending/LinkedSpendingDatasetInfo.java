@@ -78,7 +78,7 @@ public class LinkedSpendingDatasetInfo
 		return this.name.equals(((LinkedSpendingDatasetInfo)obj).name);
 	}
 
-	public static boolean isUpToDate(String datasetName)
+	public static boolean upToDateAndNewestTransformation(String datasetName)
 	{
 		Optional<LinkedSpendingDatasetInfo> lsInfo = forDataset(datasetName);
 		if(!lsInfo.isPresent()) {return false;}

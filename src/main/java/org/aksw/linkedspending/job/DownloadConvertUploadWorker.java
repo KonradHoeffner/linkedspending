@@ -22,7 +22,7 @@ public class DownloadConvertUploadWorker extends WorkerSequence
 		job.setState(RUNNING);
 		boolean success;
 		// don't do anything if already on SPARQL endpoint and no new data available
-		if(!force&&LinkedSpendingDatasetInfo.isUpToDate(datasetName))
+		if(!force&&LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(datasetName))
 		{
 			success=true;
 			job.addHistory("Dataset already on endpoint and up to date, force is not set -> skipped.");

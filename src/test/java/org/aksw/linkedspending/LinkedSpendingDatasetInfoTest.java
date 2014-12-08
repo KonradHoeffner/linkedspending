@@ -21,7 +21,7 @@ public class LinkedSpendingDatasetInfoTest
 	@Test public void testUpToDate() throws DataSetDoesNotExistException
 	{
 		new DownloadConvertUploadWorker(name, Job.forDatasetOrCreate(name), false).get();
-		assertTrue(LinkedSpendingDatasetInfo.isUpToDate(name));
+		assertTrue(LinkedSpendingDatasetInfo.upToDateAndNewestTransformation(name));
 	}
 
 	@Test public void testForDataset() throws DataSetDoesNotExistException
