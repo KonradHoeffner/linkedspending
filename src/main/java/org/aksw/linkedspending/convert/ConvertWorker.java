@@ -876,7 +876,11 @@ import de.konradhoeffner.commons.TSVReader;
 		message = "conversion: "+message+(skip?" Skipping.":" Can't skip -> going ahead with the conversion.");
 		log.info(message);
 		job.addHistory(message);
-		if(skip) {return true;}
+		if(skip)
+		{
+			job.convertProgressPercent.set(100);
+			return true;
+		}
 		//
 		//
 		////				message = "Converter would like to skip the already existing and up to date file " + ntriples+" but can't because it is not published on LinkedSpending "

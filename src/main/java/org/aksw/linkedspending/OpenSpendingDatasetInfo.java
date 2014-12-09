@@ -69,7 +69,7 @@ public class OpenSpendingDatasetInfo
 	{
 		synchronized(readLock)
 		{
-			return new TreeMap<>(getDatasetInfos(false));
+			return new TreeMap<>(getDatasetInfos(true));
 		}
 	}
 
@@ -79,7 +79,7 @@ public class OpenSpendingDatasetInfo
 	{
 		synchronized(readLock)
 		{
-			return new TreeMap<>(getDatasetInfos(true));
+			return new TreeMap<>(getDatasetInfos(false));
 		}
 	}
 
@@ -91,7 +91,7 @@ public class OpenSpendingDatasetInfo
 		{
 			JsonNode datasets = null;
 			boolean fresh = false;
-			if(readCache&&(Duration.between(lastCacheRefresh, Instant.now()).compareTo(Duration.of(CACHE_TTL_MINUTES, ChronoUnit.MINUTES))>1))
+			if(readCache&&(Duration.between(lastCacheRefresh, Instant.now()).compareTo(Duration.of(CACHE_TTL_MINUTES, ChronoUnit.MINUTES))<0))
 			{
 				if (!datasetInfos.isEmpty()) return datasetInfos;
 				if(DATASETS_CACHED.exists()) {	datasets = m.readTree(DATASETS_CACHED);}
