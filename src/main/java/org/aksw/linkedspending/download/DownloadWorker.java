@@ -90,6 +90,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 						.isAfter(OpenSpendingDatasetInfo.forDataset(datasetName).modified))
 				{
 					String message = "Dataset "+datasetName+" already downloaded and still up to date and force parameter false. Skipping.";
+					job.downloadProgressPercent.set(100);
 					job.addHistory(message);
 					log.info(message);
 					return true;

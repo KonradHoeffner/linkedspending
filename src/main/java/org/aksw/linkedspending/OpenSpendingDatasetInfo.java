@@ -69,7 +69,7 @@ public class OpenSpendingDatasetInfo
 	{
 		synchronized(readLock)
 		{
-			return new TreeMap<>(getDatasetInfos(false));
+			return new TreeMap<>(getDatasetInfos(true));
 		}
 	}
 
@@ -79,7 +79,7 @@ public class OpenSpendingDatasetInfo
 	{
 		synchronized(readLock)
 		{
-			return new TreeMap<>(getDatasetInfos(true));
+			return new TreeMap<>(getDatasetInfos(false));
 		}
 	}
 

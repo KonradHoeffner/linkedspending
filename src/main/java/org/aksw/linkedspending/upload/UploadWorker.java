@@ -76,6 +76,7 @@ public class UploadWorker extends Worker
 				String message = "newest dataset with newest transformation method already online. Skipping upload.";
 				log.info(message);
 				job.addHistory(message);
+				job.uploadProgressPercent.set(100);
 				return true;
 			}
 		}
