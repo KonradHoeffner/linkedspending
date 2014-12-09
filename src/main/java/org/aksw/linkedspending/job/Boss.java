@@ -16,38 +16,44 @@ public class Boss implements Runnable
 
 	@Override public void run()
 	{
-		// must not throw any exception because ScheduledExecutorService.scheduleAtFixedRate does not schedule any more after exceptions
 		String datasetName = null;
 		Job job = null;
 		try
 		{
-			log.info("Boss started");
-			Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
-			Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
-			// first priority: unconverted datasets
-			Set<String> unconverted = osInfos.keySet();
-			unconverted.removeAll(lsInfos.keySet());
-			// don't choose one that is already being worked on or was worked on in the past (stopped or failed)
-			unconverted.removeAll(Job.all());
-
-			if(!unconverted.isEmpty())
+			synchronized(Job.class)
 			{
-				datasetName = unconverted.iterator().next();
-				log.info("Boss starting unconverted dataset "+datasetName);
-			} else // are there already converted but outdated ones or ones with an old transformation?
-			{
-				Set<String> needRefresh = osInfos.keySet().stream().filter(s->LinkedSpendingDatasetInfo.upToDate(s)&&LinkedSpendingDatasetInfo.newestTransformation(s))
-						.collect(Collectors.toSet());
+				// must not throw any exception because ScheduledExecutorService.scheduleAtFixedRate does not schedule any more after exceptions
+				log.info("Boss started");
+				Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
+				Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
+				// first priority: unconverted datasets
+				Set<String> unconverted = osInfos.keySet();
+				unconverted.removeAll(lsInfos.keySet());
+				// don't choose one that is already being worked on or was worked on in the past (stopped or failed)
+				unconverted.removeAll(Job.all());
 
-				if(!needRefresh.isEmpty())
+				if(!unconverted.isEmpty())
 				{
-					datasetName = needRefresh.iterator().next();
-					log.info("Boss starting outdated dataset "+datasetName);
+					datasetName = unconverted.iterator().next();
+					log.info("Boss starting unconverted dataset "+datasetName);
+				} else // are there already converted but outdated ones or ones with an old transformation?
+				{
+					Set<String> needRefresh = osInfos.keySet().stream().filter(s->LinkedSpendingDatasetInfo.upToDate(s)&&LinkedSpendingDatasetInfo.newestTransformation(s))
+							.collect(Collectors.toSet());
+
+					if(!needRefresh.isEmpty())
+					{
+						datasetName = needRefresh.iterator().next();
+						log.info("Boss starting outdated dataset "+datasetName);
+					}
+				}
+				if(datasetName!=null)
+				{
+					job = Job.forDatasetOrCreate(datasetName);
 				}
 			}
 			if(datasetName!=null)
 			{
-				job = Job.forDatasetOrCreate(datasetName);
 				boolean finished = new DownloadConvertUploadWorker(datasetName, job, FORCE).get();
 				if(finished)
 				{
