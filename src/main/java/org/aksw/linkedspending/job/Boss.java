@@ -83,6 +83,7 @@ public class Boss implements Runnable
 				job.setState(State.FAILED);
 				String timeoutMessage = "Timeout limit of "+TIMEOUT_HOURS+" hours exceeded for dataset "+datasetName;
 				log.severe(timeoutMessage+", progress: "+job.json().toString());
+				job.addHistory(timeoutMessage);
 			}
 		}
 		catch(Exception e)
