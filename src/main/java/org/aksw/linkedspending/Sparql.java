@@ -17,7 +17,7 @@ public class Sparql
 	public static final String PREFIXES = "prefix dcterms: <"+DCTerms.getURI()
 			+">\n prefix ls: <"+PropertyLoader.prefixInstance
 			+">\n prefix lso: <"+PropertyLoader.prefixOntology
-			+">\n prefix qb: <"+DataModel.DataCube.base+">\n";
+			+">\n prefix qb: <"+DataModel.DataCube.BASE+">\n";
 
 	public static ResultSet selectPrefixed(String query)
 	{
