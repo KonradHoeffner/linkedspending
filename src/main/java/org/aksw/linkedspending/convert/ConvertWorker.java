@@ -37,6 +37,7 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.vocabulary.DCTerms;
+import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
@@ -56,6 +57,8 @@ import de.konradhoeffner.commons.TSVReader;
 
 	static final Map<String, String>		codeToCurrency				= new HashMap<>();
 	static final Map<Pair<String>, String>	userDefinedDatasetPropertyNameToUri	= new HashMap<>();
+
+	private static final boolean	USE_STRING_TO_DATE_NAME_HEURISTIC	= true;
 	/** properties */
 
 	static ObjectMapper	m = new ObjectMapper();
@@ -415,7 +418,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 			JsonNode datatypeNode = componentJson.get("datatype");
 			String datatype = datatypeNode==null?null:cleanString(datatypeNode.asText());
-
+			if(USE_STRING_TO_DATE_NAME_HEURISTIC&&"string".equals(datatype)&&name.contains("date")) {datatype="date";}
 			if((datatype!=null)&&(!"date".equals(type)))
 			{
 				Resource range;
@@ -430,6 +433,7 @@ import de.konradhoeffner.commons.TSVReader;
 				if(range!=null)
 				{
 					model.add(componentProperty,RDFS.range,range);
+					model.add(componentProperty, RDF.type, OWL.DatatypeProperty);
 				}
 
 			}
@@ -455,6 +459,7 @@ import de.konradhoeffner.commons.TSVReader;
 					componentSpecification = DataModel.LSOntology.getDateComponentSpecification();
 					componentProperties.add(new ComponentProperty(DataModel.LSOntology.getRefDate(), name,
 							ComponentProperty.Type.DATE));
+					model.add(componentProperty, RDF.type, OWL.DatatypeProperty);
 					// it's a dimension
 					// model.add(componentSpecification, DataCube.dimension, componentProperty);
 					// model.add(componentProperty, RDF.type, DataCube.DimensionProperty);
@@ -478,6 +483,7 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					// create a range class
 					model.add(componentProperty, RDFS.range, dimRange(model, componentPropertyUrl));
+					model.add(componentProperty, RDF.type, OWL.ObjectProperty);
 					// assertTrue(); TODO: assert that the "attributes" of the json are always
 					// "name" and "label"
 					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.COMPOUND));
