@@ -31,7 +31,8 @@ public class UploadWorker extends Worker
 	/** increment when the transformation has changed and you want to recreate all datasets*/
 
 	// version 3 components are now seperate between datasets
-	static public final int TRANSFORMATION_VERSION = 3;
+	// version 4 auto recognition of date properties that are not explicitly set as such
+	static public final int TRANSFORMATION_VERSION = 4;
 
 	static void uploadDataSet(String datasetName)
 	{
