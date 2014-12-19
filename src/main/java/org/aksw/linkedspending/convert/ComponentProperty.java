@@ -13,7 +13,7 @@ import lombok.ToString;
 	@NonNull public final String	name;
 
 	public static enum Type {
-		ATTRIBUTE, MEASURE, DATE, COMPOUND
+		ATTRIBUTE, MEASURE, DATE,STRING_DATE, COMPOUND
 	};
 
 	@NonNull public final Type	type;

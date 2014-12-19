@@ -13,8 +13,14 @@ public class DownloadConvertUploadWorker extends WorkerSequence
 {
 	public DownloadConvertUploadWorker(String datasetName, Job job, boolean force)
 	{
-		super(datasetName, job, force, new LinkedList<WorkerGenerator>
-		(Arrays.asList(DownloadWorker::new,ConvertWorker::new,UploadWorker::new)));
+		this(datasetName,job,force,force,force);
+	}
+
+	public DownloadConvertUploadWorker(String datasetName, Job job, boolean forceDownload, boolean forceConvert, boolean forceUpload)
+	{
+		super(datasetName, job,
+		new LinkedList<WorkerGenerator>	(Arrays.asList(DownloadWorker::new,ConvertWorker::new,UploadWorker::new)),
+		new LinkedList<Boolean>			(Arrays.asList(forceDownload,forceConvert,forceUpload)));
 	}
 
 	@Override public Boolean get()

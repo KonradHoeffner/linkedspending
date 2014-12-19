@@ -19,10 +19,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
@@ -44,7 +46,7 @@ public class Job
 	public AtomicInteger uploadProgressPercent = new AtomicInteger(0);
 
 	// convert, download and upload even if already existing
-	static private final boolean	FORCE	= false;
+	static private final boolean	FORCE_DEFAULT	= false;
 
 	static final String PREFIX = PropertyLoader.apiUrl+"jobs/";
 
@@ -53,6 +55,14 @@ public class Job
 
 	private State state = CREATED;
 	private Phase phase = DOWNLOAD;
+
+	public Phase getPhase() {return phase;}
+	public State getState() {return state;}
+
+	final long created = Instant.now().toEpochMilli();
+	private boolean	forceDownload = FORCE_DEFAULT;
+	private boolean	forceConvert = FORCE_DEFAULT;
+	private boolean	forceUpload = FORCE_DEFAULT;
 
 	Optional<DownloadConvertUploadWorker> worker = Optional.empty();
 
@@ -131,22 +141,33 @@ public class Job
 	}
 
 	@GET @Path("/{datasetname}/{operation}") @Produces(MediaType.APPLICATION_JSON)
-	public static String operation(@PathParam("datasetname") String datasetName,@PathParam("operation") String operationName) throws InterruptedException
+	public static String operation(@PathParam("datasetname") String datasetName,@PathParam("operation") String operationName,
+			@DefaultValue(FORCE_DEFAULT?"true":"false") @QueryParam("force") boolean force) throws InterruptedException
 	{
 		String jobLink = PREFIX+datasetName;
 		try
 		{
+			if(operationName.startsWith("toggleForce"))
+			{
+				Job job = Job.forDataset(datasetName).get();
+				switch(operationName)
+				{
+					case "toggleForceDownload":job.forceDownload=!job.forceDownload;break;
+					case "toggleForceConvert":job.forceConvert=!job.forceConvert;break;
+					case "toggleForceUpload":job.forceUpload=!job.forceUpload;break;
+					default: return jsonMessage("operation "+operationName+" does not exist.", jobLink);
+				}
+				return job.json().toString();
+			}
 			Operation op = Operation.valueOf(operationName.toUpperCase());
 			try
 			{
 				Optional<Job> jobo = Job.forDataset(datasetName);
 				if(op==Operation.CREATE)
 				{
-					String uri = uriOf(datasetName);
 					String messagePrefix = "job for dataset "+datasetName;
 					if(jobo.isPresent()) return jsonMessage(messagePrefix+" already exists",jobLink);
 					forDatasetOrCreate(datasetName);
-					String startUri=uri+"/start";
 					return jsonMessage(messagePrefix+" successfully created, but not started yet",jobLink,jobLink+"/start");
 				}
 				Job job = jobo.get();
@@ -194,6 +215,8 @@ public class Job
 		addHistory(CREATED);
 		addHistory(DOWNLOAD);
 	}
+
+	//	public static Job forDatasetOrCreate(String datasetName) throws DataSetDoesNotExistException {return forDatasetOrCreate(datasetName, FORCE_DEFAULT);}
 
 	public static Job forDatasetOrCreate(String datasetName) throws DataSetDoesNotExistException
 	{
@@ -285,10 +308,6 @@ public class Job
 
 	public EnumSet<Operation> getOperations() {return operations.get(state);}
 
-	public Phase getPhase() {return phase;}
-	public State getState() {return state;}
-
-	final long created = Instant.now().toEpochMilli();
 
 	public static String uriOf(String datasetName) {return PREFIX+datasetName;}
 
@@ -312,7 +331,7 @@ public class Job
 		{
 			try
 			{
-				worker = Optional.of(new DownloadConvertUploadWorker (datasetName,this,FORCE));
+				worker = Optional.of(new DownloadConvertUploadWorker(datasetName,this,forceDownload,forceConvert,forceUpload));
 				CompletableFuture.supplyAsync(worker.get());
 			}
 			catch (Exception e)
@@ -338,7 +357,14 @@ public class Job
 		ObjectNode rootNode = mapper.createObjectNode();
 		rootNode.put("state", state.toString());
 		rootNode.put("phase", phase.toString());
-		rootNode.put("age",Duration.ofMillis(Instant.now().toEpochMilli()-history.firstKey()).toString());
+		rootNode.put("forceDownload", forceDownload);
+		rootNode.put("forceConvert", forceConvert);
+		rootNode.put("forceUpload", forceUpload);
+		rootNode.put("toggleForceDownload", url+"/toggleForceDownload");
+		rootNode.put("toggleForceConvert", url+"/toggleForceConvert");
+		rootNode.put("toggleForceUpload", url+"/toggleForceUpload");
+
+		if(!history.isEmpty()) rootNode.put("age",Duration.ofMillis(Instant.now().toEpochMilli()-history.firstKey()).toString());
 		rootNode.put("url", url);
 		rootNode.put("seealso", "https://openspending.org/"+datasetName+".json");
 		rootNode.put("download_progress_percent", downloadProgressPercent.toString());

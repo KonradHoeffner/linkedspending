@@ -418,24 +418,31 @@ import de.konradhoeffner.commons.TSVReader;
 
 			JsonNode datatypeNode = componentJson.get("datatype");
 			String datatype = datatypeNode==null?null:cleanString(datatypeNode.asText());
-			if(USE_STRING_TO_DATE_NAME_HEURISTIC&&"string".equals(datatype)&&name.contains("date")) {datatype="date";}
-			if((datatype!=null)&&(!"date".equals(type)))
+			boolean isStringDate = false;
+
+			Resource range = null;
+			if((USE_STRING_TO_DATE_NAME_HEURISTIC&&"string".equals(datatype)&&name.contains("date"))
+					&&(!"compound".equals(type)))
 			{
-				Resource range;
+				isStringDate = true;
+				range = XSD.date;
+			}
+			else if(datatype!=null)
+			{
 				switch(datatype)
 				{
 					case "float":range = XSD.xfloat;break;
 					case "double":range = XSD.xdouble;break;
 					case "string":range = XSD.xstring;break;
+					case "date":range = XSD.date;break;
 					//					case "id":range = ..;
 					default: range = null;
 				}
-				if(range!=null)
-				{
-					model.add(componentProperty,RDFS.range,range);
-					model.add(componentProperty, RDF.type, OWL.DatatypeProperty);
-				}
-
+			}
+			if(range!=null)
+			{
+				model.add(componentProperty,RDFS.range,range);
+				model.add(componentProperty, RDF.type, OWL.DatatypeProperty);
 			}
 
 			if (componentJson.has("description"))
@@ -459,7 +466,6 @@ import de.konradhoeffner.commons.TSVReader;
 					componentSpecification = DataModel.LSOntology.getDateComponentSpecification();
 					componentProperties.add(new ComponentProperty(DataModel.LSOntology.getRefDate(), name,
 							ComponentProperty.Type.DATE));
-					model.add(componentProperty, RDF.type, OWL.DatatypeProperty);
 					// it's a dimension
 					// model.add(componentSpecification, DataCube.dimension, componentProperty);
 					// model.add(componentProperty, RDF.type, DataCube.DimensionProperty);
@@ -496,7 +502,11 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentSpecification, RDF.type, DataModel.DataCube.ComponentSpecification);
 					model.add(componentProperty, RDF.type, DataModel.DataCube.MeasureProperty);
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
-					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.MEASURE));
+
+					if(isStringDate)
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.STRING_DATE));}
+					else
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.MEASURE));}
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
@@ -507,7 +517,10 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentSpecification, RDF.type, DataModel.DataCube.ComponentSpecification);
 					model.add(componentProperty, RDF.type, DataModel.DataCube.AttributeProperty);
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
-					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.ATTRIBUTE));
+					if(isStringDate)
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.STRING_DATE));}
+					else
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.ATTRIBUTE));}
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
@@ -569,6 +582,13 @@ import de.konradhoeffner.commons.TSVReader;
 			int expectedValues = 0;
 			Map<ComponentProperty, Integer> missingForProperty = new HashMap<>();
 			int observations;
+
+			int dateParseErrors=0;
+			int dateParseSuccesses=0;
+			int dateParseEmpty=0;
+			final int MAX_DATE_PARSE_ERROR_SAMPLES = 10;
+			List<String> dateParseErrorSamples = new ArrayList<>(MAX_DATE_PARSE_ERROR_SAMPLES);
+
 			for (observations = 0; (result = in.read()) != null; observations++)
 			{
 				pausePoint(this);
@@ -612,6 +632,7 @@ import de.konradhoeffner.commons.TSVReader;
 						}
 						continue;
 					}
+
 					try
 					{
 						switch (d.type)
@@ -668,6 +689,29 @@ import de.konradhoeffner.commons.TSVReader;
 								model.addLiteral(observation, d.property, l);
 								break;
 							}
+							case STRING_DATE:
+							{
+								dateExists = true;
+								String dateString = result.get(d.name).asText().replaceAll("\\+[0-9][0-9]:[0-9][0-9]", "");
+								if(dateString.isEmpty()) {dateParseEmpty++; break;}
+								if(dateString.length()==10) dateString+="T00:00:00.00Z";
+								try
+								{
+
+									Instant instant = Instant.parse(dateString);
+									Calendar calendar = Calendar.getInstance();
+									calendar.setTimeInMillis(instant.toEpochMilli());
+									Literal l = model.createTypedLiteral(calendar);
+									model.addLiteral(observation,d.property,l);
+									dateParseSuccesses++;
+								}
+								catch(Exception e)
+								{
+									dateParseErrors++;
+									if(dateParseErrorSamples.size()<MAX_DATE_PARSE_ERROR_SAMPLES) dateParseErrorSamples.add(dateString);
+								}
+								break;
+							}
 							case DATE: {
 								dateExists = true;
 								JsonNode jsonDate = result.get(d.name);
@@ -687,7 +731,8 @@ import de.konradhoeffner.commons.TSVReader;
 					}
 					catch (Exception e)
 					{
-						throw new RuntimeException("problem with componentproperty " + d.name + ": " + observation, e);
+						e.printStackTrace();
+						throw new RuntimeException("problem with componentproperty " + d+ ": " + observation, e);
 					}
 				}
 				//
@@ -776,6 +821,10 @@ import de.konradhoeffner.commons.TSVReader;
 				}
 			}
 			log.finer(datasetName+"finished creating entries, "+observations + " observations created.");
+			if(dateParseErrors>0)
+			{
+				log.warning(dateParseErrors+" dateparse errors, "+dateParseSuccesses+" successes, "+dateParseEmpty+" empty, error examples: "+dateParseErrorSamples);
+			}
 		}
 		return true;
 	}

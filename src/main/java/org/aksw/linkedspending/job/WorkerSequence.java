@@ -1,6 +1,8 @@
 package org.aksw.linkedspending.job;
 
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
@@ -9,10 +11,13 @@ public class WorkerSequence extends Worker
 	final Set<Worker> workers = new HashSet<>();
 
 	final Queue<WorkerGenerator> workerGenerators;
+	final Queue<Boolean> forces;
 
-	public WorkerSequence(String datasetName, Job job, boolean force, Queue<WorkerGenerator> workerGenerators)
+	public WorkerSequence(String datasetName, Job job, Queue<WorkerGenerator> workerGenerators, Queue<Boolean> forces)
 	{
-		super(datasetName, job, force);
+		// TODO: what to do with super field force?
+		super(datasetName, job, forces.stream().max(Boolean::compare).get());
+		this.forces=forces;
 		if(workerGenerators.isEmpty()) {throw new IllegalArgumentException("no worker generators provided");}
 		this.workerGenerators = workerGenerators;
 	}
@@ -22,7 +27,7 @@ public class WorkerSequence extends Worker
 		while(!workerGenerators.isEmpty())
 		{
 			if(stopRequested) {job.setState(State.STOPPED); return false;}
-			Worker w = workerGenerators.poll().apply(datasetName, job, force);
+			Worker w = workerGenerators.poll().apply(datasetName, job, forces.poll());
 			workers.add(w);
 			if(!w.get()) {return false;}
 			workers.clear();
