@@ -71,6 +71,14 @@ public class DataModel
 		static public final Property	parentChildProperty		= ResourceFactory.createProperty(BASE + "parentChildProperty");
 	}
 
+	static public class Owl
+	{
+		static public final String				base		= "http://www.w3.org/2002/07/owl#";
+		static public final String OBJECT_PROPERTY_URI = base + "ObjectProperty";
+		static public final String DATATYPE_PROPERTY_URI = base+ "DatatypeProperty";
+	}
+
+
 	static public class SdmxDimension
 	{
 		static public final String				base		= "http://purl.org/linked-data/sdmx/2009/dimension#";
