@@ -86,7 +86,7 @@ public class Rest
 			ScheduledExecutorService pool = Executors.newScheduledThreadPool(POOL_SIZE);
 			for(int i=0;i<POOL_SIZE;i++)
 			{
-				pool.scheduleAtFixedRate(new Boss(),i,20,TimeUnit.SECONDS);
+				pool.scheduleAtFixedRate(new Boss(),i,1,TimeUnit.MINUTES);
 			}
 		}
 		GrizzlyHttpUtil.startThisServer();

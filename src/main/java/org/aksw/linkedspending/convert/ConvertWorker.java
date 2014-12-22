@@ -48,6 +48,9 @@ import de.konradhoeffner.commons.TSVReader;
 /** Converts an OpenSpending JSON dataset to RDF Data Cube*/
 @Log @NonNullByDefault public class ConvertWorker extends Worker
 {
+	// in at least one case there is no
+	static private final boolean CHANGE_AMOUNT_PROPERTY_TO_MEASURE = true;
+
 	public ConvertWorker(String datasetName, Job job, boolean force)
 	{
 		super(datasetName, job, force);
@@ -385,13 +388,13 @@ import de.konradhoeffner.commons.TSVReader;
 			@NonNull
 			String type = cleanString(componentJson.get("type").asText());
 			assert type != null;
-
+			if(CHANGE_AMOUNT_PROPERTY_TO_MEASURE&&name.equals("amount")) {type="measure";}
 			// String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl;
-
+			{
 			String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<String>(datasetName, name));
 			componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() +datasetName+"-"+name;
-
+			}
 			Property componentProperty = model.createProperty(componentPropertyUrl);
 			Resource componentSpecification = model.createResource(componentPropertyUrl + "-spec");
 			propertyByName.put(name, componentProperty);
@@ -537,7 +540,9 @@ import de.konradhoeffner.commons.TSVReader;
 		// }
 		// if(!dateExists) {throw new
 		// MissingDataException("No date for dataset "+dataset.getLocalName());}
-		if (attributeCount == 0 || measureCount == 0 || dimensionCount == 0) { throw new MissingDataException(datasetName,"no "
+		if (attributeCount == 0 || measureCount == 0 || dimensionCount == 0)
+		{
+			throw new MissingDataException(datasetName,"no "
 				+ (attributeCount == 0 ? "attributes" : (measureCount == 0 ? "measures" : "dimensions")) + " for dataset "
 				+ dataset.getLocalName()); }
 		return componentProperties;
