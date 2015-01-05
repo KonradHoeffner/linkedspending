@@ -61,9 +61,9 @@ public class OpenSpendingDatasetInfo
 	public static Lock onlineLock = new ReentrantLock();
 	public static Condition onlineCondition = onlineLock.newCondition();
 
-	static boolean isOnline = isOnline();
-	static Instant lastOnlineCheck  = Instant.now();
-	static final long ONLINE_CHECK_INTERVAL_MINUTES = 10;
+	private static boolean isOnline;
+	private static final long ONLINE_CHECK_INTERVAL_MINUTES = 10;
+	private static Instant lastOnlineCheck  = Instant.MIN;
 
 	public static boolean isOnline()
 	{
