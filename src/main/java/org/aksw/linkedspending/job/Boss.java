@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
@@ -24,8 +25,31 @@ public class Boss implements Runnable
 	static private final boolean RANDOM = true;
 	static final Random random = RANDOM?new Random():null;
 
+	static AtomicInteger threadCount = new AtomicInteger(0);
+	int nr = threadCount.incrementAndGet();
+
+
 	@Override public void run()
 	{
+		if(!OpenSpendingDatasetInfo.isOnline())
+		{
+			try
+			{
+				log.warning("OpenSpending is offline. Boss thread "+nr+" waiting.");
+				OpenSpendingDatasetInfo.onlineLock.lock();
+				OpenSpendingDatasetInfo.onlineCondition.await();
+			}
+			catch (InterruptedException e)
+			{
+				log.info("Boss thread "+nr+" interrupted.");
+				return;
+			}
+			finally
+			{
+				OpenSpendingDatasetInfo.onlineLock.unlock();
+			}
+			log.info("OpenSpending is online again. Boss thread "+nr+" continuing.");
+		}
 		String datasetName = null;
 		Job job = null;
 		try

@@ -15,6 +15,9 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
@@ -53,23 +56,34 @@ public class OpenSpendingDatasetInfo
 	static Instant lastCacheRefresh = Instant.ofEpochMilli(0);
 	static private long CACHE_TTL_MINUTES = 15;
 
-	static Object readLock = new Object();
+	static private Object readLock = new Object();
 
-	static boolean openSpendingOnline = openSpendingOnline();
+	public static Lock onlineLock = new ReentrantLock();
+	public static Condition onlineCondition = onlineLock.newCondition();
+
+	static boolean isOnline = isOnline();
 	static Instant lastOnlineCheck  = Instant.now();
 	static final long ONLINE_CHECK_INTERVAL_MINUTES = 10;
-	static final Object onlineCheckLock = new Object();
 
-	public static boolean openSpendingOnline()
+	public static boolean isOnline()
 	{
-		synchronized(onlineCheckLock)
+		onlineLock.lock();
+		try
 		{
-			if(Duration.between(lastOnlineCheck, Instant.now()).compareTo(Duration.ofMinutes(ONLINE_CHECK_INTERVAL_MINUTES))
-					<0) {return openSpendingOnline;}
+			if(Duration.between(lastOnlineCheck, Instant.now())
+					.compareTo(Duration.ofMinutes(ONLINE_CHECK_INTERVAL_MINUTES))<0)
+			{
+				return isOnline;
+			}
 			lastOnlineCheck = Instant.now();
-			try {m.readTree(new URL("https://openspending.org/berlin_de/entries.json?pagesize=0"));}
-			catch (IOException e) {return false;}
+			m.readTree(new URL("https://openspending.org/berlin_de/entries.json?pagesize=0"));
 			return true;
+		}
+		catch (IOException e) {return false;}
+		finally
+		{
+			if(isOnline) {onlineCondition.signalAll();}
+			onlineLock.unlock();
 		}
 	}
 	/**

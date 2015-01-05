@@ -15,6 +15,6 @@ public class OpenSpendingDatasetInfoTest
 
 	@Test public void testOpenSpendingOnline()
 	{
-		assertTrue(OpenSpendingDatasetInfo.openSpendingOnline());
+		assertTrue(OpenSpendingDatasetInfo.isOnline());
 	}
 }

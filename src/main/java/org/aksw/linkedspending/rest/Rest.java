@@ -118,7 +118,7 @@ public class Rest
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
 	public static String datasets() throws IOException, DataSetDoesNotExistException
 	{
-		if(!OpenSpendingDatasetInfo.openSpendingOnline()) {return "OpenSpending is offline!";}
+		if(!OpenSpendingDatasetInfo.isOnline()) {return "OpenSpending is offline!";}
 
 		// TODO: this takes a long time to load, maybe some synchronization is in the way?
 		Set<String> updateCandidates = new TreeSet<>();
@@ -220,7 +220,7 @@ public class Rest
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode rootNode = mapper.createObjectNode();
 		rootNode.put("doc", "https://github.com/AKSW/openspending2rdf/wiki/REST-API");
-		rootNode.put("openspendingonline", OpenSpendingDatasetInfo.openSpendingOnline());
+		rootNode.put("openspendingonline", OpenSpendingDatasetInfo.isOnline());
 		rootNode.put("datasets", PREFIX+"datasets");
 		rootNode.put("jobs", PREFIX+"jobs");
 		rootNode.put("idle", Job.allIdle());
