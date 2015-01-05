@@ -2,6 +2,7 @@ package org.aksw.linkedspending;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +53,25 @@ public class OpenSpendingDatasetInfo
 	static Instant lastCacheRefresh = Instant.ofEpochMilli(0);
 	static private long CACHE_TTL_MINUTES = 15;
 
+	static Object readLock = new Object();
+
+	static boolean openSpendingOnline = openSpendingOnline();
+	static Instant lastOnlineCheck  = Instant.now();
+	static final long ONLINE_CHECK_INTERVAL_MINUTES = 10;
+	static final Object onlineCheckLock = new Object();
+
+	public static boolean openSpendingOnline()
+	{
+		synchronized(onlineCheckLock)
+		{
+			if(Duration.between(lastOnlineCheck, Instant.now()).compareTo(Duration.ofMinutes(ONLINE_CHECK_INTERVAL_MINUTES))
+					<0) {return openSpendingOnline;}
+			lastOnlineCheck = Instant.now();
+			try {m.readTree(new URL("https://openspending.org/berlin_de/entries.json?pagesize=0"));}
+			catch (IOException e) {return false;}
+			return true;
+		}
+	}
 	/**
 	 *
 	 * loads the names of datasets(JSON-files) <br>
@@ -63,7 +83,7 @@ public class OpenSpendingDatasetInfo
 	 * - if one of many files can't be read from or written to
 	 * @see JsonDownloader.getDatasetNamesFresh() */
 
-	static Object readLock = new Object();
+
 
 	public static SortedMap<String,OpenSpendingDatasetInfo> getDatasetInfosCached()
 	{
@@ -133,9 +153,10 @@ public class OpenSpendingDatasetInfo
 	 * because a dataset from the OpenSpending dataset list should always exist at OpenSpending. */
 	public static OpenSpendingDatasetInfo forDataset(String datasetName) throws DataSetDoesNotExistException
 	{
+		URL url = null;
 		try
 		{
-			URL url = new URL(PropertyLoader.prefixOpenSpending+datasetName+".json");
+			url = new URL(PropertyLoader.prefixOpenSpending+datasetName+".json");
 			JsonNode datasetJson = m.readTree(url);
 			return new OpenSpendingDatasetInfo(datasetName,
 					Instant.parse(datasetJson.get("timestamps").get("created").asText()+'Z'),
@@ -144,7 +165,7 @@ public class OpenSpendingDatasetInfo
 		catch (IOException e)
 		{
 			if(e.getMessage().contains("HTTP response code 404")) {throw new DataSetDoesNotExistException(datasetName);}
-			throw new RuntimeException("Error getting OpenSpending dataset info for dataset '"+datasetName+"'",e);
+			throw new RuntimeException("Error getting OpenSpending dataset info for dataset '"+datasetName+"' at url "+url,e);
 		}
 	}
 

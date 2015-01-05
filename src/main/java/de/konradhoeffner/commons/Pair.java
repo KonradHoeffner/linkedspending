@@ -1,11 +1,15 @@
 package de.konradhoeffner.commons;
 
 /** Generic class for Pairs. */
-public class Pair<T>
+public class Pair<A,B>
 {
-	public final T	a, b;
+	public final A	a;
+	public final B	b;
 
-	public Pair(T a, T b)
+	public A getA() {return a;}
+	public B getB() {return b;}
+
+	public Pair(A a, B b)
 	{
 		super();
 		this.a = a;
@@ -30,7 +34,7 @@ public class Pair<T>
 	{
 		if (this == obj) return true;
 		if (obj == null) return false;
-		if (!(obj instanceof Pair<?>)) return false;
+		if (!(obj instanceof Pair<?,?>)) return false;
 		@SuppressWarnings("rawtypes")
 		Pair other = (Pair) obj;
 		if (a == null)

@@ -59,7 +59,7 @@ import de.konradhoeffner.commons.TSVReader;
 	static private Pattern versionPattern = Pattern.compile("\"(\\d*)\"\\^\\^<http://www.w3.org/2001/XMLSchema#int>");
 
 	static final Map<String, String>		codeToCurrency				= new HashMap<>();
-	static final Map<Pair<String>, String>	userDefinedDatasetPropertyNameToUri	= new HashMap<>();
+	static final Map<Pair<String,String>, String>	userDefinedDatasetPropertyNameToUri	= new HashMap<>();
 
 	private static final boolean	USE_STRING_TO_DATE_NAME_HEURISTIC	= true;
 	/** properties */
@@ -107,7 +107,7 @@ import de.konradhoeffner.commons.TSVReader;
 			while (in.hasNextTokens())
 			{
 				String[] tokens = in.nextTokens();
-				userDefinedDatasetPropertyNameToUri.put(new Pair<String>(tokens[0], tokens[1]), tokens[2]);
+				userDefinedDatasetPropertyNameToUri.put(new Pair<String,String>(tokens[0], tokens[1]), tokens[2]);
 			}
 			in.close();
 		}
@@ -392,7 +392,7 @@ import de.konradhoeffner.commons.TSVReader;
 			// String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl;
 			{
-			String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<String>(datasetName, name));
+			String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<String,String>(datasetName, name));
 			componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() +datasetName+"-"+name;
 			}
 			Property componentProperty = model.createProperty(componentPropertyUrl);

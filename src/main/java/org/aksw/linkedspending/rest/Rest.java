@@ -1,10 +1,11 @@
 package org.aksw.linkedspending.rest;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
@@ -18,12 +19,10 @@ import javax.ws.rs.core.MediaType;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
-import org.aksw.linkedspending.Sparql;
 import org.aksw.linkedspending.Virtuoso;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.job.Boss;
 import org.aksw.linkedspending.job.Job;
-import org.aksw.linkedspending.job.State;
 import org.aksw.linkedspending.tools.PropertyLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -119,6 +118,8 @@ public class Rest
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
 	public static String datasets() throws IOException, DataSetDoesNotExistException
 	{
+		if(!OpenSpendingDatasetInfo.openSpendingOnline()) {return "OpenSpending is offline!";}
+
 		// TODO: this takes a long time to load, maybe some synchronization is in the way?
 		Set<String> updateCandidates = new TreeSet<>();
 
@@ -219,6 +220,7 @@ public class Rest
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode rootNode = mapper.createObjectNode();
 		rootNode.put("doc", "https://github.com/AKSW/openspending2rdf/wiki/REST-API");
+		rootNode.put("openspendingonline", OpenSpendingDatasetInfo.openSpendingOnline());
 		rootNode.put("datasets", PREFIX+"datasets");
 		rootNode.put("jobs", PREFIX+"jobs");
 		rootNode.put("idle", Job.allIdle());

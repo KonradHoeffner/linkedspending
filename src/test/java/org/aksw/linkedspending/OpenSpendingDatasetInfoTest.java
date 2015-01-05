@@ -12,4 +12,9 @@ public class OpenSpendingDatasetInfoTest
 	{
 		assertTrue(OpenSpendingDatasetInfo.forDataset("2013").created.isBefore(Instant.now()));
 	}
+
+	@Test public void testOpenSpendingOnline()
+	{
+		assertTrue(OpenSpendingDatasetInfo.openSpendingOnline());
+	}
 }
