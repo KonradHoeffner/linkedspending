@@ -5,6 +5,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sdmx-attribute:  <http://purl.org/linked-data/sdmx/2009/attribute#> .
 @prefix sdmx-concept:    <http://purl.org/linked-data/sdmx/2009/concept#> .
+@prefix dbo: <http://dbpedia.org/ontology/>.
 
 :transformationVersion a rdf:Property;
 	rdfs:label "transformation version"@en;
@@ -42,7 +43,7 @@
 
 :CurrencyComponentSpecification	a qb:ComponentSpecification;
 				rdfs:label "currency";
-				qb:attribute <http://dbpedia.org/ontology/currency>;
+				qb:attribute dbo:currency;
 				qb:componentRequired "true"^^xsd:boolean;
 				qb:componentAttachment qb:Observation.
 				
@@ -59,3 +60,7 @@
 	rdfs:comment "the year an observation refers to";
 	rdfs:domain qb:Observation;
 	rdfs:range xsd:gYear. 
+
+dbo:currency rdfs:range dbo:Currency.
+
+sdmx-attribute:refArea rdfs:range <http://linkedgeodata.org/ontology/Country>.
