@@ -40,7 +40,7 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-                    <maxmem>4g</maxmem>
+					<maxmem>4g</maxmem>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
@@ -60,31 +60,33 @@
 	</dependencyManagement>
 
 	<dependencies>
-	<dependency>
-  <groupId>com.openlink.virtuoso</groupId>
-  <artifactId>virt_jena2</artifactId>
-  <version>7.1.0</version>
-</dependency>
+		<dependency>
+			<groupId>com.openlink.virtuoso</groupId>
+			<artifactId>virt_jena2</artifactId>
+			<version>7.1.0</version>
+		</dependency>
 
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>tr.com.srdc</groupId> -->
-<!-- 			<artifactId>virt-jena</artifactId> -->
-<!-- 			<version>2.6.2-srdc</version> -->
-<!-- 			<exclusions> -->
-<!-- 				<exclusion> -->
-<!-- 					<artifactId>slf4j-log4j12</artifactId> -->
-<!-- 					<groupId>org.slf4j</groupId> -->
-<!-- 				</exclusion> -->
-<!-- 			</exclusions> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>tr.com.srdc</groupId> -->
+		<!-- <artifactId>virt-jena</artifactId> -->
+		<!-- <version>2.6.2-srdc</version> -->
+		<!-- <exclusions> -->
+		<!-- <exclusion> -->
+		<!-- <artifactId>slf4j-log4j12</artifactId> -->
+		<!-- <groupId>org.slf4j</groupId> -->
+		<!-- </exclusion> -->
+		<!-- </exclusions> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-grizzly2-http</artifactId>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-moxy</artifactId>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -139,16 +141,18 @@
 	</dependencies>
 
 	<repositories>
-<!--		<repository>
-			<id>m2test</id>
-			<url>http://build.eclipse.org/tools/objectteams/m2test</url>
-		</repository>-->
+		<!-- <repository> <id>m2test</id> <url>http://build.eclipse.org/tools/objectteams/m2test</url>
+			</repository> -->
 		<repository>
 			<id>maven.aksw.internal</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
 			<url>http://maven.aksw.org/repository/internal</url>
 		</repository>
-
+		<repository>
+			<id>central</id>
+			<name>Maven Central</name>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
 		<repository>
 			<id>maven.aksw.snapshots</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
