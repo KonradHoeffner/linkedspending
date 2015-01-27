@@ -60,11 +60,24 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<dependency>
-			<groupId>tr.com.srdc</groupId>
-			<artifactId>virt-jena</artifactId>
-			<version>2.6.2-srdc</version>
-		</dependency>
+	<dependency>
+  <groupId>com.openlink.virtuoso</groupId>
+  <artifactId>virt_jena2</artifactId>
+  <version>7.1.0</version>
+</dependency>
+
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>tr.com.srdc</groupId> -->
+<!-- 			<artifactId>virt-jena</artifactId> -->
+<!-- 			<version>2.6.2-srdc</version> -->
+<!-- 			<exclusions> -->
+<!-- 				<exclusion> -->
+<!-- 					<artifactId>slf4j-log4j12</artifactId> -->
+<!-- 					<groupId>org.slf4j</groupId> -->
+<!-- 				</exclusion> -->
+<!-- 			</exclusions> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-grizzly2-http</artifactId>
@@ -106,13 +119,19 @@
 		<dependency>
 			<groupId>org.eclipse.jdt</groupId>
 			<artifactId>org.eclipse.jdt.annotation</artifactId>
-			<version>1.0.1</version>
+			<version>2.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
 			<type>pom</type>
 			<version>2.12.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- <dependency> <groupId>rome</groupId> <artifactId>rome</artifactId>
 			<version>1.0</version> </dependency> -->
@@ -127,13 +146,13 @@
 		<repository>
 			<id>maven.aksw.internal</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
-			<url>http://maven.aksw.org/archiva/repository/internal</url>
+			<url>http://maven.aksw.org/repository/internal</url>
 		</repository>
 
 		<repository>
 			<id>maven.aksw.snapshots</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>
-			<url>http://maven.aksw.org/archiva/repository/snapshots</url>
+			<url>http://maven.aksw.org/repository/snapshots</url>
 		</repository>
 		<repository>
 			<id>apache.releases</id>

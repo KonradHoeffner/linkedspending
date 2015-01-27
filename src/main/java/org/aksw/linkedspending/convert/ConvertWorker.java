@@ -66,7 +66,11 @@ import de.konradhoeffner.commons.TSVReader;
 
 	static ObjectMapper	m = new ObjectMapper();
 	static List<String>	 faultyDatasets	= new LinkedList<>();
-	static File	statistics	= new File("statistics"	+ (System.currentTimeMillis() / 1000));
+	static File statisticsFolder = new File("statistics");
+	{
+		statisticsFolder.mkdir();
+	}
+	static File	statistics	= new File(statisticsFolder,"statistics"	+ (System.currentTimeMillis() / 1000));
 
 	/** used to provide one statistical value: "the maximum memory used by jvm while downloading */
 	static MemoryBenchmark					memoryBenchmark				= new MemoryBenchmark();
