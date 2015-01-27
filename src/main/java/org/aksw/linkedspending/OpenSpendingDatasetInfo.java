@@ -77,9 +77,14 @@ public class OpenSpendingDatasetInfo
 			}
 			lastOnlineCheck = Instant.now();
 			m.readTree(new URL("https://openspending.org/berlin_de/entries.json?pagesize=0"));
+			isOnline=true;
 			return true;
 		}
-		catch (IOException e) {return false;}
+		catch (IOException e)
+		{
+			isOnline=false;
+			return false;
+		}
 		finally
 		{
 			if(isOnline) {onlineCondition.signalAll();}

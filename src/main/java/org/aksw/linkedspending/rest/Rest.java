@@ -118,7 +118,10 @@ public class Rest
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
 	public static String datasets() throws IOException, DataSetDoesNotExistException
 	{
-		if(!OpenSpendingDatasetInfo.isOnline()) {return "OpenSpending is offline!";}
+		if(!OpenSpendingDatasetInfo.isOnline())
+		{
+			return "OpenSpending is offline!";
+		}
 
 		// TODO: this takes a long time to load, maybe some synchronization is in the way?
 		Set<String> updateCandidates = new TreeSet<>();
