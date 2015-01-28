@@ -9,9 +9,9 @@ public class DataSetFiles
 
 	static private final File PARTS_FOLDER = new File(JSON_FOLDER,"parts");
 
-	static public File partsSubFolder(String datasetName)
+	static public File partsSubFolder(String datasetName, int pageSize)
 	{
-		return new File(PARTS_FOLDER,datasetName);
+		return new File(PARTS_FOLDER,datasetName+"-"+pageSize);
 	}
 
 	static public File datasetJsonFile(String datasetName)

@@ -46,7 +46,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 	static AtomicInteger counter = new AtomicInteger();
 	final int nr;
 
-	static final int PAGE_SIZE	= 100;
+	static final int PAGE_SIZE	= 200;
 	static final File emptyDatasetFile = new File("cache/emptydatasets.ser");
 
 	final File partsSubFolder;
@@ -75,7 +75,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 	{
 		super(datasetName,job,force);
 		this.nr=counter.getAndIncrement();
-		this.partsSubFolder = DataSetFiles.partsSubFolder(datasetName);
+		this.partsSubFolder = DataSetFiles.partsSubFolder(datasetName,PAGE_SIZE);
 	}
 
 	@Override public @Nullable Boolean get()// throws IOException, InterruptedException, MissingDataException
@@ -139,18 +139,21 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 				URL entries = new URL("https://openspending.org/" + datasetName + "/entries.json?pagesize=" + PAGE_SIZE
 						+ "&page=" + page);
 				// System.out.println(entries);
-
+				HttpURLConnection connection = null;
 				try
 				{
-					HttpURLConnection connection = getConnection(entries);
+					connection = getConnection(entries);
 				}
-				catch (HttpConnectionUtil.HttpTimeoutException | HttpConnectionUtil.HttpUnavailableException e)
+				catch(Exception e)
+//				catch (HttpConnectionUtil.HttpTimeoutException | HttpConnectionUtil.HttpUnavailableException e)
 				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					log.severe("Could not get HTTP connection, download failed. Exception message: "+e.getMessage());
+					job.setState(State.FAILED);
+					cleanUpParts();
+					return false;
 				}
+				ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream());
 
-				ReadableByteChannel rbc = Channels.newChannel(entries.openStream());
 				try (FileOutputStream fos = new FileOutputStream(f))
 				{
 					fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);

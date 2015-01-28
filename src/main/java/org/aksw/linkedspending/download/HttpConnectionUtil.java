@@ -2,6 +2,7 @@ package org.aksw.linkedspending.download;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
@@ -51,7 +52,7 @@ import lombok.extern.java.Log;
 				Thread.sleep(INITIAL_RETRY_DELAY_MS);
 				delayMs = Math.max(delayMs * 2, MAX_DELAY_MS);
 			}
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
 			int code = connection.getResponseCode();
 			switch (code)
 			{
