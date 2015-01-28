@@ -34,7 +34,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 public class Rest
 {
 	static final String PREFIX = PropertyLoader.apiUrl;
-	static final int POOL_SIZE = 4;
+	static final int POOL_SIZE = 2;
 
 	/** called by jersey on startup, initializes graph groups
 	 */
@@ -143,7 +143,7 @@ public class Rest
 		{
 			OpenSpendingDatasetInfo osInfo = datasetInfos.get(dataset);
 			LinkedSpendingDatasetInfo lsInfo = lsInfos.get(dataset);
-
+//
 			final String tdModified;
 			final String tdCreated;
 
@@ -156,8 +156,8 @@ public class Rest
 			}
 			else
 			{
-				//				Instant modifiedInstant = Instant.ofEpochMilli(modified);
-				if(LinkedSpendingDatasetInfo.upToDate(lsInfo.name)&&LinkedSpendingDatasetInfo.newestTransformation(lsInfo.name))
+//								Instant modifiedInstant = Instant.ofEpochMilli(modified);
+				if(lsInfo.modified.isAfter(osInfo.modified)&&LinkedSpendingDatasetInfo.newestTransformation(lsInfo.name))
 				{
 					color="lightgreen";
 				}
@@ -203,7 +203,7 @@ public class Rest
 
 			//			//			sb.append("<tr><td>"+dataset+"</td><td></td><td>"+jobLink(dataset)+"</td></tr>");
 		}
-
+//
 		tableSb.append("</table>");
 
 		// TODO implement selective mass operations
