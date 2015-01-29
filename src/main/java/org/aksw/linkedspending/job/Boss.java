@@ -28,7 +28,6 @@ public class Boss implements Runnable
 	static AtomicInteger threadCount = new AtomicInteger(0);
 	int nr = threadCount.incrementAndGet();
 
-
 	@Override public void run()
 	{
 		if(!OpenSpendingDatasetInfo.isOnline())
@@ -54,10 +53,11 @@ public class Boss implements Runnable
 		Job job = null;
 		try
 		{
-			synchronized(Job.class)
+			// synchronize on job or boss?
+			synchronized(Boss.class)
 			{
 				// must not throw any exception because ScheduledExecutorService.scheduleAtFixedRate does not schedule any more after exceptions
-				log.info("Boss started (random order mode "+RANDOM+")");
+				log.info("Boss thread "+nr+" started (random order mode "+RANDOM+")");
 				Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.cached();
 				Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
 				// first priority: unconverted datasets
@@ -77,7 +77,7 @@ public class Boss implements Runnable
 				if(!pool.isEmpty())
 				{
 					datasetName = RANDOM?pool.toArray(new String[0])[random.nextInt(pool.size())]:pool.iterator().next();
-					log.info("Boss starting "+(unconverted.contains(datasetName)?"unconverted":"outdated")+" dataset "+datasetName);
+					log.info("Boss thread "+nr+" starting "+(unconverted.contains(datasetName)?"unconverted":"outdated")+" dataset "+datasetName);
 					job = Job.forDatasetOrCreate(datasetName);
 				}
 			}
@@ -101,7 +101,7 @@ public class Boss implements Runnable
 			{
 				job.worker=null;
 				job.setState(State.FAILED);
-				String timeoutMessage = "Timeout limit of "+TIMEOUT_HOURS+" hours exceeded for dataset "+datasetName;
+				String timeoutMessage = "Boss thread "+nr+" Timeout limit of "+TIMEOUT_HOURS+" hours exceeded for dataset "+datasetName;
 				log.severe(timeoutMessage+", progress: "+job.json().toString());
 				job.addHistory(timeoutMessage);
 			}
