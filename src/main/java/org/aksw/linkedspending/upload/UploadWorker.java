@@ -56,6 +56,7 @@ public class UploadWorker extends Worker
 					Node.createLiteral("true",XSDDatatype.XSDboolean)));
 
 			virtGraph.close();
+			LinkedSpendingDatasetInfo.updateCache(datasetName);
 		}
 		catch(Exception e)
 		{

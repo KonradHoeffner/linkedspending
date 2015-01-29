@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -35,6 +36,10 @@ public class Rest
 {
 	static final String PREFIX = PropertyLoader.apiUrl;
 	static final int POOL_SIZE = 2;
+
+	static Instant datasetsLastFetched = Instant.MIN;
+	static String datasetHtmlCache = null;
+	static final Duration DATASETS_TTL = Duration.ofSeconds(5);
 
 	/** called by jersey on startup, initializes graph groups
 	 */
@@ -118,6 +123,7 @@ public class Rest
 	@GET @Path("datasets") @Produces(MediaType.TEXT_HTML)
 	public static String datasets() throws IOException, DataSetDoesNotExistException
 	{
+		if(Duration.between(datasetsLastFetched, Instant.now()).compareTo(DATASETS_TTL)<0) {return datasetHtmlCache;}
 		if(!OpenSpendingDatasetInfo.isOnline())
 		{
 			return "OpenSpending is offline!";
@@ -127,7 +133,7 @@ public class Rest
 		Set<String> updateCandidates = new TreeSet<>();
 
 		StringBuffer sb = new StringBuffer("<meta charset=\"UTF-8\"><html><body>");
-		Map<String,LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
+		Map<String,LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.cached();
 
 		//		sb.append("<table border=1><tr><th>dataset</th><th>status</th><th>added</th><th>job</th></tr>");
 		StringBuffer tableSb = new StringBuffer();
@@ -214,7 +220,10 @@ public class Rest
 		sb.append(tableSb);
 
 		sb.append("</body></html>");
-		return sb.toString();
+		String sbs = sb.toString();
+		datasetHtmlCache = sbs;
+		datasetsLastFetched = Instant.now();
+		return sbs;
 	}
 
 	@GET @Path("") @Produces(MediaType.APPLICATION_JSON)

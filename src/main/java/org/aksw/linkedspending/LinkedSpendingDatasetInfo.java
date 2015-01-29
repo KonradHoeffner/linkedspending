@@ -1,5 +1,6 @@
 package org.aksw.linkedspending;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
@@ -18,7 +20,7 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 
 @Log
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString
 /** Represents information about RDF datasets on LinkedSpending and offers utility methods to collect it from the SPARQL endpoint.*/
@@ -36,8 +38,30 @@ public class LinkedSpendingDatasetInfo
 		return Instant.parse(n.asLiteral().getLexicalForm());
 	}
 
+	static Map<String,LinkedSpendingDatasetInfo> lsInfoCache = new HashMap<>();
+	static Instant lastCacheRefresh = Instant.MIN;
+	static final Duration CACHE_TTL = Duration.ofHours(1);
+
+	/** To improve performance and not stress the endpoint so much only a cached view is available that is updated periodically and for each dataset after its upload.
+	 * Each modification of a dataset on the SPARQL endpoint needs to call updateCache on that dataset. */
+	public synchronized static Map<String,LinkedSpendingDatasetInfo> cached()
+	{
+		if(lsInfoCache.isEmpty()||Duration.between(lastCacheRefresh, Instant.now()).compareTo(CACHE_TTL)>0)
+		{
+			lastCacheRefresh = Instant.now();
+			lsInfoCache = all();
+		}
+		return lsInfoCache;
+	}
+
+	static public void updateCache(String datasetName)
+	{
+		// updates cache anyways so just fetch and throw away
+		forDataset(datasetName);
+	}
+
 	/** fresh dataset information from SPARQL endpoint about a single dataset	 */
-	public static Map<String,LinkedSpendingDatasetInfo> all()
+	private static Map<String,LinkedSpendingDatasetInfo> all()
 	{
 		Map<String,LinkedSpendingDatasetInfo> infos = new HashMap<>();
 		String query = "select ?name ?c ?m ?sc ?sm ?tv {?d a qb:DataSet. ?d dcterms:identifier ?name. ?d dcterms:created ?c. ?d dcterms:modified ?m."
@@ -65,8 +89,10 @@ public class LinkedSpendingDatasetInfo
 
 		if(!rs.hasNext()) {return Optional.empty();}
 		QuerySolution qs = rs.next();
-		return Optional.of(new LinkedSpendingDatasetInfo(datasetName, nodeToInstant(qs.get("c")), nodeToInstant(qs.get("m")),
-				nodeToInstant(qs.get("sc")), nodeToInstant(qs.get("sm")),qs.get("tv").asLiteral().getInt()));
+		LinkedSpendingDatasetInfo lsInfo = new LinkedSpendingDatasetInfo(datasetName, nodeToInstant(qs.get("c")), nodeToInstant(qs.get("m")),
+				nodeToInstant(qs.get("sc")), nodeToInstant(qs.get("sm")),qs.get("tv").asLiteral().getInt());
+		synchronized(lsInfoCache) {lsInfoCache.put(datasetName, lsInfo);}
+		return Optional.of(lsInfo);
 	}
 
 	// name is "primary key"

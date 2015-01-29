@@ -24,8 +24,6 @@ public class GrizzlyHttpUtil
 		// return GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
 		HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseURI, resCon);
 		// enable JMX for visualvm
-		NetworkListener listener1 = new NetworkListener("listener1", "localhost", 19080);
-		server.addListener(listener1);
 		server.getServerConfiguration().setJmxEnabled(true);
 
 		return server;

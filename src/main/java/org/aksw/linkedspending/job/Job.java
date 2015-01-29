@@ -185,7 +185,7 @@ public class Job
 						{
 							job.terminate();
 							jobs.remove(datasetName);
-							break;
+							return jsonMessage("removed job for dataset "+datasetName+". Note: This doesn't remove the dataset on the SPARQL endpoint.",jobLink);
 						}
 					default: return jsonMessage("todo: operation "+op+" on dataset "+datasetName,jobLink);
 				}

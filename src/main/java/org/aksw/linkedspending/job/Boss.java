@@ -58,7 +58,7 @@ public class Boss implements Runnable
 			{
 				// must not throw any exception because ScheduledExecutorService.scheduleAtFixedRate does not schedule any more after exceptions
 				log.info("Boss started (random order mode "+RANDOM+")");
-				Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.all();
+				Map<String, LinkedSpendingDatasetInfo> lsInfos = LinkedSpendingDatasetInfo.cached();
 				Map<String, OpenSpendingDatasetInfo> osInfos = OpenSpendingDatasetInfo.getDatasetInfosCached();
 				// first priority: unconverted datasets
 
