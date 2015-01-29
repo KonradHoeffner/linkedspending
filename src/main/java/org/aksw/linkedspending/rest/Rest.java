@@ -35,7 +35,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 public class Rest
 {
 	static final String PREFIX = PropertyLoader.apiUrl;
-	static final int POOL_SIZE = 2;
+	static final int POOL_SIZE = 1;
 
 	static Instant datasetsLastFetched = Instant.MIN;
 	static String datasetHtmlCache = null;
