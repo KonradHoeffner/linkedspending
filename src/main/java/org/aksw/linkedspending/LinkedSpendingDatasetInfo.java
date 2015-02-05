@@ -6,20 +6,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.extern.java.Log;
-import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
-import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.PropertyLoader;
 import org.aksw.linkedspending.upload.UploadWorker;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 
-@Log
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString

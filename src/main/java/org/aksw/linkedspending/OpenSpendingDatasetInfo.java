@@ -2,19 +2,12 @@ package org.aksw.linkedspending;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,8 +41,8 @@ public class OpenSpendingDatasetInfo
 	private static final ObjectMapper				m				= new ObjectMapper();
 	//	private static final Set<String>	unfinishedDatasets	= new HashSet<>();
 	//	private static final Set<String>	finishedDatasets	= new HashSet<>();
-	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
-	private static final File emptyDatasetFile	= new File("cache/emptydatasets.ser");
+//	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
+//	private static final File emptyDatasetFile	= new File("cache/emptydatasets.ser");
 
 	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<String, OpenSpendingDatasetInfo>();
 
@@ -78,18 +71,17 @@ public class OpenSpendingDatasetInfo
 			lastOnlineCheck = Instant.now();
 			m.readTree(new URL("https://openspending.org/berlin_de/entries.json?pagesize=0"));
 			isOnline=true;
-			return true;
 		}
 		catch (IOException e)
 		{
 			isOnline=false;
-			return false;
 		}
 		finally
 		{
 			if(isOnline) {onlineCondition.signalAll();}
 			onlineLock.unlock();
 		}
+		return isOnline;
 	}
 	/**
 	 *

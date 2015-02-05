@@ -30,18 +30,18 @@ public abstract class Worker implements Supplier<Boolean>
 		this.force = force;
 	}
 
-	/**insert this into long running loops together with "if(stopRequested) {break;}"
-	 * @throws InterruptedException */
-	protected void pausePoint(Object instance) throws InterruptedException
-	{
-		synchronized(instance)
-		{
-			while(pauseRequested&&!stopRequested)
-			{
-				job.setState(State.PAUSED);
-				wait();
-			}
-			if(!stopRequested&&(job.getState()==State.PAUSED)) {job.setState(State.RUNNING);}
-		}
-	}
+//	/**insert this into long running loops together with "if(stopRequested) {break;}"
+//	 * @throws InterruptedException */
+//	protected void pausePoint(Object instance) throws InterruptedException
+//	{
+//		synchronized(instance)
+//		{
+//			while(pauseRequested&&!stopRequested)
+//			{
+//				job.setState(State.PAUSED);
+//				wait();
+//			}
+//			if(!stopRequested&&(job.getState()==State.PAUSED)) {job.setState(State.RUNNING);}
+//		}
+//	}
 }

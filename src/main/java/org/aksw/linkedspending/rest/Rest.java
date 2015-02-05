@@ -1,9 +1,6 @@
 package org.aksw.linkedspending.rest;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -198,9 +195,9 @@ public class Rest
 					case RUNNING:trStyle="outline: thick solid #FF00FF;";break;
 					case FINISHED:trStyle="outline: thick solid green;";break;
 					case FAILED:trStyle="outline: thick solid red;";break;
-					case PAUSED:trStyle="outline: thick solid yellow;";break;
+//					case PAUSED:trStyle="outline: thick solid yellow;";break;
 					case STOPPED:trStyle="outline: thin solid red;";break;
-					default: trStyle=trStyle="outline: thin solid lightgray;";
+					default: trStyle="outline: thin solid lightgray;";
 				}
 			}
 			else {progress = "";}

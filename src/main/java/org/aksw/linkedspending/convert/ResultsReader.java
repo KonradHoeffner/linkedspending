@@ -48,6 +48,6 @@ public class ResultsReader implements Closeable
 
 	@Override public void close() throws IOException
 	{
-		synchronized(jp) {if(jp!=null) jp.close();}
+		synchronized(jp) {jp.close();}
 	}
 }

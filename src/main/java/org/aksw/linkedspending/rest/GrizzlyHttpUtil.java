@@ -4,7 +4,6 @@ import java.net.URI;
 import javax.ws.rs.core.UriBuilder;
 import org.aksw.linkedspending.job.Job;
 import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 

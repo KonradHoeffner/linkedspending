@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Properties;
-import javax.management.RuntimeErrorException;
 
 /**
  * static helper class for loading properties

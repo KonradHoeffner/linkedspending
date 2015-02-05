@@ -2,7 +2,6 @@ package org.aksw.linkedspending;
 
 import static org.junit.Assert.assertTrue;
 import java.time.Instant;
-import lombok.val;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.job.DownloadConvertUploadWorker;
 import org.aksw.linkedspending.job.Job;

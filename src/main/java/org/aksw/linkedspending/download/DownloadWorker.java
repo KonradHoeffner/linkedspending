@@ -4,7 +4,6 @@ import static org.aksw.linkedspending.download.HttpConnectionUtil.getConnection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,11 +13,8 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DataSetFiles;
@@ -51,24 +47,24 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 
 	final File partsSubFolder;
 
-	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
+//	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
 
 	enum Position {TOP, MID, BOTTOM}
 
-	private static void markAsEmpty(String datasetName) throws FileNotFoundException, IOException
-	{
-//		synchronized (emptyDatasets)
-//		{
-//			if(emptyDatasets.add(datasetName))
-//			{
-//				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
-//				{
-//					log.fine("serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to empty dataset list file");
-//					out.writeObject(JsonDownloaderOld.emptyDatasets);
-//				}
-//			}
-//		}
-	}
+//	private static void markAsEmpty(String datasetName) throws FileNotFoundException, IOException
+//	{
+////		synchronized (emptyDatasets)
+////		{
+////			if(emptyDatasets.add(datasetName))
+////			{
+////				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
+////				{
+////					log.fine("serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to empty dataset list file");
+////					out.writeObject(JsonDownloaderOld.emptyDatasets);
+////				}
+////			}
+////		}
+//	}
 
 	/** @see Worker() */
 	public DownloadWorker(String datasetName, Job job, boolean force)
@@ -105,7 +101,6 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			if (nrEntries == 0)
 			{
 				log.fine(nr + " No entries for dataset " + datasetName + " skipping download.");
-				markAsEmpty(datasetName);
 				// save as empty file to make it faster? but then it slows down normal use
 				throw new MissingDataException(datasetName, "openspending result empty");
 				//			return false;
@@ -125,7 +120,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			}
 			for (int page = 1; page <= nrOfPages; page++)
 			{
-				pausePoint(this);
+//				pausePoint(this);
 				if(stopRequested) {job.setState(State.STOPPED);break;}
 
 				File f;

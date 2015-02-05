@@ -30,7 +30,6 @@ import lombok.extern.java.Log;
 import org.aksw.linkedspending.OpenSpendingDatasetInfo;
 import org.aksw.linkedspending.exception.DataSetDoesNotExistException;
 import org.aksw.linkedspending.tools.PropertyLoader;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -178,7 +177,7 @@ public class Job
 				{
 					case START:return jsonMessage("Starting successful: "+String.valueOf(job.start()),jobLink);
 					case STOP:		job.worker.ifPresent(Worker::stop);break;
-					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
+//					case PAUSE:	job.worker.ifPresent(Worker::pause);break;
 					case RESUME:	job.worker.ifPresent(Worker::resume);break;
 					case REMOVE:
 						synchronized(jobs)
@@ -282,8 +281,8 @@ public class Job
 		Map<State,EnumSet<State>> t = new HashMap<>();
 
 		t.put(CREATED,EnumSet.of(RUNNING,STOPPED));
-		t.put(RUNNING,EnumSet.of(PAUSED,FINISHED,FAILED,STOPPED));
-		t.put(PAUSED,EnumSet.of(RUNNING,STOPPED));
+		t.put(RUNNING,EnumSet.of(/*PAUSED,*/FINISHED,FAILED,STOPPED));
+//		t.put(PAUSED,EnumSet.of(RUNNING,STOPPED));
 		t.put(FINISHED, EnumSet.noneOf(State.class));
 		t.put(FAILED, EnumSet.noneOf(State.class));
 		t.put(STOPPED, EnumSet.noneOf(State.class));
@@ -295,13 +294,13 @@ public class Job
 	{
 		SortedMap<State,EnumSet<Operation>> s = new TreeMap<>();
 		s.put(CREATED, EnumSet.of(START,STOP,REMOVE));
-		s.put(RUNNING, EnumSet.of(STOP,PAUSE));
-		s.put(PAUSED, EnumSet.of(STOP,RESUME));
+		s.put(RUNNING, EnumSet.of(STOP/*,PAUSE*/));
+//		s.put(PAUSED, EnumSet.of(STOP,RESUME));
 
 		s.put(STOPPED, EnumSet.of(REMOVE));
 		s.put(FINISHED, EnumSet.of(REMOVE));
 		s.put(FAILED, EnumSet.of(REMOVE));
-		s.put(PAUSED, EnumSet.noneOf(Operation.class));
+//		s.put(PAUSED, EnumSet.noneOf(Operation.class));
 
 		operations = Collections.unmodifiableSortedMap(s);
 	}

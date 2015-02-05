@@ -243,7 +243,6 @@ import de.konradhoeffner.commons.TSVReader;
 
 		model.add(dataSet, RDF.type, DataModel.DataCube.DataSet);
 		model.add(dataSet, DataModel.DataCube.structure, dsd);
-		String dataSetName = url.toString().substring(url.toString().lastIndexOf('/') + 1);
 
 		List<String> territories = ArrayNodeToStringList((ArrayNode) datasetJson.get("territories"));
 		Set<Resource> countries = new HashSet<>();
@@ -379,7 +378,7 @@ import de.konradhoeffner.commons.TSVReader;
 		Map<String, Property> propertyByName = new HashMap<>();
 		Set<ComponentProperty> componentProperties = new HashSet<>();
 		// ArrayNode dimensionArray = readArrayNode(url);
-		boolean dateExists = false;
+
 		for (Iterator<String> it = mapping.fieldNames(); it.hasNext();)
 		{
 			// JsonNode dimJson = dimensionArray.get(i);
@@ -468,7 +467,6 @@ import de.konradhoeffner.commons.TSVReader;
 			switch (type)
 			{
 				case "date": {
-					dateExists = true;
 					dimensionCount++;
 					componentSpecification = DataModel.LSOntology.getDateComponentSpecification();
 					componentProperties.add(new ComponentProperty(DataModel.LSOntology.getRefDate(), name,
@@ -600,7 +598,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 			for (observations = 0; (result = in.read()) != null; observations++)
 			{
-				pausePoint(this);
+//				pausePoint(this);
 				if(stopRequested) {job.setState(State.STOPPED);return false;}
 				String osUri = result.get("html_url").asText();
 				Resource osObservation = model.createResource();
@@ -859,7 +857,7 @@ import de.konradhoeffner.commons.TSVReader;
 	{
 		model.write(out, "N-TRIPLE");
 		// assuming that most memory is consumed before model cleaning
-		memoryBenchmark.updateAndGetMaxMemoryBytes();
+		MemoryBenchmark.updateAndGetMaxMemoryBytes();
 		model.removeAll();
 	}
 
@@ -879,7 +877,6 @@ import de.konradhoeffner.commons.TSVReader;
 		job.setPhase(Phase.CONVERT);
 		// observations use saved datasets so we need the saved names, if we only create the
 		// schema we can use the newest dataset names
-		SortedSet<String> datasetNames = getDownloadedDatasetNames();
 
 		Model model = DataModel.newModel();
 		File ntriples = getDatasetFile(datasetName);

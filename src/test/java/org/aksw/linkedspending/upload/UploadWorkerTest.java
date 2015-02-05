@@ -1,6 +1,5 @@
 package org.aksw.linkedspending.upload;
 
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class UploadWorkerTest

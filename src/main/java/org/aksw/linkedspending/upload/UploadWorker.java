@@ -3,7 +3,6 @@ package org.aksw.linkedspending.upload;
 import static org.aksw.linkedspending.tools.PropertyLoader.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.time.Instant;
 import java.util.Iterator;
 import lombok.extern.java.Log;
 import org.aksw.linkedspending.DataSetFiles;
@@ -41,7 +40,6 @@ public class UploadWorker extends Worker
 			VirtGraph virtGraph = new VirtGraph(graph+datasetName,jdbcUrl,jdbcUser,jdbcPassword);
 			virtGraph.getConnection().createStatement().execute("log_enable(2,1)");
 			Iterator<Triple> it = RiotReader.createIteratorTriples(in, Lang.NT, "");
-			Instant start = Instant.now();
 			virtGraph.getBulkUpdateHandler().add(it);
 			//			log.info(Duration.between(start,Instant.now()));
 

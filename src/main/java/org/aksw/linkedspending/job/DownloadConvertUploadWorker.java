@@ -4,7 +4,6 @@ import static org.aksw.linkedspending.job.State.RUNNING;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Optional;
-import org.aksw.linkedspending.LinkedSpendingDatasetInfo;
 import org.aksw.linkedspending.convert.ConvertWorker;
 import org.aksw.linkedspending.download.DownloadWorker;
 import org.aksw.linkedspending.upload.UploadWorker;
