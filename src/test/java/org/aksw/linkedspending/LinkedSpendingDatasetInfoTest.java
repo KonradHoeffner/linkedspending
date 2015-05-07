@@ -11,12 +11,6 @@ public class LinkedSpendingDatasetInfoTest
 {
 	private static final String	name	= "2013";
 
-//	@Test public void testAll()
-//	{
-//		val infos = LinkedSpendingDatasetInfo.all();
-//		System.out.println(infos);
-//	}
-
 	@Test public void testUpToDateAndNewestTransformation() throws DataSetDoesNotExistException
 	{
 		new DownloadConvertUploadWorker(name, Job.forDatasetOrCreate(name), false).get();
@@ -30,7 +24,6 @@ public class LinkedSpendingDatasetInfoTest
 		LinkedSpendingDatasetInfo info = LinkedSpendingDatasetInfo.forDataset(name).get();
 		assertTrue(info.name.equals(name));
 		assertTrue(info.created.isBefore(Instant.now()));
-//		System.out.println(info);
 	}
 
 }

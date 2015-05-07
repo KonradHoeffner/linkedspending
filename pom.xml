@@ -61,6 +61,16 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.optimaize.languagedetector</groupId>
+			<artifactId>language-detector</artifactId>
+			<version>0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
 			<groupId>tr.com.srdc</groupId>
 			<artifactId>virt-jena</artifactId>
 			<version>2.6.2-srdc</version>
