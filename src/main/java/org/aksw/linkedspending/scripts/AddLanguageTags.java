@@ -5,7 +5,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.StringEscapeUtils;
-import com.google.common.base.Optional;
 import com.optimaize.langdetect.LanguageDetector;
 import com.optimaize.langdetect.LanguageDetectorBuilder;
 import com.optimaize.langdetect.i18n.LdLocale;
@@ -15,17 +14,35 @@ import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import com.optimaize.langdetect.text.*;
 
 /** Reads labels from an LinkedSpending ntriples file containing only the labels without language tags and generates the labels with language tags.
- * Outputs ntriples.
+ * Outputs ntriples. Also outputs statistics.
  * If needed, I can also add TSV with no escape chars (tabs get replaced by spaces in the label) with the URL in the first column, the label in the second column
  * and the language tag in the third column. */
 
 public class AddLanguageTags
 {
 	// needs sorted input file, will group detection for a dataset
-	private static final boolean accumulate = true;
+	private static final boolean accumulate = false;
+
 	private static final String	INSTANCE	= "http://linkedspending.aksw.org/instance";
 	private static final String	ONTOLOGY	= "http://linkedspending.aksw.org/ontology/";
 	private static final int	MAX_ACCUMULATE	= 5_000;
+
+	private static Pattern labelPattern = Pattern.compile("\"([^\"]*)\"");
+
+	/**@param a line of an ntriples file
+	 * @return 	the label, if present */
+	public static Optional<String> getLabel(String line)
+	{
+		Matcher m = labelPattern.matcher(line);
+		if(m.find())
+		{
+			// labels contain escaped unicode (\u1234)
+			// there is no pure unicode unescape available so use java unescape and hope for the best
+			String label = m.group(1);
+			String unescapedLabel = StringEscapeUtils.unescapeJava(label);
+			return Optional.of(line.replace(label, unescapedLabel));
+		} else return Optional.empty();
+	}
 
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
@@ -42,7 +59,6 @@ public class AddLanguageTags
 				CommonTextObjectFactories.forDetectingOnLargeText():CommonTextObjectFactories.forDetectingShortCleanText();
 
 				File inFile = new File(args.length>0?args[0]:"langdetect/labels.nt");
-				Pattern labelPattern = Pattern.compile("\"([^\"]*)\"");
 				Pattern urlPattern = Pattern.compile("^<([^>]*)>");
 				//		http://linkedspending.aksw.org/ontology/gifu_kessan_2011_212148-amount-spec>
 
@@ -62,15 +78,11 @@ public class AddLanguageTags
 							int count = 0;
 							while ((line = in.readLine()) != null)
 							{
-								Matcher m = labelPattern.matcher(line);
-								if(m.find())
+								Optional<String> oLabel = getLabel(line);
+								if(oLabel.isPresent())
 								{
+									String label = oLabel.get();
 									count++;
-									// labels contain escaped unicode (\u1234)
-									// there is no pure unicode unescape available so use java unescape and hope for the best
-									String label = m.group(1);
-									String unescapedLabel = StringEscapeUtils.unescapeJava(label);
-									line = line.replace(label, unescapedLabel);
 									if(accumulate)
 									{
 										Matcher urlMatcher = urlPattern.matcher(line);
@@ -100,7 +112,7 @@ public class AddLanguageTags
 											{
 												String corpus = accumulatedLabels.values().stream().reduce((a,b)->a+" "+b).get();
 												TextObject textObject = textObjectFactory.forText(corpus);
-												Optional<LdLocale> lang = languageDetector.detect(textObject);
+												com.google.common.base.Optional<LdLocale> lang = languageDetector.detect(textObject);
 												// write out old labels
 												{
 													if(lang.isPresent())
@@ -126,13 +138,13 @@ public class AddLanguageTags
 												accumulatedLabels.clear();
 											}
 										}
-										accumulatedLabels.put(url, unescapedLabel);
+										accumulatedLabels.put(url, label);
 										lastIdentifier = identifier;
 									} else // not accumulate
 									{
 										//						System.out.println(label);
-										TextObject textObject = textObjectFactory.forText(unescapedLabel);
-										Optional<LdLocale> lang = languageDetector.detect(textObject);
+										TextObject textObject = textObjectFactory.forText(label);
+										com.google.common.base.Optional<LdLocale> lang = languageDetector.detect(textObject);
 										if(lang.isPresent())
 										{
 											String tag = lang.get().getLanguage();
@@ -149,7 +161,6 @@ public class AddLanguageTags
 								else
 								{
 									System.err.println("could not find the label in the string: '"+line+"'");
-									//						outAll.println(line);
 								}
 
 								if(count%10000==0) System.out.println("Processed "+count+" labels.");
