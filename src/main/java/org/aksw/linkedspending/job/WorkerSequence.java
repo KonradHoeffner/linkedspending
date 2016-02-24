@@ -33,7 +33,7 @@ public class WorkerSequence extends Worker
 		return true;
 	}
 
-	public void stop()   {for(Worker w: workers) {w.stop();}}
-	public void pause()  {for(Worker w: workers) {w.pause();}}
-	public void resume() {for(Worker w: workers) {w.resume();}}
+	@Override public void stop()   {for(Worker w: workers) {w.stop();}}
+	@Override public void pause()  {for(Worker w: workers) {w.pause();}}
+	@Override public void resume() {for(Worker w: workers) {w.resume();}}
 }

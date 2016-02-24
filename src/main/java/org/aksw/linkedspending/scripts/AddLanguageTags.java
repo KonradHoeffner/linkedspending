@@ -65,7 +65,7 @@ public class AddLanguageTags
 				File outFolder = new File("langdetect/"+System.currentTimeMillis()/1000);
 				outFolder.mkdirs();
 				String accumulateString = accumulate?"-accumulated":"";
-				Map<String,String> accumulatedLabels = new HashMap<String,String>();
+				Map<String,String> accumulatedLabels = new HashMap<>();
 
 				try (BufferedReader in = new BufferedReader(new FileReader(inFile)))
 				{

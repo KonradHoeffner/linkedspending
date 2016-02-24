@@ -111,7 +111,7 @@ import de.konradhoeffner.commons.TSVReader;
 			while (in.hasNextTokens())
 			{
 				String[] tokens = in.nextTokens();
-				userDefinedDatasetPropertyNameToUri.put(new Pair<String,String>(tokens[0], tokens[1]), tokens[2]);
+				userDefinedDatasetPropertyNameToUri.put(new Pair<>(tokens[0], tokens[1]), tokens[2]);
 			}
 			in.close();
 		}
@@ -300,12 +300,12 @@ import de.konradhoeffner.commons.TSVReader;
 	}
 
 	/**
-	 * Takes a json url of an openspending dataset model and extracts rdf into a jena model.
+	 * Takes a url of an openspending dataset model and extracts rdf into a jena model.
 	 * The DataStructureDefinition (DSD) specifies the structure of a dataset and contains a set of
 	 * qb:ComponentSpecification resources.
-	 *
+	 * Developer note: method doesn't do that much anymore because it most properties add themself to the DSD on creation now
 	 * @param url
-	 *            json url that contains an openspending dataset model, e.g.
+	 *            url that contains an openspending dataset model, e.g.
 	 *            http://openspending.org/fukuoka_2013/model
 	 * @param model
 	 *            initialized model that the triples will be added to
@@ -315,6 +315,7 @@ import de.konradhoeffner.commons.TSVReader;
 		log.finer("Creating DSD");
 		Resource dsd = model.createResource(url.toString());
 		model.add(dsd, RDF.type, DataModel.DataCube.DataStructureDefinition);
+
 		// JsonNode dsdJson = readJSON(url);
 		// mapping is now gotten in createdataset
 		// JsonNode mapping = dsdJson.get("mapping");
@@ -369,8 +370,8 @@ import de.konradhoeffner.commons.TSVReader;
 	 */
 	static Set<ComponentProperty> createComponents(JsonNode mapping, Model model, String datasetName, Resource dataset,
 			Resource dsd, boolean datasetHasYear) throws MalformedURLException, IOException, MissingDataException,
-			UnknownMappingTypeException
-			{
+	UnknownMappingTypeException
+	{
 		int attributeCount = 1; // currency is always there and dataset is not created if it is not
 		// found
 		int dimensionCount = 0;
@@ -395,8 +396,8 @@ import de.konradhoeffner.commons.TSVReader;
 			// String componentPropertyUrl = componentJson.get("html_url");
 			String componentPropertyUrl;
 			{
-			String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<String,String>(datasetName, name));
-			componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() +datasetName+"-"+name;
+				String uri = userDefinedDatasetPropertyNameToUri.get(new Pair<>(datasetName, name));
+				componentPropertyUrl = (uri != null) ? uri : DataModel.LSOntology.getUri() +datasetName+"-"+name;
 			}
 			Property componentProperty = model.createProperty(componentPropertyUrl);
 			Resource componentSpecification = model.createResource(componentPropertyUrl + "-spec");
@@ -470,7 +471,7 @@ import de.konradhoeffner.commons.TSVReader;
 					dimensionCount++;
 					componentSpecification = DataModel.LSOntology.getDateComponentSpecification();
 					componentProperties.add(new ComponentProperty(DataModel.LSOntology.getRefDate(), name,
-							ComponentProperty.Type.DATE));
+							ComponentProperty.Type.DATE,false));
 					// it's a dimension
 					// model.add(componentSpecification, DataCube.dimension, componentProperty);
 					// model.add(componentProperty, RDF.type, DataCube.DimensionProperty);
@@ -497,7 +498,7 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentProperty, RDF.type, OWL.ObjectProperty);
 					// assertTrue(); TODO: assert that the "attributes" of the json are always
 					// "name" and "label"
-					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.COMPOUND));
+					componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.COMPOUND,true));
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
@@ -509,9 +510,9 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 
 					if(isStringDate)
-					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.STRING_DATE));}
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.STRING_DATE,true));}
 					else
-					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.MEASURE));}
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.MEASURE,true));}
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
@@ -523,9 +524,9 @@ import de.konradhoeffner.commons.TSVReader;
 					model.add(componentProperty, RDF.type, DataModel.DataCube.AttributeProperty);
 					model.add(componentProperty, DCTerms.identifier, model.createLiteral(name));
 					if(isStringDate)
-					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.STRING_DATE));}
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.STRING_DATE,true));}
 					else
-					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.ATTRIBUTE));}
+					{componentProperties.add(new ComponentProperty(componentProperty, name, ComponentProperty.Type.ATTRIBUTE,true));}
 					// TODO: model.add(componentProperty, DataCube.concept,SDMXCONCEPT. ???);
 					break;
 				}
@@ -545,10 +546,10 @@ import de.konradhoeffner.commons.TSVReader;
 		if (attributeCount == 0 || measureCount == 0 || dimensionCount == 0)
 		{
 			throw new MissingDataException(datasetName,"no "
-				+ (attributeCount == 0 ? "attributes" : (measureCount == 0 ? "measures" : "dimensions")) + " for dataset "
-				+ dataset.getLocalName()); }
+					+ (attributeCount == 0 ? "attributes" : (measureCount == 0 ? "measures" : "dimensions")) + " for dataset "
+					+ dataset.getLocalName()); }
 		return componentProperties;
-			}
+	}
 
 	public static List<String> ArrayNodeToStringList(ArrayNode ja)
 	{
@@ -584,10 +585,11 @@ import de.konradhoeffner.commons.TSVReader;
 		{
 			JsonNode result;
 			boolean dateExists = false;
-			Set<Integer> years = new HashSet<Integer>();
-			int missingValues = 0;
-			int expectedValues = 0;
+			Set<Integer> years = new HashSet<>();
+			int missingForAllProperties = 0;
+			int expectedForAllProperties = 0;
 			Map<ComponentProperty, Integer> missingForProperty = new HashMap<>();
+			Map<ComponentProperty, Integer> expectedForProperty = new HashMap<>();
 			int observations;
 
 			int dateParseErrors=0;
@@ -598,7 +600,7 @@ import de.konradhoeffner.commons.TSVReader;
 
 			for (observations = 0; (result = in.read()) != null; observations++)
 			{
-//				pausePoint(this);
+				//				pausePoint(this);
 				if(stopRequested) {job.setState(State.STOPPED);return false;}
 				String osUri = result.get("html_url").asText();
 				Resource osObservation = model.createResource();
@@ -614,13 +616,17 @@ import de.konradhoeffner.commons.TSVReader;
 				{
 					// if(d.name==null) {throw new
 					// RuntimeException("no name for component property "+d);}
-					expectedValues++;
+					expectedForAllProperties++;
+					Integer expected = expectedForProperty.get(d);
+					expected = (expected== null) ? 1 : expected+ 1;
+					expectedForProperty.put(d, expected);
+
 					if (!result.has(d.name))
 					{
 						Integer missing = missingForProperty.get(d);
 						missing = (missing == null) ? 1 : missing + 1;
 						missingForProperty.put(d, missing);
-						missingValues++;
+						missingForAllProperties++;
 						int minMissing =PropertyLoader.minValuesMissingForStop;
 						int maxMissing = PropertyLoader.maxValuesMissingLogged;
 						double missingStopRatio = PropertyLoader.datasetMissingStopRatio;
@@ -632,10 +638,10 @@ import de.konradhoeffner.commons.TSVReader;
 						{
 							log.warning("more missing entries for property " + d.name + ".");
 						}
-						if (missingValues >= minMissing && ((double) missingValues / expectedValues >= missingStopRatio))
+						if (missingForAllProperties >= minMissing && ((double) missingForAllProperties / expectedForAllProperties >= missingStopRatio))
 						{
 							faultyDatasets.add(datasetName);
-							throw new TooManyMissingValuesException(datasetName, missingValues);
+							throw new TooManyMissingValuesException(datasetName, missingForAllProperties);
 						}
 						continue;
 					}
@@ -655,7 +661,7 @@ import de.konradhoeffner.commons.TSVReader;
 								if (!jsonDim.has("html_url"))
 								{
 									log.warning("no url for " + jsonDim);
-									missingValues++;
+									missingForAllProperties++;
 									continue;
 								}
 								JsonNode urlNode = jsonDim.get("html_url");
@@ -793,17 +799,21 @@ import de.konradhoeffner.commons.TSVReader;
 			}
 
 			// completeness statistics
-			if (expectedValues == 0)
+			if (expectedForAllProperties == 0)
 			{
 				log.warning("no observations for dataset " + datasetName + ".");
 			}
 			else
 			{
-				model.addLiteral(dataSet, DataModel.LSOntology.getCompleteness(), 1 - (double) (missingValues / expectedValues));
+				model.addLiteral(dataSet, DataModel.LSOntology.getCompleteness(), 1 - (double) (missingForAllProperties / expectedForAllProperties));
 				for (ComponentProperty d : componentProperties)
 				{
-					model.addLiteral(d.property, DataModel.LSOntology.getCompleteness(),
-							1 - (double) (missingValues / expectedValues));
+					// only add completeness for properties that are only used by a single RDF data cube
+					if(d.isDataSetSpecific)
+					{
+						model.addLiteral(d.property, DataModel.LSOntology.getCompleteness(),
+								1 - (double) (missingForProperty.get(d)/ expectedForProperty.get(d)));
+					}
 				}
 
 				// in case the dataset goes over several years or doesnt have a default time attached we
@@ -822,7 +832,7 @@ import de.konradhoeffner.commons.TSVReader;
 					}
 					else
 					{
-						statisticsOut.println(datasetName + '\t' + ((double) missingValues / observations) + '\t'
+						statisticsOut.println(datasetName + '\t' + ((double) missingForAllProperties / observations) + '\t'
 								+ (double) Collections.max(missingForProperty.values()) / observations);
 					}
 				}
@@ -920,7 +930,7 @@ import de.konradhoeffner.commons.TSVReader;
 					} else
 					{
 						message = "ntriples transformation version of "+version.get()
-								+" not equal to target version "+UploadWorker.TRANSFORMATION_VERSION+".";
+						+" not equal to target version "+UploadWorker.TRANSFORMATION_VERSION+".";
 					}
 				} else
 				{

@@ -11,12 +11,10 @@ import lombok.ToString;
 {
 	@NonNull public final Property	property;
 	@NonNull public final String	name;
-
 	public static enum Type {
 		ATTRIBUTE, MEASURE, DATE,STRING_DATE, COMPOUND
 	};
 
 	@NonNull public final Type	type;
-
-
+	public final boolean isDataSetSpecific;
 }

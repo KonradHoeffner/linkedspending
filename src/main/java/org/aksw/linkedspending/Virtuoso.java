@@ -13,10 +13,11 @@ public class Virtuoso
 	static public void createGraphGroup()
 	{
 		VirtGraph virtGraph = new VirtGraph(graph,jdbcUrl,jdbcUser,jdbcPassword);
-		Statement statement = virtGraph.getConnection().createStatement();
-
-		VirtuosoUpdateFactory.create("CREATE SILENT GRAPH '"+PropertyLoader.graph+"'",virtGraph).exec();
-		statement.execute("DB.DBA.RDF_GRAPH_GROUP_CREATE('"+PropertyLoader.graph+"',1)");
+		try(Statement statement = virtGraph.getConnection().createStatement())
+		{
+			VirtuosoUpdateFactory.create("CREATE SILENT GRAPH '"+PropertyLoader.graph+"'",virtGraph).exec();
+			statement.execute("DB.DBA.RDF_GRAPH_GROUP_CREATE('"+PropertyLoader.graph+"',1)");
+		}
 		virtGraph.close();
 	}
 
@@ -24,12 +25,13 @@ public class Virtuoso
 	static public void createSubGraph(String datasetName)
 	{
 		VirtGraph virtGraph = new VirtGraph(graph,jdbcUrl,jdbcUser,jdbcPassword);
-		Statement statement = virtGraph.getConnection().createStatement();
+		try(Statement statement = virtGraph.getConnection().createStatement())
+		{
+			String subGraph = PropertyLoader.graph+datasetName;
 
-		String subGraph = PropertyLoader.graph+datasetName;
-
-		VirtuosoUpdateFactory.create("CREATE SILENT GRAPH '"+subGraph+"'",virtGraph).exec();
-		statement.execute("DB.DBA.RDF_GRAPH_GROUP_INS('"+PropertyLoader.graph+"','"+subGraph+"')");
+			VirtuosoUpdateFactory.create("CREATE SILENT GRAPH '"+subGraph+"'",virtGraph).exec();
+			statement.execute("DB.DBA.RDF_GRAPH_GROUP_INS('"+PropertyLoader.graph+"','"+subGraph+"')");
+		}
 		virtGraph.close();
 	}
 
@@ -37,11 +39,12 @@ public class Virtuoso
 	static public void deleteSubGraph(String datasetName)
 	{
 		VirtGraph virtGraph = new VirtGraph(graph,jdbcUrl,jdbcUser,jdbcPassword);
-		Statement statement = virtGraph.getConnection().createStatement();
-
-		String subGraph = PropertyLoader.graph+datasetName;
-		VirtuosoUpdateFactory.create("DROP SILENT GRAPH '"+subGraph+"'",virtGraph).exec();
-		statement.execute("DB.DBA.RDF_GRAPH_GROUP_DEL('"+PropertyLoader.graph+"','"+subGraph+"')");
+		try(Statement statement = virtGraph.getConnection().createStatement())
+		{
+			String subGraph = PropertyLoader.graph+datasetName;
+			VirtuosoUpdateFactory.create("DROP SILENT GRAPH '"+subGraph+"'",virtGraph).exec();
+			statement.execute("DB.DBA.RDF_GRAPH_GROUP_DEL('"+PropertyLoader.graph+"','"+subGraph+"')");
+		}
 		virtGraph.close();
 	}
 

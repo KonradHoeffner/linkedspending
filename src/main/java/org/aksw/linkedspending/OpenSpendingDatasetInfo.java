@@ -44,7 +44,7 @@ public class OpenSpendingDatasetInfo
 //	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
 //	private static final File emptyDatasetFile	= new File("cache/emptydatasets.ser");
 
-	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<String, OpenSpendingDatasetInfo>();
+	static protected final SortedMap<String,OpenSpendingDatasetInfo> datasetInfos = new TreeMap<>();
 
 	static Instant lastCacheRefresh = Instant.ofEpochMilli(0);
 	static private long CACHE_TTL_MINUTES = 15;
