@@ -588,8 +588,8 @@ import de.konradhoeffner.commons.TSVReader;
 			Set<Integer> years = new HashSet<>();
 			int missingForAllProperties = 0;
 			int expectedForAllProperties = 0;
+			// there is no expectedForProperty, as it's the same for all (number of observations) 
 			Map<ComponentProperty, Integer> missingForProperty = new HashMap<>();
-			Map<ComponentProperty, Integer> expectedForProperty = new HashMap<>();
 			int observations;
 
 			int dateParseErrors=0;
@@ -602,30 +602,26 @@ import de.konradhoeffner.commons.TSVReader;
 			{
 				//				pausePoint(this);
 				if(stopRequested) {job.setState(State.STOPPED);return false;}
-				String osUri = result.get("html_url").asText();
+
+//				String osUri = result.get("html_url").asText();				// old format
 				Resource osObservation = model.createResource();
-				String suffix = osUri.substring(osUri.lastIndexOf('/') + 1);
-				String lsUri = PropertyLoader.prefixInstance + "observation-" + datasetName + "-" + suffix;
+//				String id = osUri.substring(osUri.lastIndexOf('/') + 1); // old format
+				String id = result.get("id").asText(); 
+				String lsUri = PropertyLoader.prefixInstance + "observation-" + datasetName + "-" + id;
 				Resource observation = model.createResource(lsUri);
-				model.add(observation, RDFS.label, datasetName + " observation " + suffix);
+				model.add(observation, RDFS.label, datasetName + " observation " + id);
 				model.add(observation, DataModel.DataCube.dataSet, dataSet);
 				model.add(observation, RDF.type, DataModel.DataCube.Observation);
 				model.add(observation, DCTerms.source, osObservation);
 				// boolean dateExists=false;
 				for (ComponentProperty d : componentProperties)
 				{
-					// if(d.name==null) {throw new
-					// RuntimeException("no name for component property "+d);}
+					missingForProperty.put(d, 0);
 					expectedForAllProperties++;
-					Integer expected = expectedForProperty.get(d);
-					expected = (expected== null) ? 1 : expected+ 1;
-					expectedForProperty.put(d, expected);
 
 					if (!result.has(d.name))
 					{
-						Integer missing = missingForProperty.get(d);
-						missing = (missing == null) ? 1 : missing + 1;
-						missingForProperty.put(d, missing);
+						missingForProperty.put(d, missingForProperty.get(d)+1);
 						missingForAllProperties++;
 						int minMissing =PropertyLoader.minValuesMissingForStop;
 						int maxMissing = PropertyLoader.maxValuesMissingLogged;
@@ -812,7 +808,7 @@ import de.konradhoeffner.commons.TSVReader;
 					if(d.isDataSetSpecific)
 					{
 						model.addLiteral(d.property, DataModel.LSOntology.getCompleteness(),
-								1 - (double) (missingForProperty.get(d)/ expectedForProperty.get(d)));
+								1 - (double) (missingForProperty.get(d)/ expectedForAllProperties));
 					}
 				}
 
