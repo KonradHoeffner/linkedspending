@@ -76,6 +76,11 @@
 			<version>7.1.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.openlink.virtuoso</groupId>
+			<artifactId>virtjdbc4</artifactId>
+			<version>7.1.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-grizzly2-http</artifactId>
 		</dependency>
