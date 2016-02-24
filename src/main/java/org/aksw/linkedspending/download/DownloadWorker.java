@@ -47,24 +47,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 
 	final File partsSubFolder;
 
-//	private static final Set<String>	emptyDatasets	= Collections.synchronizedSet(new HashSet<String>());
-
 	enum Position {TOP, MID, BOTTOM}
-
-//	private static void markAsEmpty(String datasetName) throws FileNotFoundException, IOException
-//	{
-////		synchronized (emptyDatasets)
-////		{
-////			if(emptyDatasets.add(datasetName))
-////			{
-////				try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(emptyDatasetFile)))
-////				{
-////					log.fine("serializing " + JsonDownloaderOld.emptyDatasets.size() + " entries to empty dataset list file");
-////					out.writeObject(JsonDownloaderOld.emptyDatasets);
-////				}
-////			}
-////		}
-//	}
 
 	/** @see Worker() */
 	public DownloadWorker(String datasetName, Job job, boolean force)
@@ -120,7 +103,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			}
 			for (int page = 1; page <= nrOfPages; page++)
 			{
-//				pausePoint(this);
+				//				pausePoint(this);
 				if(stopRequested) {job.setState(State.STOPPED);break;}
 
 				File f;
@@ -140,18 +123,19 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 					connection = getConnection(entries);
 				}
 				catch(Exception e)
-//				catch (HttpConnectionUtil.HttpTimeoutException | HttpConnectionUtil.HttpUnavailableException e)
+				//				catch (HttpConnectionUtil.HttpTimeoutException | HttpConnectionUtil.HttpUnavailableException e)
 				{
 					log.severe("Could not get HTTP connection, download failed. Exception message: "+e.getMessage());
 					job.setState(State.FAILED);
 					cleanUpParts();
 					return false;
 				}
-				ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream());
-
-				try (FileOutputStream fos = new FileOutputStream(f))
+				try(ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream()))
 				{
-					fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);
+					try (FileOutputStream fos = new FileOutputStream(f))
+					{
+						fos.getChannel().transferFrom(rbc, 0, Integer.MAX_VALUE);
+					}
 				}
 				// ideally, memory should be measured during the transfer but thats not easily possible
 				// except
@@ -168,7 +152,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			if (stopRequested)
 			{
 				// System.out.println("Aborting DownloadCallable");
-//				JsonDownloaderOld.getUnfinishedDatasets().add(datasetName);
+				//				JsonDownloaderOld.getUnfinishedDatasets().add(datasetName);
 				log.warning("Stopped download of dataset "+datasetName);
 				job.setState(State.STOPPED);
 				cleanUpParts();
@@ -215,7 +199,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 		//		getDataFiles(rootPartsFolder)
 		File targetFile = DataSetFiles.datasetJsonFile(datasetName);
 		File mergeFile = new File(targetFile.getAbsolutePath()+".tmp");
-
+		// leftovers from a run before
 		if (targetFile.exists()) {targetFile.delete();}
 		if (mergeFile.exists()) {mergeFile.delete();}
 
@@ -247,6 +231,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 								break;
 							case MID:
 								out.println(line);
+								// this could easily break if openspending changes its formatting
 								if (line.equals("    }")) pos = Position.BOTTOM;
 								break;
 							case BOTTOM:
@@ -256,7 +241,7 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 					}
 					in.close();
 				}
-				if (partNr != parts.size()- 1) out.print(",");
+				if (partNr != parts.size()- 1) out.print("}},");
 				partNr++;
 			}
 			out.close();
@@ -272,9 +257,15 @@ import de.konradhoeffner.commons.MemoryBenchmark;
 			try
 			{
 				ObjectMapper mapper = new ObjectMapper();
-				JsonNode target = mapper.readTree(new FileInputStream(targetFile));
-				JsonNode merge = mapper.readTree(new FileInputStream(mergeFile));
-				equals = target.equals(merge);
+				try(FileInputStream tin= new FileInputStream(targetFile))
+				{
+					JsonNode target = mapper.readTree(tin);
+					try(FileInputStream min= new FileInputStream(mergeFile))
+					{
+						JsonNode merge = mapper.readTree(min);
+						equals = target.equals(merge);
+					}
+				}
 			}
 			catch (Exception e)
 			{
