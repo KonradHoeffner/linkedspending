@@ -61,6 +61,21 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.16</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.16</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
 			<groupId>com.optimaize.languagedetector</groupId>
 			<artifactId>language-detector</artifactId>
 			<version>0.5</version>
@@ -71,19 +86,22 @@
 			<version>2.6</version>
 		</dependency>
 		<dependency>
-			<groupId>tr.com.srdc</groupId>
-			<artifactId>virt-jena</artifactId>
-			<version>2.6.2-srdc</version>
+			<groupId>com.openlink.virtuoso</groupId>
+			<artifactId>virt_jena2</artifactId>
+			<version>7.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.openlink.virtuoso</groupId>
+			<artifactId>virtjdbc4</artifactId>
+			<version>7.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-grizzly2-http</artifactId>
-			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-moxy</artifactId>
-			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -103,7 +121,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.12.6</version>
+			<version>1.16.6</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -128,14 +146,9 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- <dependency> <groupId>rome</groupId> <artifactId>rome</artifactId>
-			<version>1.0</version> </dependency> -->
-
 	</dependencies>
 
 	<repositories>
-		<!-- <repository> <id>m2test</id> <url>http://build.eclipse.org/tools/objectteams/m2test</url>
-			</repository> -->
 		<repository>
 			<id>maven.aksw.internal</id>
 			<name>University Leipzig, AKSW Maven2 Repository</name>

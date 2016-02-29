@@ -18,25 +18,14 @@ public class DownloadConvertUploadWorker extends WorkerSequence
 	public DownloadConvertUploadWorker(String datasetName, Job job, boolean forceDownload, boolean forceConvert, boolean forceUpload)
 	{
 		super(datasetName, job,
-		new LinkedList<WorkerGenerator>	(Arrays.asList(DownloadWorker::new,ConvertWorker::new,UploadWorker::new)),
-		new LinkedList<Boolean>			(Arrays.asList(forceDownload,forceConvert,forceUpload)));
+				new LinkedList<WorkerGenerator>	(Arrays.asList(DownloadWorker::new,ConvertWorker::new,UploadWorker::new)),
+				new LinkedList<>			(Arrays.asList(forceDownload,forceConvert,forceUpload)));
 	}
 
 	@Override public Boolean get()
 	{
 		job.setState(RUNNING);
-		boolean success;
-// each component should decide for itself
-//		 don't do anything if already on SPARQL endpoint and no new data available
-//		if(!force&&LinkedSpendingDatasetInfo.upToDate(datasetName)&&LinkedSpendingDatasetInfo.newestTransformation(datasetName))
-//		{
-//			success=true;
-//			job.addHistory("Dataset already on endpoint, up to date and with newest transformation version, force is not set -> skipping Download, Conversion & Upload.");
-//		}
-//		else
-		{
-			success = super.get();
-		}
+		boolean success = super.get();
 		if(success) {job.setState(State.FINISHED);}
 		job.worker=Optional.empty();
 		return success;

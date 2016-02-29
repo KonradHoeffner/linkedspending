@@ -5,8 +5,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import org.aksw.linkedspending.tools.DataModel;
 import org.aksw.linkedspending.tools.PropertyLoader;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 
@@ -26,8 +25,8 @@ public class Sparql
 
 	public static ResultSet select(String query)
 	{
-		QueryEngineHTTP qe = new QueryEngineHTTP(PropertyLoader.endpoint, query);
-		return qe.execSelect();
+		try(QueryEngineHTTP qe = new QueryEngineHTTP(PropertyLoader.endpoint, query))
+		{return ResultSetFactory.copyResults(qe.execSelect());}
 	}
 
 	public static SortedMap<String,Long> modifiedByName()
