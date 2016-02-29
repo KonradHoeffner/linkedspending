@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ $# != 3 ]; then
+  echo 1>&2 "$0: wrong number of arguments: expects '<port> <username> <password>.'"
+  exit 2
+fi
+./virtload cube.ttl http://purl.org/linked-data/cube $1 $2 $3
+./virtload ontology.ttl http://linkedspending.aksw.org/ontology/ $1 $2 $3
+./virtload dbpedia-currencies.ttl http://dbpedia.org $1 $2 $3
+./virtload linkedgeodata-countries.ttl http://linkedgeodata.org $1 $2 $3
