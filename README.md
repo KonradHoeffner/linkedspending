@@ -3,8 +3,8 @@ openspending2rdf
 
 Usage
 -----
-Copy src/main/resources/credentials.properties.dist to ../credentials.properties and fill in your Virtuoso credentials.
-Start org.aksw.linkedspending.Rest and access http://localhost:10010/datasets in your browser.
+Copy src/main/resources/upload.properties.dist to ../upload.properties and fill in your Virtuoso credentials.
+Start org.aksw.linkedspending.rest.Rest and access http://localhost:10010/datasets in your browser.
 propertymapping.tsv is empty right now but can be filled with property mappings which differ from the automatic nameing scheme.
 
 Development
