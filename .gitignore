@@ -6,4 +6,5 @@ json
 output*
 .idea/
 *.iml
+*~
 upload.properties
