@@ -10,6 +10,8 @@ propertymapping.tsv is empty right now but can be filled with property mappings 
 Development
 -----------
 Needs Maven.
+Uses Java 8.
+Using Java 9 may require creating the correct module info file, however the Maven configuration sets the compiler version to Java 8 so you should not run into this problem by accident but only if you purposely decide to upgrade Java to version 9.
 Uses Project Lombok so you may have to integrate it into your GUI if you develop it with one, see http://projectlombok.org/features/index.html.
 
 Code Style
@@ -39,3 +41,8 @@ comments with more space than necessary
 - usage of project annotations Lombok to save space
 - usage of Eclipse @NonNull, @NonNullByDefault and @Nullable annotations
 - JUnit tests for every nontrivial class
+
+Known Issues
+-------------
+
+Some of the old scripts are not functional after the refactoring.
