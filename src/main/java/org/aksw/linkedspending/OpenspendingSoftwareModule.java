@@ -207,8 +207,8 @@ import java.util.logging.LogManager;
 	 */
 	public static int nrEntries(String datasetName) throws MalformedURLException, IOException
 	{
-		return readJSON(new URL(PropertyLoader.prefixOpenSpending + datasetName + "/entries.json?pagesize=0"))
-				.get("stats").get("results_count_query").asInt();
+		URL url = new URL(PropertyLoader.prefixOpenSpending + datasetName + "/entries.json?pagesize=0");
+		return readJSON(url).get("stats").get("results_count_query").asInt();
 	}
 
 	/**
