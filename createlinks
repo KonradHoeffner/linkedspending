@@ -1,0 +1,10 @@
+#!/bin/bash
+shopt -s nullglob
+amounts=`pwd`"/amounts"
+while read l1
+do
+ while read l2
+ do
+  echo $l1 '<http://www.w3.org/2002/07/owl#sameAs>' $l2.;
+ done < amounts
+done < amounts
