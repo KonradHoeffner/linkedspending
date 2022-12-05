@@ -4,17 +4,15 @@ This repository has been archived on 2022-05-10.
 LinkedSpending Data Conversion Tool
 ================
 
-
 Download Data
 -------------
 
-* [Download LS package 2013-9 / 0.1 (~448 MB 7zip compressed, ~10 GB uncompressed)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2013-9/lscomplete20139.7z)
-* [Download LS package 2014-3 (~2.1 GB 7zip compressed, ~25 GB uncompressed)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.7z)
-* [Download LS package 2014-3 (~351 MB Brotli compressed, 1.3 GB uncompressed)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.hdt.br)
-* [Download LS package 2014-3 (~475 MB 7gzip compressed, 1.3 GB uncompressed)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.hdt.gz)
-* https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.hdt.br
-* [Download the FinlandAid DataCube used by the CubeQA benchmark (~5.7 MB zip compressed, ~92 MB uncompressed)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-finland-aid/finland-aid.nt.zip)
-* [Download the 50 DataCubes used by the CubeQA qbench2 benchmark (~181 MB zip compressed, ~3.8 GB uncompressed)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-qbench2datasets/qbench2datasets.zip)
+* [Download LS package 2013-9 / 0.1 (~448 MB 7zip compressed, ~10 GB uncompressed N-Triples)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2013-9/lscomplete20139.7z)
+* [Download LS package 2014-3 (~2.1 GB 7zip compressed, ~25 GB uncompressed N-Triples)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.7z)
+* [Download LS package 2014-3 (~351 MB Brotli compressed, 1.3 GB uncompressed HDT)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.hdt.br)
+* [Download LS package 2014-3 (~475 MB 7gzip compressed, 1.3 GB uncompressed HDT )](https://github.com/KonradHoeffner/linkedspending/releases/download/data-2014-3/lscomplete20143.hdt.gz)
+* [Download the FinlandAid DataCube used by the CubeQA benchmark (~5.7 MB zip compressed, ~92 MB uncompressed N-Triples)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-finland-aid/finland-aid.nt.zip)
+* [Download the 50 DataCubes used by the CubeQA qbench2 benchmark (~181 MB zip compressed, ~3.8 GB uncompressed N-Triples)](https://github.com/KonradHoeffner/linkedspending/releases/download/data-qbench2datasets/qbench2datasets.zip)
 
 See also
 --------
