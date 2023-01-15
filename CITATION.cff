@@ -1,0 +1,65 @@
+cff-version: 1.2.0
+title: LinkedSpending
+message: >-
+  If you use this dataset, please cite the Semantic Web Journal article.
+type: dataset
+authors:
+  - given-names: Konrad
+    family-names: Höffner
+    email: konrad.hoeffner@uni-leipzig.de
+    affiliation: >-
+      Institute for Medical Informatics, Statistics
+      and Epidemiology (IMISE), Leipzig, Germany
+    orcid: 'https://orcid.org/0000-0001-7358-3217'
+  - given-names: Michael
+    family-names: Martin
+    orcid: 'https://orcid.org/0000-0003-0762-8688'
+    affiliation: >-
+      Institute for Applied Informatics, Leipzig,
+      Germany
+  - given-names: Jens
+    family-names: Lehmann
+    affiliation: " \tAmazon (Germany), Fraunhofer-Institut für Intelligente Analyse- und Informationssysteme IAIS, Institute for Applied Informatics (InfAI), TU Dresden, University of Bonn"
+    orcid: 'https://orcid.org/0000-0001-9108-4278'
+identifiers:
+  - type: url
+    value: >-
+      https://nbn-resolving.org/urn:nbn:de:bsz:15-qucosa2-742429
+    description: PhD thesis
+  - type: doi
+    value: 10.3233/SW-150172
+    description: >-
+      LinkedSpending: OpenSpending becomes Linked
+      Open Data. Semantic Web Journal. 2016
+repository-code: 'https://github.com/konradhoeffner/linkedspending'
+url: 'https://linkedspending.aksw.org'
+repository: >-
+  https://github.com/konradhoeffner/linkedspending.aksw.org
+abstract: >-
+  There is a high public demand to increase
+  transparency in government spending. Open spending
+  data has the power to reduce corruption by
+  increasing accountability and strengthens democracy
+  because voters can make better informed decisions.
+  An informed and trusting public also strengthens
+  the government itself because it is more likely to
+  commit to large projects. OpenSpending.org is a an
+  open platform that provides public finance data
+  from governments around the world. In this article,
+  we present its RDF conversion LinkedSpending which
+  provides more than five million planned and carried
+  out financial transactions in 627 data sets from
+  all over the world from 2005 to 2035 as Linked Open
+  Data. This data is represented in the RDF Data Cube
+  vocabulary and is freely available and openly
+  licensed. 
+keywords:
+  - government
+  - transparency
+  - finance
+  - open data
+  - linked open data
+  - rdf
+  - public expenditure
+  - openspending
+license: MIT
