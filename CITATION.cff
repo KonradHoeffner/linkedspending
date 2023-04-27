@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: LinkedSpending
+title: "LinkedSpending: OpenSpending becomes Linked Open Data"
 message: >-
   If you use this dataset, please cite the Semantic Web Journal article.
 type: dataset
@@ -23,8 +23,7 @@ authors:
     orcid: 'https://orcid.org/0000-0001-9108-4278'
 identifiers:
   - type: url
-    value: >-
-      https://nbn-resolving.org/urn:nbn:de:bsz:15-qucosa2-742429
+    value: https://nbn-resolving.org/urn:nbn:de:bsz:15-qucosa2-742429
     description: PhD thesis
   - type: doi
     value: 10.3233/SW-150172
@@ -53,6 +52,39 @@ abstract: >-
   Data. This data is represented in the RDF Data Cube
   vocabulary and is freely available and openly
   licensed. 
+preferred-citation:
+  type: article
+  authors:
+  - given-names: Konrad
+    family-names: Höffner
+    email: konrad.hoeffner@uni-leipzig.de
+    affiliation: Institute for Medical Informatics, Statistics and Epidemiology (IMISE), Leipzig, Germany
+    orcid: 'https://orcid.org/0000-0001-7358-3217'
+  - given-names: Michael
+    family-names: Martin
+    orcid: 'https://orcid.org/0000-0003-0762-8688'
+    affiliation: >-
+      Institute for Applied Informatics, Leipzig,
+      Germany
+  - given-names: Jens
+    family-names: Lehmann
+    affiliation: >-
+      Amazon (Germany),
+      Fraunhofer-Institut für Intelligente Analyse- und Informationssysteme IAIS,
+      Institute for Applied Informatics (InfAI),
+      TU Dresden,
+      University of Bonn
+    orcid: 'https://orcid.org/0000-0001-9108-4278'
+  doi: 10.3233/SW-150172
+  journal: "Semantic Web Journal"
+  start: 95
+  end: 104
+  title: "LinkedSpending: OpenSpending becomes Linked Open Data"
+  issue: 1
+  volume: 7
+  year: 2016
+  publisher:
+    - name: IOS Press
 keywords:
   - government
   - transparency
